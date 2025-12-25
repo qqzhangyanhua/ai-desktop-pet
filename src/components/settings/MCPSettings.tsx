@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import type { MCPServerConfig, MCPClientState, MCPToolSchema } from '../../services/mcp/types';
+import { serverCardStyles, formStyles, settingsStyles } from './mcp/styles';
 
 interface MCPSettingsProps {
   servers: MCPServerConfig[];
@@ -11,13 +12,6 @@ interface MCPSettingsProps {
   onConnect: (serverId: string) => void;
   onDisconnect: (serverId: string) => void;
 }
-
-const STATUS_COLORS: Record<string, string> = {
-  connected: '#22c55e',
-  connecting: '#f59e0b',
-  disconnected: '#94a3b8',
-  error: '#ef4444',
-};
 
 function ServerCard({
   config,
@@ -37,86 +31,57 @@ function ServerCard({
   const isConnecting = status === 'connecting';
 
   return (
-    <div
-      style={{
-        padding: '12px',
-        border: '1px solid #e2e8f0',
-        borderRadius: '8px',
-        backgroundColor: 'white',
-        marginBottom: '8px',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <div
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: STATUS_COLORS[status] || '#94a3b8',
-              }}
-            />
-            <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{config.name}</span>
-            <span
-              style={{
-                fontSize: '10px',
-                padding: '2px 6px',
-                backgroundColor: '#f1f5f9',
-                borderRadius: '4px',
-                color: '#64748b',
-              }}
-            >
+    <div style={serverCardStyles.container}>
+      <div style={serverCardStyles.header}>
+        <div style={serverCardStyles.content}>
+          <div style={serverCardStyles.titleRow}>
+            <div style={serverCardStyles.statusIndicator(status)} />
+            <span style={serverCardStyles.title}>{config.name}</span>
+            <span style={serverCardStyles.transportBadge}>
               {config.transport}
             </span>
           </div>
 
           {config.description && (
-            <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0' }}>
+            <p style={serverCardStyles.description}>
               {config.description}
             </p>
           )}
 
           {config.transport === 'stdio' && config.command && (
-            <p style={{ fontSize: '10px', color: '#94a3b8', margin: '4px 0', fontFamily: 'monospace' }}>
+            <p style={serverCardStyles.commandText}>
               {config.command} {config.args?.join(' ')}
             </p>
           )}
 
           {config.transport === 'http' && config.url && (
-            <p style={{ fontSize: '10px', color: '#94a3b8', margin: '4px 0', fontFamily: 'monospace' }}>
+            <p style={serverCardStyles.commandText}>
               {config.url}
             </p>
           )}
 
           {state?.error && (
-            <p style={{ fontSize: '11px', color: '#ef4444', margin: '4px 0' }}>
+            <p style={serverCardStyles.errorText}>
               Error: {state.error}
             </p>
           )}
 
           {isConnected && state?.tools && state.tools.length > 0 && (
-            <div style={{ marginTop: '8px' }}>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>
+            <div style={serverCardStyles.toolsContainer}>
+              <span style={serverCardStyles.toolsLabel}>
                 {state.tools.length} tools available
               </span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+              <div style={serverCardStyles.toolsList}>
                 {state.tools.slice(0, 5).map((tool: MCPToolSchema) => (
                   <span
                     key={tool.name}
-                    style={{
-                      fontSize: '10px',
-                      padding: '2px 6px',
-                      backgroundColor: '#eef2ff',
-                      borderRadius: '4px',
-                      color: '#6366f1',
-                    }}
+                    style={serverCardStyles.toolBadge}
                   >
                     {tool.name}
                   </span>
                 ))}
                 {state.tools.length > 5 && (
-                  <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+                  <span style={serverCardStyles.toolsMore}>
                     +{state.tools.length - 5} more
                   </span>
                 )}
@@ -125,19 +90,11 @@ function ServerCard({
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '4px' }}>
+        <div style={serverCardStyles.actions}>
           {isConnected ? (
             <button
               onClick={onDisconnect}
-              style={{
-                padding: '4px 8px',
-                fontSize: '11px',
-                border: '1px solid #fecaca',
-                borderRadius: '4px',
-                backgroundColor: '#fef2f2',
-                color: '#ef4444',
-                cursor: 'pointer',
-              }}
+              style={serverCardStyles.disconnectButton}
             >
               Disconnect
             </button>
@@ -145,31 +102,14 @@ function ServerCard({
             <button
               onClick={onConnect}
               disabled={isConnecting}
-              style={{
-                padding: '4px 8px',
-                fontSize: '11px',
-                border: '1px solid #86efac',
-                borderRadius: '4px',
-                backgroundColor: '#dcfce7',
-                color: '#16a34a',
-                cursor: isConnecting ? 'not-allowed' : 'pointer',
-                opacity: isConnecting ? 0.7 : 1,
-              }}
+              style={serverCardStyles.connectButton(isConnecting)}
             >
               {isConnecting ? 'Connecting...' : 'Connect'}
             </button>
           )}
           <button
             onClick={onRemove}
-            style={{
-              padding: '4px 8px',
-              fontSize: '11px',
-              border: '1px solid #e2e8f0',
-              borderRadius: '4px',
-              backgroundColor: 'white',
-              color: '#64748b',
-              cursor: 'pointer',
-            }}
+            style={serverCardStyles.removeButton}
           >
             Remove
           </button>
@@ -235,19 +175,11 @@ function AddServerForm({
   }, [name, description, transport, command, args, url, validate, onAdd]);
 
   return (
-    <div
-      style={{
-        padding: '16px',
-        border: '1px solid #e2e8f0',
-        borderRadius: '8px',
-        backgroundColor: '#fafafa',
-        marginBottom: '12px',
-      }}
-    >
-      <h4 style={{ margin: '0 0 12px', fontSize: '14px' }}>Add MCP Server</h4>
+    <div style={formStyles.container}>
+      <h4 style={formStyles.title}>Add MCP Server</h4>
 
-      <div style={{ marginBottom: '12px' }}>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>
+      <div style={formStyles.fieldContainer}>
+        <label style={formStyles.label}>
           Name *
         </label>
         <input
@@ -255,20 +187,13 @@ function AddServerForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., File System"
-          style={{
-            width: '100%',
-            padding: '8px',
-            fontSize: '13px',
-            border: errors.name ? '1px solid #ef4444' : '1px solid #e2e8f0',
-            borderRadius: '6px',
-            boxSizing: 'border-box',
-          }}
+          style={formStyles.input(!!errors.name)}
         />
-        {errors.name && <span style={{ fontSize: '11px', color: '#ef4444' }}>{errors.name}</span>}
+        {errors.name && <span style={formStyles.errorText}>{errors.name}</span>}
       </div>
 
-      <div style={{ marginBottom: '12px' }}>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>
+      <div style={formStyles.fieldContainer}>
+        <label style={formStyles.label}>
           Description
         </label>
         <input
@@ -276,47 +201,24 @@ function AddServerForm({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Brief description"
-          style={{
-            width: '100%',
-            padding: '8px',
-            fontSize: '13px',
-            border: '1px solid #e2e8f0',
-            borderRadius: '6px',
-            boxSizing: 'border-box',
-          }}
+          style={formStyles.input(false)}
         />
       </div>
 
-      <div style={{ marginBottom: '12px' }}>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>
+      <div style={formStyles.fieldContainer}>
+        <label style={formStyles.label}>
           Transport
         </label>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={formStyles.transportButtons}>
           <button
             onClick={() => setTransport('stdio')}
-            style={{
-              padding: '6px 12px',
-              fontSize: '12px',
-              border: transport === 'stdio' ? '1px solid #6366f1' : '1px solid #e2e8f0',
-              borderRadius: '6px',
-              backgroundColor: transport === 'stdio' ? '#eef2ff' : 'white',
-              color: transport === 'stdio' ? '#6366f1' : '#64748b',
-              cursor: 'pointer',
-            }}
+            style={formStyles.transportButton(transport === 'stdio')}
           >
             stdio
           </button>
           <button
             onClick={() => setTransport('http')}
-            style={{
-              padding: '6px 12px',
-              fontSize: '12px',
-              border: transport === 'http' ? '1px solid #6366f1' : '1px solid #e2e8f0',
-              borderRadius: '6px',
-              backgroundColor: transport === 'http' ? '#eef2ff' : 'white',
-              color: transport === 'http' ? '#6366f1' : '#64748b',
-              cursor: 'pointer',
-            }}
+            style={formStyles.transportButton(transport === 'http')}
           >
             HTTP
           </button>
@@ -325,8 +227,8 @@ function AddServerForm({
 
       {transport === 'stdio' && (
         <>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>
+          <div style={formStyles.fieldContainer}>
+            <label style={formStyles.label}>
               Command *
             </label>
             <input
@@ -334,21 +236,13 @@ function AddServerForm({
               value={command}
               onChange={(e) => setCommand(e.target.value)}
               placeholder="e.g., npx"
-              style={{
-                width: '100%',
-                padding: '8px',
-                fontSize: '13px',
-                fontFamily: 'monospace',
-                border: errors.command ? '1px solid #ef4444' : '1px solid #e2e8f0',
-                borderRadius: '6px',
-                boxSizing: 'border-box',
-              }}
+              style={formStyles.inputMonospace(!!errors.command)}
             />
-            {errors.command && <span style={{ fontSize: '11px', color: '#ef4444' }}>{errors.command}</span>}
+            {errors.command && <span style={formStyles.errorText}>{errors.command}</span>}
           </div>
 
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>
+          <div style={formStyles.fieldContainer}>
+            <label style={formStyles.label}>
               Arguments
             </label>
             <input
@@ -356,23 +250,15 @@ function AddServerForm({
               value={args}
               onChange={(e) => setArgs(e.target.value)}
               placeholder="e.g., -y @modelcontextprotocol/server-filesystem"
-              style={{
-                width: '100%',
-                padding: '8px',
-                fontSize: '13px',
-                fontFamily: 'monospace',
-                border: '1px solid #e2e8f0',
-                borderRadius: '6px',
-                boxSizing: 'border-box',
-              }}
+              style={formStyles.inputMonospace(false)}
             />
           </div>
         </>
       )}
 
       {transport === 'http' && (
-        <div style={{ marginBottom: '12px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>
+        <div style={formStyles.fieldContainer}>
+          <label style={formStyles.label}>
             URL *
           </label>
           <input
@@ -380,45 +266,22 @@ function AddServerForm({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="e.g., http://localhost:3000/mcp"
-            style={{
-              width: '100%',
-              padding: '8px',
-              fontSize: '13px',
-              fontFamily: 'monospace',
-              border: errors.url ? '1px solid #ef4444' : '1px solid #e2e8f0',
-              borderRadius: '6px',
-              boxSizing: 'border-box',
-            }}
+            style={formStyles.inputMonospace(!!errors.url)}
           />
-          {errors.url && <span style={{ fontSize: '11px', color: '#ef4444' }}>{errors.url}</span>}
+          {errors.url && <span style={formStyles.errorText}>{errors.url}</span>}
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+      <div style={formStyles.buttonRow}>
         <button
           onClick={onCancel}
-          style={{
-            padding: '6px 12px',
-            fontSize: '12px',
-            border: '1px solid #e2e8f0',
-            borderRadius: '6px',
-            backgroundColor: 'white',
-            cursor: 'pointer',
-          }}
+          style={formStyles.cancelButton}
         >
           Cancel
         </button>
         <button
           onClick={handleSubmit}
-          style={{
-            padding: '6px 12px',
-            fontSize: '12px',
-            border: 'none',
-            borderRadius: '6px',
-            backgroundColor: '#6366f1',
-            color: 'white',
-            cursor: 'pointer',
-          }}
+          style={formStyles.submitButton}
         >
           Add Server
         </button>
@@ -454,24 +317,14 @@ export function MCPSettings({
       ) : (
         <button
           onClick={() => setShowAddForm(true)}
-          style={{
-            width: '100%',
-            padding: '8px',
-            marginBottom: '12px',
-            fontSize: '12px',
-            border: '1px dashed #e2e8f0',
-            borderRadius: '6px',
-            backgroundColor: 'white',
-            cursor: 'pointer',
-            color: '#64748b',
-          }}
+          style={settingsStyles.addButton}
         >
           + Add MCP Server
         </button>
       )}
 
       {servers.length === 0 ? (
-        <p style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', padding: '20px' }}>
+        <p style={settingsStyles.emptyState}>
           No MCP servers configured
         </p>
       ) : (
@@ -487,16 +340,7 @@ export function MCPSettings({
         ))
       )}
 
-      <div
-        style={{
-          fontSize: '11px',
-          color: '#94a3b8',
-          padding: '8px',
-          backgroundColor: '#f8fafc',
-          borderRadius: '6px',
-          marginTop: '8px',
-        }}
-      >
+      <div style={settingsStyles.helpText}>
         MCP servers provide additional tools for the AI agent. Connect to servers like filesystem,
         GitHub, or custom servers to extend capabilities.
       </div>

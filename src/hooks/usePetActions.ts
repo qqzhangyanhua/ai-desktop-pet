@@ -23,8 +23,9 @@ export function usePetActions() {
     }
 
     const report = care.getStatusReport();
-    if (report.warnings.length > 0) {
-      toast.info(report.warnings[0]);
+    const warning = report.warnings[0];
+    if (warning) {
+      toast.info(warning);
     }
   }, []);
 

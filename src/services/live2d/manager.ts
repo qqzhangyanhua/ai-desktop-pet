@@ -272,7 +272,8 @@ export class Live2DManager {
     // 兜底：使用 Web Audio 生成 0.2s 短提示音
     try {
       if (!this.audioContext) {
-        const Ctor = window.AudioContext || (window as any).webkitAudioContext;
+        type WebkitWindow = typeof window & { webkitAudioContext?: typeof AudioContext };
+        const Ctor = window.AudioContext || (window as WebkitWindow).webkitAudioContext;
         if (!Ctor) return;
         this.audioContext = new Ctor();
       }

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useAssistantStore, usePetStore, toast } from '../stores';
 import { useCareStore } from '../stores/careStore';
-import type { AssistantSkill, AlarmReminder } from '../types';
+import type { AssistantSkill } from '../types';
 
 // 智能助手技能：时间播报、简易闹钟、灯光/电脑操作模拟、习惯记忆提示
 interface SkillPayload {
@@ -87,36 +87,34 @@ export function useAssistantSkills() {
   // 监听闹钟列表并触发提醒
   useEffect(() => {
     const timers = timersRef.current;
-    const unsubscribe = useAssistantStore.subscribe(
-      (state) => state.alarms,
-      (alarms: AlarmReminder[]) => {
-        alarms
-          .filter((alarm) => alarm.status === 'pending')
-          .forEach((alarm) => {
-            if (timers.has(alarm.id)) return;
-            const delay = Math.max(0, alarm.time - Date.now());
-            const timer = setTimeout(() => {
-              const pet = usePetStore.getState();
-              const assistant = useAssistantStore.getState();
-              pet.setEmotion('excited');
-              pet.showBubble(`提醒：${alarm.label}`, 6000);
-              toast.success(`闹钟触发：${alarm.label}`);
-              assistant.markAlarmTriggered(alarm.id);
-              timers.delete(alarm.id);
-            }, delay);
-            timers.set(alarm.id, timer);
-          });
-
-        // 清理无效定时器
-        timers.forEach((timer, id) => {
-          const exists = alarms.find((alarm) => alarm.id === id && alarm.status === 'pending');
-          if (!exists) {
-            clearTimeout(timer);
-            timers.delete(id);
-          }
+    const unsubscribe = useAssistantStore.subscribe((state) => {
+      const alarms = state.alarms;
+      alarms
+        .filter((alarm) => alarm.status === 'pending')
+        .forEach((alarm) => {
+          if (timers.has(alarm.id)) return;
+          const delay = Math.max(0, alarm.time - Date.now());
+          const timer = setTimeout(() => {
+            const pet = usePetStore.getState();
+            const assistant = useAssistantStore.getState();
+            pet.setEmotion('excited');
+            pet.showBubble(`提醒：${alarm.label}`, 6000);
+            toast.success(`闹钟触发：${alarm.label}`);
+            assistant.markAlarmTriggered(alarm.id);
+            timers.delete(alarm.id);
+          }, delay);
+          timers.set(alarm.id, timer);
         });
-      }
-    );
+
+      // 清理无效定时器
+      timers.forEach((timer, id) => {
+        const exists = alarms.find((alarm) => alarm.id === id && alarm.status === 'pending');
+        if (!exists) {
+          clearTimeout(timer);
+          timers.delete(id);
+        }
+      });
+    });
 
     return () => {
       unsubscribe();

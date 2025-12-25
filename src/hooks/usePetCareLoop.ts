@@ -19,7 +19,7 @@ export function usePetCareLoop() {
       if (stats.isSick && Date.now() - lastWarnAtRef.current > WARNING_COOLDOWN) {
         pet.showBubble('有点不舒服，帮我清洁或喂点东西吧', 5200);
         pet.setEmotion('sad');
-        toast.warn('宠物状态较弱，请优先喂食/清洁/休息');
+        toast.warning('宠物状态较弱，请优先喂食/清洁/休息');
         lastWarnAtRef.current = Date.now();
         return;
       }
@@ -29,9 +29,12 @@ export function usePetCareLoop() {
         report.warnings.length > 0 &&
         Date.now() - lastWarnAtRef.current > WARNING_COOLDOWN
       ) {
-        pet.showBubble(report.warnings[0], 4200);
-        pet.setEmotion(report.emotion);
-        lastWarnAtRef.current = Date.now();
+        const warning = report.warnings[0];
+        if (warning) {
+          pet.showBubble(warning, 4200);
+          pet.setEmotion(report.emotion);
+          lastWarnAtRef.current = Date.now();
+        }
       }
     };
 
