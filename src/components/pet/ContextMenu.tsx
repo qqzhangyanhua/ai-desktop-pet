@@ -46,42 +46,45 @@ export function ContextMenu({
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const statusPanelVisible = useConfigStore((s) => s.config.appearance.statusPanelVisible);
-  const [position, setPosition] = useState<{ left: number; top: number }>({ left: x, top: y });
+  const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
 
-  useEffect(() => {
-    setPosition({ left: x, top: y });
-  }, [x, y]);
-
-  // 根据窗口可视区域自动调整菜单位置，避免右侧/底部被截断
+  // 边界检测逻辑：默认右下，溢出则翻转
   useLayoutEffect(() => {
     const el = menuRef.current;
     if (!el) return;
 
-    const margin = 8;
+    const margin = 8; // 与窗口边缘的安全距离
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
     const rect = el.getBoundingClientRect();
+    const menuWidth = rect.width;
+    const menuHeight = rect.height;
 
+    // 默认位置：鼠标右下方
     let left = x;
     let top = y;
 
-    // 右侧溢出则向左展开
-    if (left + rect.width + margin > viewportWidth) {
-      left = x - rect.width;
-    }
-    // 底部溢出则向上展开
-    if (top + rect.height + margin > viewportHeight) {
-      top = y - rect.height;
+    // 右侧溢出检测：如果菜单右边缘超出窗口，翻转到左边
+    if (x + menuWidth > viewportWidth - margin) {
+      left = x - menuWidth;
     }
 
-    // clamp 到可视区域（若菜单过大，后续靠 max-height/scroll 承担）
-    const maxLeft = Math.max(margin, viewportWidth - rect.width - margin);
-    const maxTop = Math.max(margin, viewportHeight - rect.height - margin);
-    left = Math.max(margin, Math.min(maxLeft, left));
-    top = Math.max(margin, Math.min(maxTop, top));
+    // 下方溢出检测：如果菜单下边缘超出窗口，翻转到上边
+    if (y + menuHeight > viewportHeight - margin) {
+      top = y - menuHeight;
+    }
 
-    setPosition((prev) => (prev.left === left && prev.top === top ? prev : { left, top }));
+    // 确保菜单不超出左边界和上边界
+    left = Math.max(margin, left);
+    top = Math.max(margin, top);
+
+    // 极端情况：窗口太小，菜单无法完整显示
+    // 确保至少有一部分可见（不要完全超出右边界和下边界）
+    left = Math.min(left, viewportWidth - margin);
+    top = Math.min(top, viewportHeight - margin);
+
+    setPosition({ left, top });
   }, [x, y]);
 
   useEffect(() => {
@@ -172,7 +175,11 @@ export function ContextMenu({
     <div
       ref={menuRef}
       className="context-menu no-drag"
-      style={{ left: position.left, top: position.top }}
+      style={{
+        left: position?.left ?? 0,
+        top: position?.top ?? 0,
+        visibility: position ? 'visible' : 'hidden',
+      }}
     >
       <div className="context-menu-title">娱乐与表演</div>
       <div className="context-menu-item" onClick={() => handlePetAction('feed')}>
