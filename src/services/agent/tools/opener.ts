@@ -12,6 +12,7 @@ interface OpenResult {
 export class OpenUrlTool extends BaseTool {
   name = 'open_url';
   description = 'Open a URL in the default web browser.';
+  requiresConfirmation = true;
 
   schema: ToolSchema = {
     name: 'open_url',

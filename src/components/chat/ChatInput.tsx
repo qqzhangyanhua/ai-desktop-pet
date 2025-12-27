@@ -5,7 +5,7 @@ import { useChatStore, useConfigStore, toast } from '../../stores';
 import { usePushToTalk } from '../../hooks/usePushToTalk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, Send, Heart } from 'lucide-react';
+import { X, Send } from 'lucide-react';
 import type { STTResult } from '../../types';
 
 interface ChatInputProps {

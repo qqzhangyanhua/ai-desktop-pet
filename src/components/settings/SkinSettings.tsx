@@ -6,6 +6,7 @@ import { useSkinStore } from '../../stores/skinStore';
 import { getSkinManager, importSkinFromFolder, deleteImportedSkin } from '../../services/skin';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { confirmAction } from '@/lib/confirm';
 
 interface SkinSettingsProps {
   title?: string;
@@ -121,9 +122,13 @@ export function SkinSettings({
   }, []);
 
   const handleDelete = useCallback(async (skinId: string, skinName: string) => {
-    if (!window.confirm(`确认删除形象「${skinName}」吗？`)) {
-      return;
-    }
+    const ok = await confirmAction(`确认删除形象「${skinName}」吗？`, {
+      title: '删除形象',
+      kind: 'warning',
+      okLabel: '删除',
+      cancelLabel: '取消',
+    });
+    if (!ok) return;
 
     const success = await deleteImportedSkin(skinId);
     if (!success) {

@@ -18,6 +18,7 @@ import {
   Lightbulb,
   Monitor,
   Star,
+  Search,
   MessageSquare,
   Settings,
   BarChart3,
@@ -25,7 +26,8 @@ import {
   X,
 } from 'lucide-react';
 import type { AssistantSkill, PetActionType } from '../../types';
-import { useConfigStore } from '@/stores';
+import { useCareStore, useConfigStore } from '@/stores';
+import { Input } from '@/components/ui/input';
 
 interface ContextMenuProps {
   x: number;
@@ -34,6 +36,18 @@ interface ContextMenuProps {
   onChat: () => void;
   onPetAction: (action: PetActionType) => void;
   onAssistantAction: (skill: AssistantSkill) => void;
+}
+
+type MenuSection = 'quick' | 'pet_fun' | 'pet_care' | 'assistant' | 'system';
+
+interface MenuItem {
+  id: string;
+  section: MenuSection;
+  label: string;
+  keywords: string[];
+  icon: React.ReactNode;
+  danger?: boolean;
+  onSelect: () => void;
 }
 
 export function ContextMenu({
@@ -46,7 +60,9 @@ export function ContextMenu({
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const statusPanelVisible = useConfigStore((s) => s.config.appearance.statusPanelVisible);
+  const care = useCareStore();
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
+  const [query, setQuery] = useState('');
 
   // 边界检测逻辑：默认右下，溢出则翻转
   useLayoutEffect(() => {
@@ -146,29 +162,8 @@ export function ContextMenu({
     onClose();
   };
 
-  const handleOpenChat = async () => {
-    onClose();
-    const chatWindow = await WebviewWindow.getByLabel('chat');
-
-    if (chatWindow) {
-      await chatWindow.setFocus();
-    } else {
-      // In dev mode, use dev server URL; in production, use chat.html
-      const isDev = window.location.hostname === 'localhost';
-      const url = isDev ? 'http://localhost:1420/chat.html' : 'chat.html';
-
-      new WebviewWindow('chat', {
-        url,
-        title: '聊天窗口',
-        width: 600,
-        height: 700,
-        resizable: true,
-        center: true,
-        decorations: true,
-        alwaysOnTop: false,
-        skipTaskbar: false,
-      });
-    }
+  const handleOpenChat = () => {
+    onChat();
   };
 
   const handleOpenSettings = async () => {
@@ -196,6 +191,245 @@ export function ContextMenu({
     }
   };
 
+  const allItems: MenuItem[] = [
+    // Pet fun
+    {
+      id: 'pet:feed',
+      section: 'pet_fun',
+      label: '喂食/吃苹果',
+      keywords: ['喂食', '吃', '苹果', 'feed'],
+      icon: <GlassWater className="w-4 h-4" />,
+      onSelect: () => handlePetAction('feed'),
+    },
+    {
+      id: 'pet:play',
+      section: 'pet_fun',
+      label: '玩小游戏',
+      keywords: ['玩', '游戏', 'play'],
+      icon: <Gamepad2 className="w-4 h-4" />,
+      onSelect: () => handlePetAction('play'),
+    },
+    {
+      id: 'pet:dance',
+      section: 'pet_fun',
+      label: '跳舞秀',
+      keywords: ['跳舞', '舞蹈', 'dance'],
+      icon: <Music className="w-4 h-4" />,
+      onSelect: () => handlePetAction('dance'),
+    },
+    {
+      id: 'pet:music',
+      section: 'pet_fun',
+      label: '播放音乐',
+      keywords: ['音乐', '播放', 'music'],
+      icon: <Music className="w-4 h-4" />,
+      onSelect: () => handlePetAction('music'),
+    },
+    {
+      id: 'pet:magic',
+      section: 'pet_fun',
+      label: '表演魔术',
+      keywords: ['魔术', 'magic'],
+      icon: <Wand2 className="w-4 h-4" />,
+      onSelect: () => handlePetAction('magic'),
+    },
+    {
+      id: 'pet:art',
+      section: 'pet_fun',
+      label: '生成艺术作品',
+      keywords: ['艺术', '画', 'art'],
+      icon: <Palette className="w-4 h-4" />,
+      onSelect: () => handlePetAction('art'),
+    },
+    {
+      id: 'pet:transform',
+      section: 'pet_fun',
+      label: '变身',
+      keywords: ['变身', '换装', 'transform'],
+      icon: <Sparkles className="w-4 h-4" />,
+      onSelect: () => handlePetAction('transform'),
+    },
+
+    // Pet care
+    {
+      id: 'pet:sleep',
+      section: 'pet_care',
+      label: '睡觉/休息',
+      keywords: ['睡觉', '休息', 'sleep'],
+      icon: <Moon className="w-4 h-4" />,
+      onSelect: () => handlePetAction('sleep'),
+    },
+    {
+      id: 'pet:clean',
+      section: 'pet_care',
+      label: '清洁',
+      keywords: ['清洁', '洗', 'clean'],
+      icon: <Droplet className="w-4 h-4" />,
+      onSelect: () => handlePetAction('clean'),
+    },
+    {
+      id: 'pet:brush',
+      section: 'pet_care',
+      label: '梳毛',
+      keywords: ['梳', '梳毛', 'brush'],
+      icon: <Brush className="w-4 h-4" />,
+      onSelect: () => handlePetAction('brush'),
+    },
+    {
+      id: 'pet:rest',
+      section: 'pet_care',
+      label: '放松',
+      keywords: ['放松', '冥想', 'rest'],
+      icon: <Armchair className="w-4 h-4" />,
+      onSelect: () => handlePetAction('rest'),
+    },
+
+    // Assistant
+    {
+      id: 'assistant:weather',
+      section: 'assistant',
+      label: '查询天气提示',
+      keywords: ['天气', 'weather'],
+      icon: <Cloud className="w-4 h-4" />,
+      onSelect: () => handleAssistantAction('weather'),
+    },
+    {
+      id: 'assistant:time',
+      section: 'assistant',
+      label: '播报时间',
+      keywords: ['时间', '几点', 'time'],
+      icon: <Clock className="w-4 h-4" />,
+      onSelect: () => handleAssistantAction('time'),
+    },
+    {
+      id: 'assistant:alarm',
+      section: 'assistant',
+      label: '创建15分钟提醒',
+      keywords: ['提醒', '闹钟', 'alarm'],
+      icon: <Bell className="w-4 h-4" />,
+      onSelect: () => handleAssistantAction('alarm'),
+    },
+    {
+      id: 'assistant:lights',
+      section: 'assistant',
+      label: '控制灯光/设备（模拟）',
+      keywords: ['灯', '灯光', 'lights'],
+      icon: <Lightbulb className="w-4 h-4" />,
+      onSelect: () => handleAssistantAction('lights'),
+    },
+    {
+      id: 'assistant:pc_action',
+      section: 'assistant',
+      label: '简单电脑操作',
+      keywords: ['电脑', '打开', 'pc', 'action'],
+      icon: <Monitor className="w-4 h-4" />,
+      onSelect: () => handleAssistantAction('pc_action'),
+    },
+    {
+      id: 'assistant:habit',
+      section: 'assistant',
+      label: '记住偏好/给出建议',
+      keywords: ['偏好', '建议', '习惯', 'habit'],
+      icon: <Star className="w-4 h-4" />,
+      onSelect: () => handleAssistantAction('habit'),
+    },
+
+    // System
+    {
+      id: 'system:chat',
+      section: 'system',
+      label: '聊天',
+      keywords: ['chat', '聊天', '对话'],
+      icon: <MessageSquare className="w-4 h-4" />,
+      onSelect: handleOpenChat,
+    },
+    {
+      id: 'system:settings',
+      section: 'system',
+      label: '设置中心',
+      keywords: ['设置', 'settings'],
+      icon: <Settings className="w-4 h-4" />,
+      onSelect: handleOpenSettings,
+    },
+    {
+      id: 'system:status_panel',
+      section: 'system',
+      label: statusPanelVisible ? '隐藏状态面板' : '显示状态面板',
+      keywords: ['状态', '面板', '统计'],
+      icon: <BarChart3 className="w-4 h-4" />,
+      onSelect: handleToggleStatusPanel,
+    },
+    {
+      id: 'system:hide',
+      section: 'system',
+      label: '隐藏',
+      keywords: ['隐藏', 'hide'],
+      icon: <EyeOff className="w-4 h-4" />,
+      onSelect: handleHide,
+    },
+    {
+      id: 'system:quit',
+      section: 'system',
+      label: '退出',
+      keywords: ['退出', 'quit'],
+      icon: <X className="w-4 h-4" />,
+      danger: true,
+      onSelect: handleQuit,
+    },
+  ];
+
+  const itemById = new Map(allItems.map((i) => [i.id, i]));
+
+  const recommendedIds = (() => {
+    const ids: string[] = [];
+    if (care.satiety < 35) ids.push('pet:feed');
+    if (care.energy < 35) ids.push('pet:sleep');
+    if (care.boredom > 70) ids.push('pet:play');
+    if (care.hygiene < 40) ids.push('pet:clean', 'pet:brush');
+
+    // 默认给一点“好用入口”，减少用户上下滑
+    ids.push('system:chat', 'system:settings');
+
+    const deduped: string[] = [];
+    for (const id of ids) {
+      if (!deduped.includes(id)) deduped.push(id);
+    }
+    return deduped.slice(0, 6);
+  })();
+
+  const recommendedItems = recommendedIds
+    .map((id) => itemById.get(id))
+    .filter(Boolean) as MenuItem[];
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredItems = normalizedQuery
+    ? allItems.filter((item) => {
+        const haystack = `${item.label} ${item.keywords.join(' ')}`.toLowerCase();
+        return haystack.includes(normalizedQuery);
+      })
+    : allItems;
+
+  const renderItems = (items: MenuItem[]) => {
+    return items.map((item) => (
+      <div
+        key={item.id}
+        className={`context-menu-item${item.danger ? ' danger' : ''}`}
+        onClick={item.onSelect}
+      >
+        {item.icon}
+        {item.label}
+      </div>
+    ));
+  };
+
+  const getSectionItems = (section: MenuSection) =>
+    filteredItems.filter((i) => i.section === section);
+
+  const petFunItems = getSectionItems('pet_fun');
+  const petCareItems = getSectionItems('pet_care');
+  const assistantItems = getSectionItems('assistant');
+  const systemItems = getSectionItems('system');
+
   return (
     <div
       ref={menuRef}
@@ -206,104 +440,60 @@ export function ContextMenu({
         visibility: position ? 'visible' : 'hidden',
       }}
     >
-      <div className="context-menu-title">娱乐与表演</div>
-      <div className="context-menu-item" onClick={() => handlePetAction('feed')}>
-        <GlassWater className="w-4 h-4" />
-        喂食/吃苹果
-      </div>
-      <div className="context-menu-item" onClick={() => handlePetAction('play')}>
-        <Gamepad2 className="w-4 h-4" />
-        玩小游戏
-      </div>
-      <div className="context-menu-item" onClick={() => handlePetAction('dance')}>
-        <Music className="w-4 h-4" />
-        跳舞秀
-      </div>
-      <div className="context-menu-item" onClick={() => handlePetAction('music')}>
-        <Music className="w-4 h-4" />
-        播放音乐
-      </div>
-      <div className="context-menu-item" onClick={() => handlePetAction('magic')}>
-        <Wand2 className="w-4 h-4" />
-        表演魔术
-      </div>
-      <div className="context-menu-item" onClick={() => handlePetAction('art')}>
-        <Palette className="w-4 h-4" />
-        生成艺术作品
-      </div>
-      <div className="context-menu-item" onClick={() => handlePetAction('transform')}>
-        <Sparkles className="w-4 h-4" />
-        变身
-      </div>
-      <div className="context-menu-divider" />
-
-      <div className="context-menu-title">休息与护理</div>
-      <div className="context-menu-item" onClick={() => handlePetAction('sleep')}>
-        <Moon className="w-4 h-4" />
-        睡觉/休息
-      </div>
-      <div className="context-menu-item" onClick={() => handlePetAction('clean')}>
-        <Droplet className="w-4 h-4" />
-        清洁
-      </div>
-      <div className="context-menu-item" onClick={() => handlePetAction('brush')}>
-        <Brush className="w-4 h-4" />
-        梳毛
-      </div>
-      <div className="context-menu-item" onClick={() => handlePetAction('rest')}>
-        <Armchair className="w-4 h-4" />
-        放松
+      <div className="context-menu-search" onClick={(e) => e.stopPropagation()}>
+        <Search className="context-menu-search-icon" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="搜索…（喂食/睡觉/天气/设置）"
+          className="context-menu-search-input"
+        />
       </div>
 
-      <div className="context-menu-divider" />
-      <div className="context-menu-title">智能助手</div>
-      <div className="context-menu-item" onClick={() => handleAssistantAction('weather')}>
-        <Cloud className="w-4 h-4" />
-        查询天气提示
-      </div>
-      <div className="context-menu-item" onClick={() => handleAssistantAction('time')}>
-        <Clock className="w-4 h-4" />
-        播报时间
-      </div>
-      <div className="context-menu-item" onClick={() => handleAssistantAction('alarm')}>
-        <Bell className="w-4 h-4" />
-        创建15分钟提醒
-      </div>
-      <div className="context-menu-item" onClick={() => handleAssistantAction('lights')}>
-        <Lightbulb className="w-4 h-4" />
-        控制灯光/设备（模拟）
-      </div>
-      <div className="context-menu-item" onClick={() => handleAssistantAction('pc_action')}>
-        <Monitor className="w-4 h-4" />
-        简单电脑操作
-      </div>
-      <div className="context-menu-item" onClick={() => handleAssistantAction('habit')}>
-        <Star className="w-4 h-4" />
-        记住偏好/给出建议
-      </div>
+      {!normalizedQuery && recommendedItems.length > 0 && (
+        <>
+          <div className="context-menu-title">推荐/快捷</div>
+          {renderItems(recommendedItems)}
+          <div className="context-menu-divider" />
+        </>
+      )}
 
-      <div className="context-menu-divider" />
-      <div className="context-menu-item" onClick={handleOpenChat}>
-        <MessageSquare className="w-4 h-4" />
-        Chat
-      </div>
-      <div className="context-menu-item" onClick={handleOpenSettings}>
-        <Settings className="w-4 h-4" />
-        Settings
-      </div>
-      <div className="context-menu-item" onClick={handleToggleStatusPanel}>
-        <BarChart3 className="w-4 h-4" />
-        {statusPanelVisible ? '隐藏状态面板' : '显示状态面板'}
-      </div>
-      <div className="context-menu-divider" />
-      <div className="context-menu-item" onClick={handleHide}>
-        <EyeOff className="w-4 h-4" />
-        Hide
-      </div>
-      <div className="context-menu-item danger" onClick={handleQuit}>
-        <X className="w-4 h-4" />
-        Quit
-      </div>
+      {normalizedQuery && filteredItems.length === 0 ? (
+        <div className="context-menu-empty">没有匹配项</div>
+      ) : (
+        <>
+          {petFunItems.length > 0 && (
+            <>
+              <div className="context-menu-title">娱乐与表演</div>
+              {renderItems(petFunItems)}
+              <div className="context-menu-divider" />
+            </>
+          )}
+
+          {petCareItems.length > 0 && (
+            <>
+              <div className="context-menu-title">休息与护理</div>
+              {renderItems(petCareItems)}
+              <div className="context-menu-divider" />
+            </>
+          )}
+
+          {assistantItems.length > 0 && (
+            <>
+              <div className="context-menu-title">智能助手</div>
+              {renderItems(assistantItems)}
+              <div className="context-menu-divider" />
+            </>
+          )}
+
+          {systemItems.length > 0 && (
+            <>
+              <div className="context-menu-title">系统</div>
+              {renderItems(systemItems)}
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }

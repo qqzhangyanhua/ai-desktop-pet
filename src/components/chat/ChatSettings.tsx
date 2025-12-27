@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { useConfigStore, useChatStore, toast } from '@/stores';
 import type { LLMConfig } from '@/types';
+import { confirmAction } from '@/lib/confirm';
 
 interface ChatSettingsProps {
   onClose: () => void;
@@ -94,8 +95,14 @@ export function ChatSettings({ onClose }: ChatSettingsProps) {
   };
 
   // 清除对话历史
-  const handleClearHistory = () => {
-    if (confirm('确定要清除所有对话历史吗？')) {
+  const handleClearHistory = async () => {
+    const ok = await confirmAction('确定要清除所有对话历史吗？', {
+      title: '清除对话',
+      kind: 'warning',
+      okLabel: '清除',
+      cancelLabel: '取消',
+    });
+    if (ok) {
       clearMessages();
       toast.success('对话历史已清除');
     }
@@ -129,6 +136,10 @@ export function ChatSettings({ onClose }: ChatSettingsProps) {
 
       try {
         const text = await file.text();
+        if (!text.trim()) {
+          toast.error('文件为空');
+          return;
+        }
         // TODO: 解析并导入对话
         toast.success('对话已导入');
       } catch (error) {

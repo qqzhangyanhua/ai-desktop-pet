@@ -56,7 +56,7 @@
   },
   "plugins": {
     "sql": {
-      "preload": ["sqlite:app.db"]
+      "preload": ["sqlite:pet.db"]
     }
   }
 }

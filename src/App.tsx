@@ -11,6 +11,7 @@ import { initDatabase } from './services/database';
 import { getSchedulerManager } from './services/scheduler';
 import { initializeStatsService } from './services/statistics';
 import { initializeAchievements } from './services/achievements';
+import { AgentRuntime } from './services/agent';
 import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, toast } from './stores';
 import { getSkinManager } from './services/skin';
 import './styles/global.css';
@@ -163,6 +164,83 @@ function App() {
       unlistenClickThrough.then((fn) => fn());
     };
   }, []);
+
+  // Handle scheduler events (notifications / agent tasks / workflows)
+  useEffect(() => {
+    if (!dbReady) return;
+
+    const scheduler = getSchedulerManager();
+
+    const onNotification = (...args: unknown[]) => {
+      const payload = args[0] as { title?: string; body?: string } | undefined;
+      if (!payload) return;
+      const title = payload.title?.trim() || '任务提醒';
+      const body = payload.body?.trim() || '';
+      toast.info(body ? `${title}：${body}` : title, 6000);
+      const bubble = body ? `${title}\n${body}` : title;
+      usePetStore.getState().showBubble(bubble, 6000);
+    };
+
+    const onAgentExecute = (...args: unknown[]) => {
+      const payload = args[0] as
+        | { prompt?: string; toolsAllowed?: string[]; maxSteps?: number }
+        | undefined;
+      if (!payload) return;
+      void (async () => {
+        const prompt = payload.prompt?.trim();
+        if (!prompt) return;
+
+        const { config } = useConfigStore.getState();
+        if (config.llm.provider !== 'ollama' && !config.llm.apiKey) {
+          toast.error('未配置 API Key，无法执行定时任务');
+          usePetStore.getState().showBubble('未配置 API Key，无法执行定时任务', 5200);
+          return;
+        }
+        toast.info('正在执行定时任务…', 3000);
+        usePetStore.getState().setEmotion('thinking');
+
+        try {
+          const runtime = new AgentRuntime({
+            llmConfig: {
+              provider: config.llm.provider,
+              model: config.llm.model,
+              apiKey: config.llm.apiKey,
+              baseUrl: config.llm.baseUrl,
+              temperature: config.llm.temperature,
+              maxTokens: config.llm.maxTokens,
+            },
+            systemPrompt: config.systemPrompt,
+            maxSteps: payload.maxSteps ?? 5,
+          });
+
+          const result = await runtime.run([{ role: 'user', content: prompt }], payload.toolsAllowed);
+          usePetStore.getState().setEmotion('happy');
+          usePetStore.getState().showBubble(result.content.slice(0, 120) || '任务已完成', 6500);
+          toast.success('定时任务已完成');
+        } catch (err) {
+          usePetStore.getState().setEmotion('confused');
+          toast.error(err instanceof Error ? `定时任务失败：${err.message}` : '定时任务失败');
+          usePetStore.getState().showBubble('定时任务执行失败', 5200);
+        }
+      })();
+    };
+
+    const onWorkflowExecute = (...args: unknown[]) => {
+      const payload = args[0] as { workflowId?: string } | undefined;
+      if (!payload?.workflowId) return;
+      toast.info(`收到工作流执行请求：${payload.workflowId}`, 5000);
+    };
+
+    scheduler.on('notification', onNotification);
+    scheduler.on('agent_execute', onAgentExecute);
+    scheduler.on('workflow_execute', onWorkflowExecute);
+
+    return () => {
+      scheduler.off('notification', onNotification);
+      scheduler.off('agent_execute', onAgentExecute);
+      scheduler.off('workflow_execute', onWorkflowExecute);
+    };
+  }, [dbReady]);
 
   // Apply window settings when config changes (best-effort)
   useEffect(() => {

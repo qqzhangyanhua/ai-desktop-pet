@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useCareStore, useConfigStore, usePetStore, toast } from '../stores';
+import { ensurePetVoiceLinkInitialized, petSpeak } from '@/services/pet/voice-link';
 
 const getLoopIntervalMs = (frequency: 'low' | 'standard' | 'high') => {
   switch (frequency) {
@@ -29,8 +30,13 @@ const getWarningCooldownMs = (frequency: 'low' | 'standard' | 'high') => {
 export function usePetCareLoop() {
   const lastWarnAtRef = useRef(0);
   const behavior = useConfigStore((s) => s.config.behavior);
+  const voice = useConfigStore((s) => s.config.voice);
 
   useEffect(() => {
+    if (voice.sttEnabled || voice.ttsEnabled) {
+      ensurePetVoiceLinkInitialized();
+    }
+
     const warningCooldown = getWarningCooldownMs(behavior.interactionFrequency);
     const loopInterval = getLoopIntervalMs(behavior.interactionFrequency);
 
@@ -44,8 +50,12 @@ export function usePetCareLoop() {
       // 病弱提示
       if (stats.isSick && Date.now() - lastWarnAtRef.current > warningCooldown) {
         if (behavior.notifications.bubbleEnabled) {
-          pet.showBubble('有点不舒服，帮我清洁或喂点东西吧', 5200);
+          const msg = '有点不舒服，帮我清洁或喂点东西吧';
+          pet.showBubble(msg, 5200);
           pet.setEmotion('sad');
+          if (voice.ttsEnabled) {
+            void petSpeak(msg, { priority: 'high', interrupt: true });
+          }
         }
         if (behavior.notifications.toastEnabled) {
           toast.warning('宠物状态较弱，请优先喂食/清洁/休息');
@@ -64,6 +74,9 @@ export function usePetCareLoop() {
           if (behavior.notifications.bubbleEnabled) {
             pet.showBubble(warning, 4200);
             pet.setEmotion(report.emotion);
+            if (voice.ttsEnabled) {
+              void petSpeak(warning, { priority: 'high', interrupt: true });
+            }
           }
           lastWarnAtRef.current = Date.now();
         }
@@ -77,5 +90,5 @@ export function usePetCareLoop() {
     return () => {
       clearInterval(timer);
     };
-  }, [behavior]);
+  }, [behavior, voice.sttEnabled, voice.ttsEnabled]);
 }

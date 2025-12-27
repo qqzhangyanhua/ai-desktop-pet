@@ -16,19 +16,26 @@ interface ConfigStore extends ConfigState {
  * Recursively merges partial config into state config
  */
 function deepMerge(base: AppConfig, partial: Partial<AppConfig>): AppConfig {
-  return produce(base, (draft) => {
-    Object.keys(partial).forEach((key) => {
-      const typedKey = key as keyof AppConfig;
-      const value = partial[typedKey];
+  const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+    typeof v === 'object' && v !== null && !Array.isArray(v);
 
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        // Recursively merge nested objects
-        Object.assign(draft[typedKey] as object, value);
-      } else if (value !== undefined) {
-        // Directly assign primitive values
-        (draft[typedKey] as typeof value) = value;
+  const mergeInto = (target: Record<string, unknown>, source: Record<string, unknown>) => {
+    Object.keys(source).forEach((key) => {
+      const next = source[key];
+      if (next === undefined) return;
+
+      const current = target[key];
+      if (isPlainObject(current) && isPlainObject(next)) {
+        mergeInto(current, next);
+        return;
       }
+
+      target[key] = next;
     });
+  };
+
+  return produce(base, (draft) => {
+    mergeInto(draft as unknown as Record<string, unknown>, partial as unknown as Record<string, unknown>);
   });
 }
 
@@ -49,14 +56,15 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
       const openaiKey = await getApiKey('openai');
       const anthropicKey = await getApiKey('anthropic');
 
+      const merged = deepMerge(DEFAULT_CONFIG, savedConfig as Partial<AppConfig>);
       const config = {
-        ...savedConfig,
+        ...merged,
         llm: {
-          ...savedConfig.llm,
+          ...merged.llm,
           apiKey:
-            savedConfig.llm.provider === 'openai'
+            merged.llm.provider === 'openai'
               ? openaiKey ?? undefined
-              : savedConfig.llm.provider === 'anthropic'
+              : merged.llm.provider === 'anthropic'
                 ? anthropicKey ?? undefined
                 : undefined,
         },

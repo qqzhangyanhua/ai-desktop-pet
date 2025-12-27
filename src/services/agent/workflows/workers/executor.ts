@@ -74,7 +74,15 @@ export function createExecutorNode(config: ExecutorConfig): WorkflowNode {
           role: 'user',
           content: `Context:\n${context}\n\nTasks to execute:\n${taskDescriptions}`,
         },
-      ], ['clipboard', 'file', 'opener']);
+      ], [
+        'clipboard_read',
+        'clipboard_write',
+        'file_read',
+        'file_write',
+        'file_exists',
+        'open_url',
+        'open_app',
+      ]);
 
       // Update task status
       const updatedTasks = state.tasks.map((t) => {

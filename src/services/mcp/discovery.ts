@@ -4,6 +4,48 @@ import type { Tool, ToolSchema } from '../../types';
 import type { MCPClient } from './client';
 import type { MCPToolSchema, MCPToolCallResponse } from './types';
 
+function shouldConfirmMCPTool(mcpTool: MCPToolSchema): boolean {
+  const name = (mcpTool.name ?? '').toLowerCase();
+  const desc = (mcpTool.description ?? '').toLowerCase();
+  const text = `${name} ${desc}`;
+
+  // 默认保守：只读/查询类尽量免确认，其余需要确认
+  const readLike = [
+    'read',
+    'list',
+    'get',
+    'fetch',
+    'query',
+    'search',
+    'describe',
+    'inspect',
+    'info',
+    'status',
+  ];
+  const writeLike = [
+    'write',
+    'create',
+    'update',
+    'delete',
+    'remove',
+    'patch',
+    'edit',
+    'put',
+    'post',
+    'exec',
+    'run',
+    'shell',
+    'open',
+    'install',
+    'download',
+    'upload',
+  ];
+
+  if (writeLike.some((k) => text.includes(k))) return true;
+  if (readLike.some((k) => text.includes(k))) return false;
+  return true;
+}
+
 // Convert MCP tool schema to internal Tool format
 export function convertMCPTool(
   mcpTool: MCPToolSchema,
@@ -38,7 +80,7 @@ export function convertMCPTool(
     name: `${serverId}:${mcpTool.name}`,
     description: mcpTool.description ?? `MCP tool: ${mcpTool.name}`,
     schema,
-    requiresConfirmation: false,
+    requiresConfirmation: shouldConfirmMCPTool(mcpTool),
     execute: async (args: Record<string, unknown>): Promise<unknown> => {
       const response = await client.callTool({
         name: mcpTool.name,

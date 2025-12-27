@@ -17,6 +17,7 @@ export class SchedulerManager {
   private static instance: SchedulerManager;
   private unlistenFns: UnlistenFn[] = [];
   private eventHandlers = new Map<string, Set<(...args: unknown[]) => void>>();
+  private initialized = false;
 
   private constructor() {
     // Private constructor for singleton
@@ -33,6 +34,7 @@ export class SchedulerManager {
    * Initialize event listeners
    */
   async initialize(): Promise<void> {
+    if (this.initialized) return;
     // Listen for task started events
     const unlistenStarted = await listen<string>('task_started', (event) => {
       this.emit('started', event.payload);
@@ -68,6 +70,7 @@ export class SchedulerManager {
     const unlistenAgent = await listen<{
       prompt: string;
       toolsAllowed?: string[];
+      maxSteps?: number;
     }>('task_agent_execute', (event) => {
       this.emit('agent_execute', event.payload);
     });
@@ -82,6 +85,7 @@ export class SchedulerManager {
     });
     this.unlistenFns.push(unlistenWorkflow);
 
+    this.initialized = true;
     console.log('[SchedulerManager] Initialized');
   }
 
@@ -94,6 +98,7 @@ export class SchedulerManager {
     }
     this.unlistenFns = [];
     this.eventHandlers.clear();
+    this.initialized = false;
     console.log('[SchedulerManager] Cleaned up');
   }
 

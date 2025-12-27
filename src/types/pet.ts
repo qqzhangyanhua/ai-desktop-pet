@@ -19,6 +19,7 @@ export interface PetState {
   emotion: EmotionType;
   isVisible: boolean;
   currentSkinId: string;
+  isListening: boolean;
   isSpeaking: boolean;
   bubbleText: string | null;
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { getSchedulerManager } from '../../services/scheduler';
 import type { Task } from '../../types/scheduler';
 import { Button } from '@/components/ui/button';
+import { confirmAction } from '@/lib/confirm';
 
 export function SchedulerTestPanel() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -18,6 +19,11 @@ export function SchedulerTestPanel() {
   };
 
   useEffect(() => {
+    // Ensure scheduler event listeners are active in this window
+    scheduler.initialize().catch((error) => {
+      addLog(`Error initializing scheduler: ${error}`);
+    });
+
     // Load tasks
     loadTasks();
 
@@ -42,6 +48,9 @@ export function SchedulerTestPanel() {
       const data = args[0] as { title: string; body: string };
       addLog(`Notification: ${data.title} - ${data.body}`);
     });
+    return () => {
+      scheduler.cleanup().catch(() => {});
+    };
   }, []);
 
   const loadTasks = async () => {
@@ -106,7 +115,13 @@ export function SchedulerTestPanel() {
   };
 
   const deleteTask = async (taskId: string) => {
-    if (!confirm('Delete this task?')) return;
+    const ok = await confirmAction('确认删除该任务吗？', {
+      title: '删除任务',
+      kind: 'warning',
+      okLabel: '删除',
+      cancelLabel: '取消',
+    });
+    if (!ok) return;
 
     try {
       await scheduler.deleteTask(taskId);

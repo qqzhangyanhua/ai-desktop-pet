@@ -122,6 +122,7 @@ body {
   width: 100%;
   height: 100%;
   cursor: grab;
+  position: relative;
 }
 
 .pet-canvas:active {
@@ -142,6 +143,39 @@ body {
   overflow-y: auto;
   overscroll-behavior: contain;
   z-index: var(--z-modal);
+}
+
+/* Context menu search */
+.context-menu-search {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.context-menu-search-icon {
+  width: 14px;
+  height: 14px;
+  color: rgba(0, 0, 0, 0.5);
+  flex: 0 0 auto;
+}
+
+.context-menu-search-input {
+  height: 30px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.context-menu-empty {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
 }
 
 /* Context menu scrollbar */
@@ -224,6 +258,73 @@ body {
   border: 8px solid transparent;
   border-top-color: rgba(255, 255, 255, 0.95);
   border-bottom: 0;
+}
+
+/* Voice indicator (non-Live2D placeholder) */
+.pet-voice-indicator {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.75);
+  user-select: none;
+  pointer-events: none;
+}
+
+.pet-voice-indicator-text {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+.pet-voice-indicator-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pet-voice-indicator-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(76, 175, 80, 0.9);
+  animation: petVoicePulse 0.9s ease-in-out infinite;
+}
+
+.pet-voice-indicator.listening .pet-voice-indicator-dot {
+  background: rgba(255, 152, 0, 0.9);
+  animation-duration: 1.05s;
+}
+
+.pet-voice-indicator-dot:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.pet-voice-indicator-dot:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes petVoicePulse {
+  0% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
 }
 
 @keyframes fadeIn {

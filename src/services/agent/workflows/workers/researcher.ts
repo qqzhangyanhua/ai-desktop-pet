@@ -87,7 +87,7 @@ export function createResearcherNode(config: ResearcherConfig): WorkflowNode {
       const taskDescriptions = myTasks.map((t) => t.description).join('\n');
       const runResult = await runtime.run([
         { role: 'user', content: `Research the following:\n${taskDescriptions}` },
-      ], ['search', 'weather']);
+      ], ['web_search', 'weather']);
 
       // Update task status
       const updatedTasks = state.tasks.map((t) => {

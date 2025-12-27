@@ -8,7 +8,15 @@ import { StatusBar } from './StatusBar';
 import { InteractionFeedback } from './InteractionFeedback';
 // import { PetStatusPanel } from './PetStatusPanel';
 import { useConfigStore } from '../../stores';
-import { useAssistantSkills, useAutoWork, usePetActions, usePetCareLoop, useWindowAutoHide } from '../../hooks';
+import {
+  useAssistantSkills,
+  useAutoWork,
+  usePetActions,
+  usePetCareLoop,
+  usePetIdleBehavior,
+  usePetVoiceLink,
+  useWindowAutoHide,
+} from '../../hooks';
 import { useWindowPlacement } from '@/hooks/useWindowPlacement';
 import { usePetStatus } from '../../hooks/usePetStatus';
 import type { InteractionType } from '@/types';
@@ -249,6 +257,12 @@ export function PetContainer({ onOpenChat }: PetContainerProps) {
 
   // 养成状态循环提醒
   usePetCareLoop();
+
+  // 语音联动（说话/听写状态同步）
+  usePetVoiceLink();
+
+  // 日常行为（更像宠物，低打扰）
+  usePetIdleBehavior();
 
   // 统一处理移动结束后的吸附与位置记忆
   useWindowPlacement();

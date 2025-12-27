@@ -11,6 +11,7 @@ import {
 } from '../../services/data';
 import type { BackupMeta } from '../../services/data';
 import { Button } from '@/components/ui/button';
+import { confirmAction } from '@/lib/confirm';
 
 export function BackupTab() {
   const [backups, setBackups] = useState<BackupMeta[]>([]);
@@ -54,9 +55,16 @@ export function BackupTab() {
   };
 
   const handleRestore = async (backup: BackupMeta) => {
-    if (!window.confirm(`Restore from backup "${backup.name}"? This will overwrite current data.`)) {
-      return;
-    }
+    const ok = await confirmAction(
+      `确认从备份「${backup.name}」恢复吗？这会覆盖当前数据。`,
+      {
+        title: '恢复备份',
+        kind: 'warning',
+        okLabel: '恢复',
+        cancelLabel: '取消',
+      }
+    );
+    if (!ok) return;
 
     setIsRestoring(backup.id);
     setMessage(null);
@@ -77,9 +85,13 @@ export function BackupTab() {
   };
 
   const handleDelete = async (backup: BackupMeta) => {
-    if (!window.confirm(`Delete backup "${backup.name}"?`)) {
-      return;
-    }
+    const ok = await confirmAction(`确认删除备份「${backup.name}」吗？`, {
+      title: '删除备份',
+      kind: 'warning',
+      okLabel: '删除',
+      cancelLabel: '取消',
+    });
+    if (!ok) return;
 
     try {
       await deleteBackup(backup.name);

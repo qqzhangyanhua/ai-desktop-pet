@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { AgentRole } from '../../types';
+import { confirmAction } from '@/lib/confirm';
 
 interface AgentRoleEditorProps {
   role?: AgentRole | null;
@@ -59,9 +60,15 @@ export function AgentRoleEditor({
     );
   }, []);
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (role?.id && onDelete) {
-      if (window.confirm(`Delete agent role "${role.name}"?`)) {
+      const ok = await confirmAction(`确认删除智能体角色「${role.name}」吗？`, {
+        title: '删除智能体角色',
+        kind: 'warning',
+        okLabel: '删除',
+        cancelLabel: '取消',
+      });
+      if (ok) {
         onDelete(role.id);
       }
     }

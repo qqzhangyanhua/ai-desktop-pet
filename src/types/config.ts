@@ -49,6 +49,8 @@ export interface BehaviorConfig {
   interactionFrequency: InteractionFrequency;
   /** 自动打工开关（预留） */
   autoWorkEnabled: boolean;
+  /** 动作台词/表情包 ID（预留：后续可扩展多套性格/语气） */
+  expressionPackId: string;
   /** 通知提醒设置 */
   notifications: {
     bubbleEnabled: boolean;
@@ -161,6 +163,7 @@ export const DEFAULT_CONFIG: AppConfig = {
     decaySpeed: 'standard',
     interactionFrequency: 'standard',
     autoWorkEnabled: false,
+    expressionPackId: 'default',
     notifications: {
       bubbleEnabled: true,
       toastEnabled: true,

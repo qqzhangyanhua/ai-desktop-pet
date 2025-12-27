@@ -6,6 +6,7 @@ import type { LLMProviderConfig } from '../llm/types';
 import type { Tool, AgentEvent, ToolCallEvent, ToolResultEvent, TextEvent, StatusEvent } from '../../types';
 import { createBuiltInTools } from './tools';
 import { z } from 'zod';
+import { confirmAction } from '@/lib/confirm';
 
 export interface AgentRuntimeConfig {
   llmConfig: LLMProviderConfig;
@@ -91,6 +92,49 @@ function buildZodSchema(properties: Record<string, { type: string; description: 
   return z.object(zodSchema);
 }
 
+function formatArgsForConfirmation(args: Record<string, unknown>): string {
+  const redactKeys = new Set(['apiKey', 'api_key', 'token', 'password', 'secret']);
+
+  const valueToPreview = (value: unknown): unknown => {
+    if (typeof value === 'string') {
+      if (value.length <= 160) return value;
+      return `${value.slice(0, 160)}…(共${value.length}字)`;
+    }
+    if (Array.isArray(value)) return value.slice(0, 10).map(valueToPreview);
+    if (value && typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(obj).slice(0, 20)) {
+        out[k] = redactKeys.has(k) ? '[已脱敏]' : valueToPreview(v);
+      }
+      return out;
+    }
+    return value;
+  };
+
+  try {
+    return JSON.stringify(valueToPreview(args), null, 2);
+  } catch {
+    return '[参数无法序列化]';
+  }
+}
+
+async function confirmToolExecution(tool: Tool, args: Record<string, unknown>): Promise<boolean> {
+  const preview = formatArgsForConfirmation(args);
+  const message =
+    `工具「${tool.name}」需要你的确认才能执行。\n\n` +
+    `说明：${tool.description}\n\n` +
+    `参数预览：\n${preview}\n\n` +
+    `是否允许执行？`;
+
+  return await confirmAction(message, {
+    title: '需要确认',
+    kind: 'warning',
+    okLabel: '允许',
+    cancelLabel: '拒绝',
+  });
+}
+
 export class AgentRuntime {
   private tools: Map<string, Tool> = new Map();
   private abortController: AbortController | null = null;
@@ -158,6 +202,15 @@ export class AgentRuntime {
         description: t.description,
         inputSchema: inputSchema,
         execute: async (args: Record<string, unknown>) => {
+          if (t.requiresConfirmation) {
+            const allowed = await confirmToolExecution(t, args);
+            if (!allowed) {
+              return {
+                success: false,
+                error: '用户拒绝执行该工具',
+              };
+            }
+          }
           return t.execute(args);
         },
       };

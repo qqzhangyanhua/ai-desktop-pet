@@ -7,6 +7,8 @@ use tauri::{
     Wry,
 };
 
+mod scheduler;
+
 #[cfg(target_os = "macos")]
 const TRAY_ICON: tauri::image::Image<'_> = tauri::include_image!("icons/32x32.png");
 
@@ -36,7 +38,29 @@ pub fn run() {
     let builder = tauri::Builder::default();
 
     #[cfg(target_os = "macos")]
-    let builder = builder.invoke_handler(tauri::generate_handler![set_tray_click_through_checked]);
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        set_tray_click_through_checked,
+        scheduler::scheduler_create_task,
+        scheduler::scheduler_get_task,
+        scheduler::scheduler_get_all_tasks,
+        scheduler::scheduler_update_task,
+        scheduler::scheduler_delete_task,
+        scheduler::scheduler_enable_task,
+        scheduler::scheduler_execute_now,
+        scheduler::scheduler_get_executions
+    ]);
+
+    #[cfg(not(target_os = "macos"))]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        scheduler::scheduler_create_task,
+        scheduler::scheduler_get_task,
+        scheduler::scheduler_get_all_tasks,
+        scheduler::scheduler_update_task,
+        scheduler::scheduler_delete_task,
+        scheduler::scheduler_enable_task,
+        scheduler::scheduler_execute_now,
+        scheduler::scheduler_get_executions
+    ]);
 
     builder
         .plugin(tauri_plugin_sql::Builder::new().build())
@@ -48,6 +72,11 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();
+
+            // 后台调度器（轮询 due tasks 并发事件给前端）
+            let scheduler = scheduler::SchedulerRunner::new(app.handle().clone());
+            scheduler.start();
+            app.manage(scheduler);
 
             #[cfg(debug_assertions)]
             {
@@ -68,8 +97,13 @@ pub fn run() {
                 )?;
                 let click_through_enabled =
                     std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
-                let toggle_visibility_item =
-                    MenuItem::with_id(app, "tray_toggle_visibility", "显示/隐藏", true, None::<&str>)?;
+                let toggle_visibility_item = MenuItem::with_id(
+                    app,
+                    "tray_toggle_visibility",
+                    "显示/隐藏",
+                    true,
+                    None::<&str>,
+                )?;
                 let quit_item = MenuItem::with_id(app, "tray_quit", "退出", true, None::<&str>)?;
 
                 let tray_menu = MenuBuilder::new(app)
@@ -103,7 +137,10 @@ pub fn run() {
                                 let _ = click_through_item.set_checked(false);
                                 click_through_enabled
                                     .store(false, std::sync::atomic::Ordering::Relaxed);
-                                let _ = app.emit("click-through-changed", serde_json::json!({ "enabled": false }));
+                                let _ = app.emit(
+                                    "click-through-changed",
+                                    serde_json::json!({ "enabled": false }),
+                                );
 
                                 let _ = main_window.show();
                                 let _ = main_window.set_focus();

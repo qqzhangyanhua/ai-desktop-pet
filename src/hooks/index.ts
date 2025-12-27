@@ -4,6 +4,8 @@ export { useLive2D, cleanupLive2D } from './useLive2D';
 export { useVoice, cleanupVoice } from './useVoice';
 export { usePushToTalk } from './usePushToTalk';
 export { usePetCareLoop } from './usePetCareLoop';
+export { usePetIdleBehavior } from './usePetIdleBehavior';
+export { usePetVoiceLink } from './usePetVoiceLink';
 export { usePetActions } from './usePetActions';
 export { useAssistantSkills } from './useAssistantSkills';
 export { useAssistantCommandRouter } from './useAssistantCommandRouter';

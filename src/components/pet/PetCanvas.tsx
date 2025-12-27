@@ -102,7 +102,7 @@ export function PetCanvas({
   const graphicsRef = useRef<Graphics | null>(null);
   const [isReady, setIsReady] = useState(false);
 
-  const { emotion, bubbleText } = usePetStore();
+  const { emotion, bubbleText, isSpeaking, isListening } = usePetStore();
 
   // Initialize PixiJS
   useEffect(() => {
@@ -171,8 +171,11 @@ export function PetCanvas({
 
       frame += 0.05;
       const offsetY = Math.sin(frame) * 3;
+      const voiceState = usePetStore.getState();
+      const speakOffset = voiceState.isSpeaking ? Math.sin(frame * 6) * 1.2 : 0;
+      const listenOffset = voiceState.isListening ? Math.sin(frame * 4) * 0.8 : 0;
 
-      graphicsRef.current.position.y = offsetY;
+      graphicsRef.current.position.y = offsetY + speakOffset + listenOffset;
     };
 
     appRef.current.ticker.add(ticker);
@@ -194,6 +197,19 @@ export function PetCanvas({
       {bubbleText && (
         <div className="chat-bubble">
           {bubbleText}
+        </div>
+      )}
+      {!bubbleText && (isSpeaking || isListening) && (
+        <div
+          className={`pet-voice-indicator ${isListening ? 'listening' : 'speaking'}`}
+          aria-live="polite"
+        >
+          <span className="pet-voice-indicator-text">{isListening ? '听' : '说'}</span>
+          <span className="pet-voice-indicator-dots" aria-hidden="true">
+            <span className="pet-voice-indicator-dot" />
+            <span className="pet-voice-indicator-dot" />
+            <span className="pet-voice-indicator-dot" />
+          </span>
         </div>
       )}
     </div>
