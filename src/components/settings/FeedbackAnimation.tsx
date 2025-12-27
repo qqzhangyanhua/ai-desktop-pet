@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { CheckCircle, Info, AlertTriangle, type LucideIcon } from 'lucide-react';
 import './FeedbackAnimation.css';
 
 export type FeedbackType = 'success' | 'info' | 'warning';
@@ -23,10 +24,10 @@ interface FeedbackAnimationProps {
   onDismiss?: (id: string) => void;
 }
 
-const ICONS: Record<FeedbackType, string> = {
-  success: '🎉',
-  info: '💭',
-  warning: '⚠️',
+const ICONS: Record<FeedbackType, LucideIcon> = {
+  success: CheckCircle,
+  info: Info,
+  warning: AlertTriangle,
 };
 
 const DEFAULT_DURATION = 3000;
@@ -52,12 +53,17 @@ export function FeedbackAnimation({ message, onDismiss }: FeedbackAnimationProps
 
   return (
     <div className="feedback-container">
-      {visibleMessages.map((msg) => (
-        <div key={msg.id} className={`feedback-bubble feedback-${msg.type}`}>
-          <span className="feedback-icon">{ICONS[msg.type]}</span>
-          <span className="feedback-message">{msg.message}</span>
-        </div>
-      ))}
+      {visibleMessages.map((msg) => {
+        const IconComponent = ICONS[msg.type];
+        return (
+          <div key={msg.id} className={`feedback-bubble feedback-${msg.type}`}>
+            <span className="feedback-icon">
+              <IconComponent className="w-4 h-4" />
+            </span>
+            <span className="feedback-message">{msg.message}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }

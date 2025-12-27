@@ -4,6 +4,16 @@ import { useCallback, useEffect, useState } from 'react';
 import type { VoiceConfig, TTSVoice } from '../../types';
 import type { TTSEngine } from '../../services/voice';
 import { getVoiceManager } from '../../services/voice';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface VoiceSettingsProps {
   config: VoiceConfig;
@@ -119,35 +129,37 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
 
         <div className="settings-row">
           <span className="settings-label">Enable STT</span>
-          <input
-            type="checkbox"
+          <Checkbox
             checked={config.sttEnabled}
-            onChange={(e) => handleChange('sttEnabled', e.target.checked)}
-            style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+            onCheckedChange={(checked) => handleChange('sttEnabled', !!checked)}
           />
         </div>
 
         <div className="settings-row">
           <span className="settings-label">Language</span>
-          <select
-            className="settings-select"
+          <Select
             value={config.sttLanguage}
-            onChange={(e) => handleChange('sttLanguage', e.target.value)}
+            onValueChange={(value) => handleChange('sttLanguage', value)}
             disabled={!config.sttEnabled}
           >
-            {STT_LANGUAGES.map((lang) => (
-              <option key={lang.value} value={lang.value}>
-                {lang.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STT_LANGUAGES.map((lang) => (
+                <SelectItem key={lang.value} value={lang.value}>
+                  {lang.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="settings-row">
           <span className="settings-label">Push-to-Talk Key</span>
-          <input
+          <Input
             type="text"
-            className="settings-input"
+            className="settings-input w-[100px] text-center"
             value={config.pushToTalkKey}
             onChange={(e) => handleChange('pushToTalkKey', e.target.value)}
             placeholder="Press a key..."
@@ -156,19 +168,10 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
               handleChange('pushToTalkKey', e.key);
             }}
             disabled={!config.sttEnabled}
-            style={{ width: '100px', textAlign: 'center' }}
           />
         </div>
 
-        <div
-          className="settings-row"
-          style={{
-            fontSize: '11px',
-            color: '#888',
-            borderBottom: 'none',
-            paddingTop: '4px',
-          }}
-        >
+        <div className="settings-row border-none pt-1 text-[11px] text-slate-400">
           {config.sttEnabled
             ? 'Hold the key to speak, release to send'
             : 'Enable STT to use voice input'}
@@ -181,44 +184,50 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
 
         <div className="settings-row">
           <span className="settings-label">Enable TTS</span>
-          <input
-            type="checkbox"
+          <Checkbox
             checked={config.ttsEnabled}
-            onChange={(e) => handleChange('ttsEnabled', e.target.checked)}
-            style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+            onCheckedChange={(checked) => handleChange('ttsEnabled', !!checked)}
           />
         </div>
 
         <div className="settings-row">
           <span className="settings-label">Engine</span>
-          <select
-            className="settings-select"
+          <Select
             value={config.ttsEngine}
-            onChange={(e) => handleEngineChange(e.target.value as TTSEngine)}
+            onValueChange={(value) => handleEngineChange(value as TTSEngine)}
             disabled={!config.ttsEnabled}
           >
-            {TTS_ENGINES.map((engine) => (
-              <option key={engine.value} value={engine.value}>
-                {engine.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TTS_ENGINES.map((engine) => (
+                <SelectItem key={engine.value} value={engine.value}>
+                  {engine.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="settings-row">
           <span className="settings-label">Voice</span>
-          <select
-            className="settings-select"
+          <Select
             value={config.ttsVoice}
-            onChange={(e) => handleChange('ttsVoice', e.target.value)}
+            onValueChange={(value) => handleChange('ttsVoice', value)}
             disabled={!config.ttsEnabled}
           >
-            {availableVoices.map((voice) => (
-              <option key={voice.id} value={voice.id}>
-                {voice.name} ({voice.language})
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {availableVoices.map((voice) => (
+                <SelectItem key={voice.id} value={voice.id}>
+                  {voice.name} ({voice.language})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="settings-row">
@@ -231,9 +240,9 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
             value={config.ttsRate}
             onChange={(e) => handleChange('ttsRate', parseFloat(e.target.value))}
             disabled={!config.ttsEnabled}
-            style={{ width: '120px' }}
+            className="w-[120px] accent-indigo-500"
           />
-          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
+          <span className="ml-2 text-xs text-slate-600 font-medium">
             {config.ttsRate.toFixed(1)}x
           </span>
         </div>
@@ -248,9 +257,9 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
             value={config.ttsPitch}
             onChange={(e) => handleChange('ttsPitch', parseFloat(e.target.value))}
             disabled={!config.ttsEnabled}
-            style={{ width: '120px' }}
+            className="w-[120px] accent-indigo-500"
           />
-          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
+          <span className="ml-2 text-xs text-slate-600 font-medium">
             {config.ttsPitch.toFixed(1)}
           </span>
         </div>
@@ -265,40 +274,27 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
             value={config.ttsVolume}
             onChange={(e) => handleChange('ttsVolume', parseFloat(e.target.value))}
             disabled={!config.ttsEnabled}
-            style={{ width: '120px' }}
+            className="w-[120px] accent-indigo-500"
           />
-          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
+          <span className="ml-2 text-xs text-slate-600 font-medium">
             {Math.round(config.ttsVolume * 100)}%
           </span>
         </div>
 
-        <div className="settings-row" style={{ borderBottom: 'none' }}>
+        <div className="settings-row border-none">
           <span className="settings-label">Test</span>
-          <button
+          <Button
             onClick={handleTestTTS}
             disabled={!config.ttsEnabled}
-            style={{
-              padding: '6px 12px',
-              border: '1px solid #ddd',
-              borderRadius: '6px',
-              background: config.ttsEnabled ? '#f5f5f5' : '#eee',
-              cursor: config.ttsEnabled ? 'pointer' : 'not-allowed',
-              fontSize: '12px',
-            }}
+            variant="outline"
+            size="sm"
+            className="px-3 py-1.5 text-xs"
           >
             Play Test
-          </button>
+          </Button>
         </div>
 
-        <div
-          className="settings-row"
-          style={{
-            fontSize: '11px',
-            color: '#888',
-            borderBottom: 'none',
-            paddingTop: '4px',
-          }}
-        >
+        <div className="settings-row border-none pt-1 text-[11px] text-slate-400">
           {config.ttsEnabled
             ? config.ttsEngine === 'edge-tts'
               ? 'Using Microsoft Edge TTS (requires edge-tts CLI)'

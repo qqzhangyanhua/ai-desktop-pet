@@ -6,6 +6,8 @@
  */
 
 import { usePetStatusStore } from '@/stores';
+import { Handshake, Users, Heart, Lock, Check } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import './GrowthStageIndicator.css';
 
 export function GrowthStageIndicator() {
@@ -15,10 +17,10 @@ export function GrowthStageIndicator() {
   const { config, progressPercent, intimacyToNext, nextStage } = progress;
 
   // 阶段图标映射
-  const stageIcons: Record<string, string> = {
-    stranger: '🤝',
-    friend: '👥',
-    soulmate: '💝',
+  const stageIcons: Record<string, LucideIcon> = {
+    stranger: Handshake,
+    friend: Users,
+    soulmate: Heart,
   };
 
   // 阶段颜色映射
@@ -29,13 +31,14 @@ export function GrowthStageIndicator() {
   };
 
   const currentColor = stageColors[progress.currentStage] || '#94a3b8';
+  const CurrentStageIcon = stageIcons[progress.currentStage] || Handshake;
 
   return (
     <div className="growth-stage-indicator">
       {/* 阶段标题 */}
       <div className="stage-header">
-        <span className="stage-icon" style={{ fontSize: '24px' }}>
-          {stageIcons[progress.currentStage]}
+        <span className="stage-icon">
+          <CurrentStageIcon className="w-6 h-6" style={{ color: currentColor }} />
         </span>
         <div className="stage-info">
           <div className="stage-name">{config.name}</div>
@@ -68,14 +71,19 @@ export function GrowthStageIndicator() {
         <div className="next-stage">
           <div className="next-stage-title">
             <span>下一阶段: {nextStage.name}</span>
-            <span className="next-stage-icon">{stageIcons[nextStage.stage]}</span>
+            <span className="next-stage-icon">
+              {(() => {
+                const NextStageIcon = stageIcons[nextStage.stage] || Handshake;
+                return <NextStageIcon className="w-4 h-4" />;
+              })()}
+            </span>
           </div>
           <div className="next-stage-unlocks">
             {nextStage.unlocks
               .filter((unlock) => !config.unlocks.includes(unlock))
               .map((unlock, idx) => (
                 <div key={idx} className="unlock-item locked">
-                  <span className="unlock-icon">🔒</span>
+                  <span className="unlock-icon"><Lock className="w-3 h-3" /></span>
                   <span>{unlock}</span>
                 </div>
               ))}
@@ -89,7 +97,7 @@ export function GrowthStageIndicator() {
         <div className="unlocks-list">
           {config.unlocks.map((unlock, idx) => (
             <div key={idx} className="unlock-item unlocked">
-              <span className="unlock-icon">✓</span>
+              <span className="unlock-icon"><Check className="w-3 h-3" /></span>
               <span>{unlock}</span>
             </div>
           ))}

@@ -1,6 +1,17 @@
 import type { AppConfig, LLMConfig } from '../../../types';
 import type { FeedbackType } from '../FeedbackAnimation';
 import { VoiceSettings } from '../VoiceSettings';
+import { Bot, Building2, Brain, Thermometer, Keyboard, MessageSquare, Settings2, Lock, HardDrive, FileText, User } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface AssistantTabProps {
   config: AppConfig;
@@ -34,42 +45,56 @@ export function AssistantTab({
   return (
     <>
       <div className="settings-section">
-        <div className="settings-section-title">🤖 AI模型选择</div>
-
-        <div className="settings-row">
-          <span className="settings-label">🏢 模型提供方</span>
-          <select
-            className="settings-select"
-            value={config.llm.provider}
-            onChange={(e) => onProviderChange(e.target.value as LLMConfig['provider'])}
-          >
-            {llmProviders.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
-          </select>
+        <div className="settings-section-title flex items-center gap-2">
+          <Bot className="w-4 h-4" />
+          AI模型选择
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">🧠 模型</span>
-          <select
-            className="settings-select"
-            value={config.llm.model}
-            onChange={(e) => onModelChange(e.target.value)}
+          <span className="settings-label flex items-center gap-2">
+            <Building2 className="w-4 h-4" />
+            模型提供方
+          </span>
+          <Select
+            value={config.llm.provider}
+            onValueChange={(value) => onProviderChange(value as LLMConfig['provider'])}
           >
-            {availableModels.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {llmProviders.map((p) => (
+                <SelectItem key={p.value} value={p.value}>
+                  {p.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="settings-row">
+          <span className="settings-label flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            模型
+          </span>
+          <Select value={config.llm.model} onValueChange={onModelChange}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {availableModels.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {m}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {config.llm.provider !== 'ollama' && (
           <div className="settings-row">
             <span className="settings-label">API Key</span>
-            <input
+            <Input
               type="password"
               className="settings-input"
               value={config.llm.apiKey ?? ''}
@@ -82,7 +107,7 @@ export function AssistantTab({
         {config.llm.provider === 'ollama' && (
           <div className="settings-row">
             <span className="settings-label">Base URL</span>
-            <input
+            <Input
               type="text"
               className="settings-input"
               value={config.llm.baseUrl ?? 'http://localhost:11434/api'}
@@ -93,7 +118,10 @@ export function AssistantTab({
         )}
 
         <div className="settings-row">
-          <span className="settings-label">🌡️ Temperature</span>
+          <span className="settings-label flex items-center gap-2">
+            <Thermometer className="w-4 h-4" />
+            Temperature
+          </span>
           <div className="slider-container">
             <input
               type="range"
@@ -112,11 +140,17 @@ export function AssistantTab({
       </div>
 
       <div className="settings-section">
-        <div className="settings-section-title">⌨️ 快捷键设置</div>
+        <div className="settings-section-title flex items-center gap-2">
+          <Keyboard className="w-4 h-4" />
+          快捷键设置
+        </div>
 
         <div className="settings-row">
-          <span className="settings-label">💬 打开聊天</span>
-          <input
+          <span className="settings-label flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            打开聊天
+          </span>
+          <Input
             type="text"
             className="settings-input"
             value={config.assistant.shortcuts.openChat}
@@ -134,8 +168,11 @@ export function AssistantTab({
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">⚙️ 打开设置</span>
-          <input
+          <span className="settings-label flex items-center gap-2">
+            <Settings2 className="w-4 h-4" />
+            打开设置
+          </span>
+          <Input
             type="text"
             className="settings-input"
             value={config.assistant.shortcuts.openSettings}
@@ -156,28 +193,31 @@ export function AssistantTab({
       <VoiceSettings config={config.voice} onChange={onVoiceConfigChange} />
 
       <div className="settings-section">
-        <div className="settings-section-title">🔒 隐私设置（对话历史）</div>
+        <div className="settings-section-title flex items-center gap-2">
+          <Lock className="w-4 h-4" />
+          隐私设置（对话历史）
+        </div>
 
         <div className="settings-row">
-          <span className="settings-label">💾 保存对话历史</span>
-          <input
-            type="checkbox"
+          <span className="settings-label flex items-center gap-2">
+            <HardDrive className="w-4 h-4" />
+            保存对话历史
+          </span>
+          <Checkbox
             checked={config.assistant.privacy.saveChatHistory}
-            onChange={(e) => {
-              const enabled = e.target.checked;
+            onCheckedChange={(enabled) => {
               onConfigChange((prev) => ({
                 ...prev,
                 assistant: {
                   ...prev.assistant,
-                  privacy: { ...prev.assistant.privacy, saveChatHistory: enabled },
+                  privacy: { ...prev.assistant.privacy, saveChatHistory: !!enabled },
                 },
               }));
               onFeedback?.(
-                enabled ? '📝 对话历史记录已开启!' : '🔒 对话历史记录已关闭',
+                !!enabled ? '对话历史记录已开启!' : '对话历史记录已关闭',
                 'info'
               );
             }}
-            className="settings-checkbox"
           />
         </div>
 
@@ -187,12 +227,16 @@ export function AssistantTab({
       </div>
 
       <div className="settings-section">
-        <div className="settings-section-title">🎭 性格与角色</div>
+        <div className="settings-section-title flex items-center gap-2">
+          <User className="w-4 h-4" />
+          性格与角色
+        </div>
         <div className="settings-row settings-row-column">
-          <span className="settings-label settings-label-with-margin">
-            📝 系统提示词
+          <span className="settings-label settings-label-with-margin flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            系统提示词
           </span>
-          <textarea
+          <Textarea
             className="settings-input settings-textarea"
             value={config.systemPrompt}
             onChange={(e) => onSystemPromptChange(e.target.value)}

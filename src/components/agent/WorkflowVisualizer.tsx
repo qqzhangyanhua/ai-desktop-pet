@@ -1,6 +1,7 @@
 // Workflow Visualizer Component
 
 import { useState, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
 import type { WorkflowState, AgentMessage } from '../../services/agent/workflows/types';
 
 interface WorkflowVisualizerProps {
@@ -210,50 +211,33 @@ export function WorkflowVisualizer({
 
         <div style={{ display: 'flex', gap: '4px' }}>
           {state.status === 'running' && onPause && (
-            <button
+            <Button
               onClick={onPause}
-              style={{
-                padding: '4px 8px',
-                fontSize: '11px',
-                border: '1px solid #e2e8f0',
-                borderRadius: '4px',
-                backgroundColor: 'white',
-                cursor: 'pointer',
-              }}
+              variant="outline"
+              size="sm"
             >
               Pause
-            </button>
+            </Button>
           )}
           {state.status === 'paused' && onResume && (
-            <button
+            <Button
               onClick={onResume}
-              style={{
-                padding: '4px 8px',
-                fontSize: '11px',
-                border: '1px solid #22c55e',
-                borderRadius: '4px',
-                backgroundColor: '#dcfce7',
-                cursor: 'pointer',
-              }}
+              variant="outline"
+              size="sm"
+              className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
             >
               Resume
-            </button>
+            </Button>
           )}
           {(state.status === 'running' || state.status === 'paused') && onCancel && (
-            <button
+            <Button
               onClick={onCancel}
-              style={{
-                padding: '4px 8px',
-                fontSize: '11px',
-                border: '1px solid #fecaca',
-                borderRadius: '4px',
-                backgroundColor: '#fef2f2',
-                color: '#ef4444',
-                cursor: 'pointer',
-              }}
+              variant="outline"
+              size="sm"
+              className="bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
             >
               Cancel
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -305,22 +289,13 @@ export function WorkflowVisualizer({
 
       {/* Messages section */}
       <div>
-        <button
+        <Button
           onClick={() => setShowMessages(!showMessages)}
-          style={{
-            width: '100%',
-            padding: '8px',
-            fontSize: '12px',
-            fontWeight: 'bold',
-            border: 'none',
-            backgroundColor: '#f1f5f9',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            marginBottom: '8px',
-          }}
+          variant="outline"
+          className="w-full justify-center font-semibold mb-2 bg-slate-50 hover:bg-slate-100"
         >
           {showMessages ? 'Hide' : 'Show'} Messages ({state.messages.length})
-        </button>
+        </Button>
 
         {showMessages && (
           <div

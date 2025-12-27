@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getSchedulerManager } from '../../services/scheduler';
 import type { Task } from '../../types/scheduler';
+import { Button } from '@/components/ui/button';
 
 export function SchedulerTestPanel() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -121,34 +122,12 @@ export function SchedulerTestPanel() {
       <h2>Scheduler Test Panel</h2>
 
       <div style={{ marginBottom: '20px' }}>
-        <button
-          onClick={createTestTask}
-          disabled={isCreating}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isCreating ? 'not-allowed' : 'pointer',
-          }}
-        >
+        <Button onClick={createTestTask} disabled={isCreating} className="bg-blue-600 hover:bg-blue-700">
           {isCreating ? 'Creating...' : 'Create Test Task'}
-        </button>
-        <button
-          onClick={loadTasks}
-          style={{
-            padding: '10px 20px',
-            marginLeft: '10px',
-            backgroundColor: '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
+        </Button>
+        <Button onClick={loadTasks} variant="outline" className="ml-2 bg-emerald-600 text-white hover:bg-emerald-700 border-0">
           Refresh
-        </button>
+        </Button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
@@ -180,48 +159,19 @@ export function SchedulerTestPanel() {
                     {task.description || 'No description'}
                   </div>
                   <div style={{ display: 'flex', gap: '5px' }}>
-                    <button
-                      onClick={() => executeTask(task.id)}
-                      style={{
-                        padding: '5px 10px',
-                        fontSize: '12px',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer',
-                      }}
-                    >
+                    <Button onClick={() => executeTask(task.id)} size="sm" className="bg-blue-600 hover:bg-blue-700">
                       Run Now
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => toggleTask(task.id, task.enabled)}
-                      style={{
-                        padding: '5px 10px',
-                        fontSize: '12px',
-                        backgroundColor: task.enabled ? '#ffc107' : '#28a745',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer',
-                      }}
+                      size="sm"
+                      className={task.enabled ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-600 hover:bg-emerald-700'}
                     >
                       {task.enabled ? 'Disable' : 'Enable'}
-                    </button>
-                    <button
-                      onClick={() => deleteTask(task.id)}
-                      style={{
-                        padding: '5px 10px',
-                        fontSize: '12px',
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer',
-                      }}
-                    >
+                    </Button>
+                    <Button onClick={() => deleteTask(task.id)} size="sm" className="bg-red-600 hover:bg-red-700">
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))

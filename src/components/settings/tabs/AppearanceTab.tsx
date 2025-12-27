@@ -2,6 +2,16 @@ import type { AppConfig } from '../../../types';
 import type { FeedbackType } from '../FeedbackAnimation';
 import { SkinSettings } from '../SkinSettings';
 import { getSkinManager } from '../../../services/skin';
+import { Home, Palette, Sparkles, Mouse, Cat, CircleHelp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface AppearanceTabProps {
   config: AppConfig;
@@ -22,7 +32,7 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
             live2d: { ...prev.live2d, useLive2D: enabled },
           }));
           onFeedback?.(
-            enabled ? '✨ 宠物动起来啦!' : '宠物休息中~',
+            enabled ? '宠物动起来啦!' : '宠物休息中~',
             'success'
           );
         }}
@@ -35,7 +45,7 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
           }));
           if (Math.abs(scale - prevScale) > 0.1) {
             onFeedback?.(
-              scale > prevScale ? '🐻 宠物长大啦!' : '🐁 宠物缩小啦!',
+              scale > prevScale ? '宠物长大啦!' : '宠物缩小啦!',
               'info'
             );
           }
@@ -46,7 +56,7 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
             appearance: { ...prev.appearance, skinId },
           }));
           getSkinManager().switchSkin(skinId).then(() => {
-            onFeedback?.('👗 宠物换上新衣服啦!', 'success');
+            onFeedback?.('宠物换上新衣服啦!', 'success');
           }).catch(() => {
             onFeedback?.('皮肤切换失败', 'warning');
           });
@@ -54,60 +64,71 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
       />
 
       <div className="settings-section">
-        <div className="settings-section-title">🏡 小窝背景</div>
+        <div className="settings-section-title flex items-center gap-2">
+          <Home className="w-4 h-4" />
+          小窝背景
+        </div>
 
         <div className="settings-row">
           <span className="settings-label">背景类型</span>
-          <select
-            className="settings-select"
+          <Select
             value={config.appearance.background.mode}
-            onChange={(e) =>
+            onValueChange={(mode: AppConfig['appearance']['background']['mode']) =>
               onConfigChange((prev) => ({
                 ...prev,
                 appearance: {
                   ...prev.appearance,
                   background: {
-                    mode: e.target.value as AppConfig['appearance']['background']['mode'],
+                    mode,
                     value: undefined,
                   },
                 },
               }))
             }
           >
-            <option value="none">透明</option>
-            <option value="preset">预设渐变</option>
-            <option value="color">纯色</option>
-            <option value="image">图片 URL</option>
-          </select>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">透明</SelectItem>
+              <SelectItem value="preset">预设渐变</SelectItem>
+              <SelectItem value="color">纯色</SelectItem>
+              <SelectItem value="image">图片 URL</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {config.appearance.background.mode === 'preset' && (
           <div className="settings-row">
             <span className="settings-label">预设</span>
-            <select
-              className="settings-select"
+            <Select
               value={config.appearance.background.value ?? 'light'}
-              onChange={(e) =>
+              onValueChange={(value) =>
                 onConfigChange((prev) => ({
                   ...prev,
                   appearance: {
                     ...prev.appearance,
-                    background: { mode: 'preset', value: e.target.value },
+                    background: { mode: 'preset', value },
                   },
                 }))
               }
             >
-              <option value="light">清新浅色</option>
-              <option value="dark">柔和深色</option>
-              <option value="sunset">日落暖色</option>
-            </select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">清新浅色</SelectItem>
+                <SelectItem value="dark">柔和深色</SelectItem>
+                <SelectItem value="sunset">日落暖色</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         )}
 
         {config.appearance.background.mode === 'color' && (
           <div className="settings-row">
             <span className="settings-label">颜色</span>
-            <input
+            <Input
               type="text"
               className="settings-input"
               value={config.appearance.background.value ?? 'rgba(255,255,255,0.75)'}
@@ -128,7 +149,7 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
         {config.appearance.background.mode === 'image' && (
           <div className="settings-row">
             <span className="settings-label">图片 URL</span>
-            <input
+            <Input
               type="text"
               className="settings-input"
               value={config.appearance.background.value ?? ''}
@@ -148,12 +169,17 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
       </div>
 
       <div className="settings-section">
-        <div className="settings-section-title">🎨 透明度与尺寸</div>
+        <div className="settings-section-title flex items-center gap-2">
+          <Palette className="w-4 h-4" />
+          透明度与尺寸
+        </div>
 
         <div className="settings-row">
           <span className="settings-label">小窝透明度</span>
           <div className="slider-container">
-            <span className="slider-icon">🌫️</span>
+            <span className="slider-icon">
+              <Sparkles className="w-4 h-4 opacity-50" />
+            </span>
             <input
               type="range"
               className="slider"
@@ -168,7 +194,9 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
                 }))
               }
             />
-            <span className="slider-icon">🪟</span>
+            <span className="slider-icon">
+              <Palette className="w-4 h-4 opacity-50" />
+            </span>
             <span className="slider-value">
               {Math.round(config.appearance.opacity * 100)}%
             </span>
@@ -178,7 +206,7 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
         <div className="settings-row">
           <span className="settings-label">宠物大小</span>
           <div className="settings-size-inputs">
-            <input
+            <Input
               type="number"
               className="settings-input settings-size-input"
               value={config.appearance.size.width}
@@ -196,7 +224,7 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
               }
             />
             <span className="settings-size-separator">×</span>
-            <input
+            <Input
               type="number"
               className="settings-input settings-size-input"
               value={config.appearance.size.height}
@@ -219,8 +247,10 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
         <div className="settings-row settings-row-no-border">
           <span className="settings-label">快速预设</span>
           <div className="size-presets">
-            <button
+            <Button
               className="preset-btn"
+              variant="outline"
+              size="sm"
               onClick={() =>
                 onConfigChange((prev) => ({
                   ...prev,
@@ -228,11 +258,15 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
                 }))
               }
             >
-              <div className="preset-icon">🐁</div>
+              <div className="preset-icon">
+                <Mouse className="w-6 h-6" />
+              </div>
               <div className="preset-label">小</div>
-            </button>
-            <button
+            </Button>
+            <Button
               className="preset-btn"
+              variant="outline"
+              size="sm"
               onClick={() =>
                 onConfigChange((prev) => ({
                   ...prev,
@@ -240,11 +274,15 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
                 }))
               }
             >
-              <div className="preset-icon">🐱</div>
+              <div className="preset-icon">
+                <Cat className="w-6 h-6" />
+              </div>
               <div className="preset-label">标准</div>
-            </button>
-            <button
+            </Button>
+            <Button
               className="preset-btn"
+              variant="outline"
+              size="sm"
               onClick={() =>
                 onConfigChange((prev) => ({
                   ...prev,
@@ -252,9 +290,11 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
                 }))
               }
             >
-              <div className="preset-icon">🐻</div>
+              <div className="preset-icon">
+                <CircleHelp className="w-6 h-6" />
+              </div>
               <div className="preset-label">大</div>
-            </button>
+            </Button>
           </div>
         </div>
       </div>

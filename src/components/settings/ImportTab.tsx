@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { importFromFile } from '../../services/data';
 import type { ImportResult } from '../../services/data';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export function ImportTab() {
   const [isImporting, setIsImporting] = useState(false);
@@ -53,32 +55,20 @@ export function ImportTab() {
           cursor: 'pointer',
         }}
       >
-        <input
-          type="checkbox"
+        <Checkbox
           checked={overwrite}
-          onChange={(e) => setOverwrite(e.target.checked)}
+          onCheckedChange={(checked) => setOverwrite(!!checked)}
         />
         Overwrite existing data
       </label>
 
-      <button
+      <Button
         onClick={handleImport}
         disabled={isImporting}
-        style={{
-          width: '100%',
-          padding: '10px',
-          fontSize: '13px',
-          fontWeight: 'bold',
-          backgroundColor: '#10b981',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: isImporting ? 'not-allowed' : 'pointer',
-          opacity: isImporting ? 0.7 : 1,
-        }}
+        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold"
       >
         {isImporting ? 'Importing...' : 'Import from File'}
-      </button>
+      </Button>
 
       {result && (
         <div

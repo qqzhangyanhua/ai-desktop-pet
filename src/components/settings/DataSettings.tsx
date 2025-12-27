@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ExportTab } from './ExportTab';
 import { ImportTab } from './ImportTab';
 import { BackupTab } from './BackupTab';
+import { Button } from '@/components/ui/button';
 
 type TabType = 'export' | 'import' | 'backup';
 
@@ -30,21 +31,14 @@ export function DataSettings() {
         }}
       >
         {tabs.map((tab) => (
-          <button
+          <Button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding: '6px 12px',
-              fontSize: '12px',
-              backgroundColor: activeTab === tab.id ? '#6366f1' : 'transparent',
-              color: activeTab === tab.id ? 'white' : '#64748b',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            variant={activeTab === tab.id ? 'default' : 'ghost'}
+            className={activeTab === tab.id ? 'bg-indigo-500 hover:bg-indigo-600' : ''}
           >
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
 

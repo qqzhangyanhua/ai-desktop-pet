@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import type { MCPServerConfig, MCPClientState, MCPToolSchema } from '../../services/mcp/types';
-import { serverCardStyles, formStyles, settingsStyles } from './mcp/styles';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface MCPSettingsProps {
   servers: MCPServerConfig[];
@@ -12,6 +13,13 @@ interface MCPSettingsProps {
   onConnect: (serverId: string) => void;
   onDisconnect: (serverId: string) => void;
 }
+
+const STATUS_COLORS: Record<string, string> = {
+  connected: 'bg-green-500',
+  connecting: 'bg-amber-500',
+  disconnected: 'bg-slate-400',
+  error: 'bg-red-500',
+};
 
 function ServerCard({
   config,
@@ -29,59 +37,60 @@ function ServerCard({
   const status = state?.status ?? 'disconnected';
   const isConnected = status === 'connected';
   const isConnecting = status === 'connecting';
+  const statusColorClass = STATUS_COLORS[status] || 'bg-slate-400';
 
   return (
-    <div style={serverCardStyles.container}>
-      <div style={serverCardStyles.header}>
-        <div style={serverCardStyles.content}>
-          <div style={serverCardStyles.titleRow}>
-            <div style={serverCardStyles.statusIndicator(status)} />
-            <span style={serverCardStyles.title}>{config.name}</span>
-            <span style={serverCardStyles.transportBadge}>
+    <div className="p-3 border border-slate-200 rounded-lg bg-white mb-2">
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <div className={`w-2 h-2 rounded-full ${statusColorClass}`} />
+            <span className="font-bold text-[13px]">{config.name}</span>
+            <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">
               {config.transport}
             </span>
           </div>
 
           {config.description && (
-            <p style={serverCardStyles.description}>
+            <p className="text-[11px] text-slate-500 my-1">
               {config.description}
             </p>
           )}
 
           {config.transport === 'stdio' && config.command && (
-            <p style={serverCardStyles.commandText}>
+            <p className="text-[10px] text-slate-400 my-1 font-mono">
               {config.command} {config.args?.join(' ')}
             </p>
           )}
 
           {config.transport === 'http' && config.url && (
-            <p style={serverCardStyles.commandText}>
+            <p className="text-[10px] text-slate-400 my-1 font-mono">
               {config.url}
             </p>
           )}
 
           {state?.error && (
-            <p style={serverCardStyles.errorText}>
+            <p className="text-[11px] text-red-500 my-1">
               Error: {state.error}
             </p>
           )}
 
           {isConnected && state?.tools && state.tools.length > 0 && (
-            <div style={serverCardStyles.toolsContainer}>
-              <span style={serverCardStyles.toolsLabel}>
+            <div className="mt-2">
+              <span className="text-[11px] text-slate-500">
                 {state.tools.length} tools available
               </span>
-              <div style={serverCardStyles.toolsList}>
+              <div className="flex flex-wrap gap-1 mt-1">
                 {state.tools.slice(0, 5).map((tool: MCPToolSchema) => (
                   <span
                     key={tool.name}
-                    style={serverCardStyles.toolBadge}
+                    className="text-[10px] px-1.5 py-0.5 bg-indigo-50 rounded text-indigo-500"
                   >
                     {tool.name}
                   </span>
                 ))}
                 {state.tools.length > 5 && (
-                  <span style={serverCardStyles.toolsMore}>
+                  <span className="text-[10px] text-slate-400">
                     +{state.tools.length - 5} more
                   </span>
                 )}
@@ -90,29 +99,41 @@ function ServerCard({
           )}
         </div>
 
-        <div style={serverCardStyles.actions}>
+        <div className="flex gap-1 ml-2">
           {isConnected ? (
-            <button
+            <Button
               onClick={onDisconnect}
-              style={serverCardStyles.disconnectButton}
+              variant="outline"
+              size="sm"
+              className="px-2 py-1 text-[11px] border-red-200 bg-red-50 text-red-500 hover:bg-red-100"
             >
               Disconnect
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               onClick={onConnect}
               disabled={isConnecting}
-              style={serverCardStyles.connectButton(isConnecting)}
+              variant="outline"
+              size="sm"
+              className={`
+                px-2 py-1 text-[11px]
+                ${isConnecting
+                  ? 'border-green-200 bg-green-50 text-green-600 opacity-70'
+                  : 'border-green-300 bg-green-50 text-green-600 hover:bg-green-100'
+                }
+              `}
             >
               {isConnecting ? 'Connecting...' : 'Connect'}
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             onClick={onRemove}
-            style={serverCardStyles.removeButton}
+            variant="outline"
+            size="sm"
+            className="px-2 py-1 text-[11px] border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
           >
             Remove
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -175,116 +196,132 @@ function AddServerForm({
   }, [name, description, transport, command, args, url, validate, onAdd]);
 
   return (
-    <div style={formStyles.container}>
-      <h4 style={formStyles.title}>Add MCP Server</h4>
+    <div className="p-4 border border-slate-200 rounded-lg bg-slate-50 mb-3">
+      <h4 className="m-0 mb-3 text-sm font-semibold text-slate-700">Add MCP Server</h4>
 
-      <div style={formStyles.fieldContainer}>
-        <label style={formStyles.label}>
+      <div className="mb-3">
+        <label className="block text-xs font-bold mb-1 text-slate-600">
           Name *
         </label>
-        <input
+        <Input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., File System"
-          style={formStyles.input(!!errors.name)}
+          className={`
+            w-full p-2 text-[13px]
+            ${errors.name ? 'border-red-500' : 'border-slate-200'}
+          `}
         />
-        {errors.name && <span style={formStyles.errorText}>{errors.name}</span>}
+        {errors.name && <span className="text-[11px] text-red-500 mt-1 block">{errors.name}</span>}
       </div>
 
-      <div style={formStyles.fieldContainer}>
-        <label style={formStyles.label}>
+      <div className="mb-3">
+        <label className="block text-xs font-bold mb-1 text-slate-600">
           Description
         </label>
-        <input
+        <Input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Brief description"
-          style={formStyles.input(false)}
+          className="w-full p-2 text-[13px] border-slate-200"
         />
       </div>
 
-      <div style={formStyles.fieldContainer}>
-        <label style={formStyles.label}>
+      <div className="mb-3">
+        <label className="block text-xs font-bold mb-1 text-slate-600">
           Transport
         </label>
-        <div style={formStyles.transportButtons}>
-          <button
+        <div className="flex gap-2">
+          <Button
             onClick={() => setTransport('stdio')}
-            style={formStyles.transportButton(transport === 'stdio')}
+            variant={transport === 'stdio' ? 'default' : 'outline'}
+            size="sm"
+            className={transport === 'stdio' ? 'bg-indigo-500 text-white hover:bg-indigo-600' : ''}
           >
             stdio
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setTransport('http')}
-            style={formStyles.transportButton(transport === 'http')}
+            variant={transport === 'http' ? 'default' : 'outline'}
+            size="sm"
+            className={transport === 'http' ? 'bg-indigo-500 text-white hover:bg-indigo-600' : ''}
           >
             HTTP
-          </button>
+          </Button>
         </div>
       </div>
 
       {transport === 'stdio' && (
         <>
-          <div style={formStyles.fieldContainer}>
-            <label style={formStyles.label}>
+          <div className="mb-3">
+            <label className="block text-xs font-bold mb-1 text-slate-600">
               Command *
             </label>
-            <input
+            <Input
               type="text"
               value={command}
               onChange={(e) => setCommand(e.target.value)}
               placeholder="e.g., npx"
-              style={formStyles.inputMonospace(!!errors.command)}
+              className={`
+                w-full p-2 text-[13px] font-mono
+                ${errors.command ? 'border-red-500' : 'border-slate-200'}
+              `}
             />
-            {errors.command && <span style={formStyles.errorText}>{errors.command}</span>}
+            {errors.command && <span className="text-[11px] text-red-500 mt-1 block">{errors.command}</span>}
           </div>
 
-          <div style={formStyles.fieldContainer}>
-            <label style={formStyles.label}>
+          <div className="mb-3">
+            <label className="block text-xs font-bold mb-1 text-slate-600">
               Arguments
             </label>
-            <input
+            <Input
               type="text"
               value={args}
               onChange={(e) => setArgs(e.target.value)}
               placeholder="e.g., -y @modelcontextprotocol/server-filesystem"
-              style={formStyles.inputMonospace(false)}
+              className="w-full p-2 text-[13px] font-mono border-slate-200"
             />
           </div>
         </>
       )}
 
       {transport === 'http' && (
-        <div style={formStyles.fieldContainer}>
-          <label style={formStyles.label}>
+        <div className="mb-3">
+          <label className="block text-xs font-bold mb-1 text-slate-600">
             URL *
           </label>
-          <input
+          <Input
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="e.g., http://localhost:3000/mcp"
-            style={formStyles.inputMonospace(!!errors.url)}
+            className={`
+              w-full p-2 text-[13px] font-mono
+              ${errors.url ? 'border-red-500' : 'border-slate-200'}
+            `}
           />
-          {errors.url && <span style={formStyles.errorText}>{errors.url}</span>}
+          {errors.url && <span className="text-[11px] text-red-500 mt-1 block">{errors.url}</span>}
         </div>
       )}
 
-      <div style={formStyles.buttonRow}>
-        <button
+      <div className="flex justify-end gap-2 mt-4">
+        <Button
           onClick={onCancel}
-          style={formStyles.cancelButton}
+          variant="outline"
+          size="sm"
+          className="px-3 py-1.5 text-xs"
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleSubmit}
-          style={formStyles.submitButton}
+          size="sm"
+          className="px-3 py-1.5 text-xs bg-indigo-500 hover:bg-indigo-600"
         >
           Add Server
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -315,16 +352,17 @@ export function MCPSettings({
       {showAddForm ? (
         <AddServerForm onAdd={handleAdd} onCancel={() => setShowAddForm(false)} />
       ) : (
-        <button
+        <Button
           onClick={() => setShowAddForm(true)}
-          style={settingsStyles.addButton}
+          variant="outline"
+          className="w-full p-2 mb-3 text-xs border-dashed"
         >
           + Add MCP Server
-        </button>
+        </Button>
       )}
 
       {servers.length === 0 ? (
-        <p style={settingsStyles.emptyState}>
+        <p className="text-xs text-slate-400 text-center p-5">
           No MCP servers configured
         </p>
       ) : (
@@ -340,7 +378,7 @@ export function MCPSettings({
         ))
       )}
 
-      <div style={settingsStyles.helpText}>
+      <div className="text-[11px] text-slate-400 p-2 bg-slate-50 rounded-md mt-2">
         MCP servers provide additional tools for the AI agent. Connect to servers like filesystem,
         GitHub, or custom servers to extend capabilities.
       </div>

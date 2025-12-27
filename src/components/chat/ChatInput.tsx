@@ -3,6 +3,9 @@ import { useChat } from '../../hooks';
 import { useAssistantCommandRouter } from '../../hooks';
 import { useChatStore, useConfigStore, toast } from '../../stores';
 import { usePushToTalk } from '../../hooks/usePushToTalk';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { X } from 'lucide-react';
 import type { STTResult } from '../../types';
 
 interface ChatInputProps {
@@ -89,7 +92,7 @@ export function ChatInput({ disabled }: ChatInputProps) {
   // Generate placeholder text based on state
   const getPlaceholder = () => {
     if (isLoading) return 'Generating...';
-    if (isPTTActive) return `🎤 Listening... (Release ${config.voice.pushToTalkKey})`;
+    if (isPTTActive) return `Listening... (Release ${config.voice.pushToTalkKey})`;
     if (config.voice.sttEnabled) {
       return `Type or hold ${config.voice.pushToTalkKey} to speak...`;
     }
@@ -98,7 +101,7 @@ export function ChatInput({ disabled }: ChatInputProps) {
 
   return (
     <div className="chat-input-container">
-      <input
+      <Input
         type="text"
         className="chat-input"
         placeholder={getPlaceholder()}
@@ -112,21 +115,25 @@ export function ChatInput({ disabled }: ChatInputProps) {
         }}
       />
       {isStreaming ? (
-        <button
+        <Button
           className="chat-send-btn chat-abort-btn"
           onClick={handleAbort}
           title="Stop generating"
+          variant="outline"
+          size="sm"
         >
-          &times;
-        </button>
+          <X className="h-4 w-4" />
+        </Button>
       ) : (
-        <button
+        <Button
           className="chat-send-btn"
           onClick={handleSend}
           disabled={isDisabled || !input.trim()}
+          variant="default"
+          size="sm"
         >
           &gt;
-        </button>
+        </Button>
       )}
     </div>
   );

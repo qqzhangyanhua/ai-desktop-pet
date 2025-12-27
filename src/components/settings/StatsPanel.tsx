@@ -4,12 +4,14 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Calendar, Sparkles, Flame, Target, Hand, Utensils, Gamepad2, MessageSquare, type LucideIcon } from 'lucide-react';
 import type { StatsSummary, Achievement } from '@/types';
 import { getStatsSummary } from '@/services/statistics';
 import {
   getAchievements,
   getAchievementStatistics,
 } from '@/services/achievements';
+import { Button } from '@/components/ui/button';
 
 export function StatsPanel() {
   const [stats, setStats] = useState<StatsSummary | null>(null);
@@ -77,25 +79,25 @@ export function StatsPanel() {
         <h3 className="text-lg font-semibold mb-4 text-gray-800">统计概览</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
-            icon="📅"
+            icon={Calendar}
             label="陪伴天数"
             value={stats.totalDays}
             suffix="天"
           />
           <StatCard
-            icon="✨"
+            icon={Sparkles}
             label="总互动次数"
             value={stats.totalInteractions}
             suffix="次"
           />
           <StatCard
-            icon="🔥"
+            icon={Flame}
             label="连续互动"
             value={stats.consecutiveDays}
             suffix="天"
           />
           <StatCard
-            icon="🎯"
+            icon={Target}
             label="本周活跃"
             value={stats.weeklyActiveDays}
             suffix="天"
@@ -107,10 +109,10 @@ export function StatsPanel() {
       <section>
         <h3 className="text-lg font-semibold mb-4 text-gray-800">今日互动</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <InteractionCard icon="👋" label="抚摸" count={stats.today.pet} />
-          <InteractionCard icon="🍱" label="喂食" count={stats.today.feed} />
-          <InteractionCard icon="🎮" label="玩耍" count={stats.today.play} />
-          <InteractionCard icon="💬" label="对话" count={stats.today.chat} />
+          <InteractionCard icon={Hand} label="抚摸" count={stats.today.pet} />
+          <InteractionCard icon={Utensils} label="喂食" count={stats.today.feed} />
+          <InteractionCard icon={Gamepad2} label="玩耍" count={stats.today.play} />
+          <InteractionCard icon={MessageSquare} label="对话" count={stats.today.chat} />
         </div>
       </section>
 
@@ -185,16 +187,18 @@ export function StatsPanel() {
 }
 
 interface StatCardProps {
-  icon: string;
+  icon: LucideIcon;
   label: string;
   value: number;
   suffix?: string;
 }
 
-function StatCard({ icon, label, value, suffix }: StatCardProps) {
+function StatCard({ icon: Icon, label, value, suffix }: StatCardProps) {
   return (
     <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-      <div className="text-2xl mb-2">{icon}</div>
+      <div className="mb-2">
+        <Icon className="w-6 h-6 text-gray-600" />
+      </div>
       <div className="text-sm text-gray-600 mb-1">{label}</div>
       <div className="text-2xl font-bold text-gray-800">
         {value}
@@ -205,16 +209,16 @@ function StatCard({ icon, label, value, suffix }: StatCardProps) {
 }
 
 interface InteractionCardProps {
-  icon: string;
+  icon: LucideIcon;
   label: string;
   count: number;
 }
 
-function InteractionCard({ icon, label, count }: InteractionCardProps) {
+function InteractionCard({ icon: Icon, label, count }: InteractionCardProps) {
   return (
     <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xl">{icon}</span>
+        <Icon className="w-5 h-5 text-gray-600" />
         <span className="text-sm font-medium text-gray-700">{label}</span>
       </div>
       <div className="text-2xl font-bold text-blue-600">{count}</div>
@@ -231,16 +235,13 @@ interface AchievementTabProps {
 
 function AchievementTab({ active, onClick, label, count }: AchievementTabProps) {
   return (
-    <button
+    <Button
       onClick={onClick}
-      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-        active
-          ? 'bg-blue-500 text-white'
-          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-      }`}
+      variant={active ? 'default' : 'outline'}
+      className={active ? 'bg-blue-500 hover:bg-blue-600' : ''}
     >
       {label} ({count})
-    </button>
+    </Button>
   );
 }
 

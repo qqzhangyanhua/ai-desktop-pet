@@ -1,7 +1,9 @@
 import { useRef, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { useChatStore } from '../../stores';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
+import { Button } from '@/components/ui/button';
 
 interface ChatWindowProps {
   onClose: () => void;
@@ -23,18 +25,9 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
     <div className="chat-window no-drag">
       <div className="chat-header">
         <span>Chat</span>
-        <button
-          onClick={onClose}
-          style={{
-            background: 'none',
-            border: 'none',
-            fontSize: '18px',
-            cursor: 'pointer',
-            padding: '4px',
-          }}
-        >
-          x
-        </button>
+        <Button onClick={onClose} variant="ghost" size="sm" className="h-6 w-6 p-0">
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="chat-messages">

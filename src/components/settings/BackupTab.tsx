@@ -10,6 +10,7 @@ import {
   importBackupFromFile,
 } from '../../services/data';
 import type { BackupMeta } from '../../services/data';
+import { Button } from '@/components/ui/button';
 
 export function BackupTab() {
   const [backups, setBackups] = useState<BackupMeta[]>([]);
@@ -131,52 +132,27 @@ export function BackupTab() {
   return (
     <div>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-        <button
+        <Button
           onClick={handleCreateBackup}
           disabled={isCreating}
-          style={{
-            flex: 1,
-            padding: '8px',
-            fontSize: '12px',
-            backgroundColor: '#6366f1',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isCreating ? 'not-allowed' : 'pointer',
-          }}
+          className="flex-1 bg-indigo-500 hover:bg-indigo-600"
         >
           {isCreating ? 'Creating...' : 'Create Backup'}
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleExportBackup}
-          style={{
-            flex: 1,
-            padding: '8px',
-            fontSize: '12px',
-            backgroundColor: '#f1f5f9',
-            color: '#334155',
-            border: '1px solid #e2e8f0',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
+          variant="outline"
+          className="flex-1"
         >
           Export to File
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleImportBackup}
-          style={{
-            flex: 1,
-            padding: '8px',
-            fontSize: '12px',
-            backgroundColor: '#f1f5f9',
-            color: '#334155',
-            border: '1px solid #e2e8f0',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
+          variant="outline"
+          className="flex-1"
         >
           Import File
-        </button>
+        </Button>
       </div>
 
       {message && (
@@ -227,35 +203,22 @@ export function BackupTab() {
                 {formatDate(backup.createdAt)}
               </div>
               <div style={{ display: 'flex', gap: '6px' }}>
-                <button
+                <Button
                   onClick={() => handleRestore(backup)}
                   disabled={isRestoring === backup.id}
-                  style={{
-                    padding: '4px 8px',
-                    fontSize: '10px',
-                    backgroundColor: '#10b981',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: isRestoring === backup.id ? 'not-allowed' : 'pointer',
-                  }}
+                  size="sm"
+                  className="bg-emerald-500 hover:bg-emerald-600"
                 >
                   {isRestoring === backup.id ? 'Restoring...' : 'Restore'}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => handleDelete(backup)}
-                  style={{
-                    padding: '4px 8px',
-                    fontSize: '10px',
-                    backgroundColor: '#fef2f2',
-                    color: '#ef4444',
-                    border: '1px solid #fecaca',
-                    borderRadius: '3px',
-                    cursor: 'pointer',
-                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
                 >
                   Delete
-                </button>
+                </Button>
               </div>
             </div>
           ))}

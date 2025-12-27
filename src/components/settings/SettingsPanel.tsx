@@ -11,6 +11,17 @@ import { StatsPanel } from './StatsPanel';
 import { getMCPManager } from '../../services/mcp';
 import { getSkinManager } from '../../services/skin';
 import type { MCPServerConfig, MCPClientState } from '../../services/mcp/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type SettingsTab = 'appearance' | 'behavior' | 'assistant' | 'statistics' | 'performance' | 'advanced';
 
@@ -202,42 +213,54 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
         </div>
 
         <div className="settings-tabs">
-          <button
+          <Button
             className={`settings-tab ${activeTab === 'appearance' ? 'active' : ''}`}
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab('appearance')}
           >
             外观
-          </button>
-          <button
+          </Button>
+          <Button
             className={`settings-tab ${activeTab === 'behavior' ? 'active' : ''}`}
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab('behavior')}
           >
             行为
-          </button>
-          <button
+          </Button>
+          <Button
             className={`settings-tab ${activeTab === 'assistant' ? 'active' : ''}`}
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab('assistant')}
           >
             智能助手
-          </button>
-          <button
+          </Button>
+          <Button
             className={`settings-tab ${activeTab === 'statistics' ? 'active' : ''}`}
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab('statistics')}
           >
             统计与成就
-          </button>
-          <button
+          </Button>
+          <Button
             className={`settings-tab ${activeTab === 'performance' ? 'active' : ''}`}
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab('performance')}
           >
             性能
-          </button>
-          <button
+          </Button>
+          <Button
             className={`settings-tab ${activeTab === 'advanced' ? 'active' : ''}`}
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab('advanced')}
           >
             高级
-          </button>
+          </Button>
         </div>
 
         <div className="settings-content">
@@ -273,56 +296,64 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row">
                   <span className="settings-label">背景类型</span>
-                  <select
-                    className="settings-select"
+                  <Select
                     value={localConfig.appearance.background.mode}
-                    onChange={(e) =>
+                    onValueChange={(mode: AppConfig['appearance']['background']['mode']) =>
                       setLocalConfig((prev) => ({
                         ...prev,
                         appearance: {
                           ...prev.appearance,
                           background: {
-                            mode: e.target.value as AppConfig['appearance']['background']['mode'],
+                            mode,
                             value: undefined,
                           },
                         },
                       }))
                     }
                   >
-                    <option value="none">透明</option>
-                    <option value="preset">预设渐变</option>
-                    <option value="color">纯色</option>
-                    <option value="image">图片 URL</option>
-                  </select>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">透明</SelectItem>
+                      <SelectItem value="preset">预设渐变</SelectItem>
+                      <SelectItem value="color">纯色</SelectItem>
+                      <SelectItem value="image">图片 URL</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {localConfig.appearance.background.mode === 'preset' && (
                   <div className="settings-row">
                     <span className="settings-label">预设</span>
-                    <select
-                      className="settings-select"
+                    <Select
                       value={localConfig.appearance.background.value ?? 'light'}
-                      onChange={(e) =>
+                      onValueChange={(value) =>
                         setLocalConfig((prev) => ({
                           ...prev,
                           appearance: {
                             ...prev.appearance,
-                            background: { mode: 'preset', value: e.target.value },
+                            background: { mode: 'preset', value },
                           },
                         }))
                       }
                     >
-                      <option value="light">清新浅色</option>
-                      <option value="dark">柔和深色</option>
-                      <option value="sunset">日落暖色</option>
-                    </select>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">清新浅色</SelectItem>
+                        <SelectItem value="dark">柔和深色</SelectItem>
+                        <SelectItem value="sunset">日落暖色</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
 
                 {localConfig.appearance.background.mode === 'color' && (
                   <div className="settings-row">
                     <span className="settings-label">颜色</span>
-                    <input
+                    <Input
                       type="text"
                       className="settings-input"
                       value={localConfig.appearance.background.value ?? 'rgba(255,255,255,0.75)'}
@@ -343,7 +374,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 {localConfig.appearance.background.mode === 'image' && (
                   <div className="settings-row">
                     <span className="settings-label">图片 URL</span>
-                    <input
+                    <Input
                       type="text"
                       className="settings-input"
                       value={localConfig.appearance.background.value ?? ''}
@@ -389,7 +420,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <div className="settings-row">
                   <span className="settings-label">显示尺寸</span>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <input
+                    <Input
                       type="number"
                       className="settings-input"
                       value={localConfig.appearance.size.width}
@@ -408,7 +439,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                       style={{ width: '92px' }}
                     />
                     <span style={{ fontSize: '12px', color: '#666' }}>×</span>
-                    <input
+                    <Input
                       type="number"
                       className="settings-input"
                       value={localConfig.appearance.size.height}
@@ -432,60 +463,42 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <div className="settings-row" style={{ borderBottom: 'none', gap: '8px' }}>
                   <span className="settings-label">快速预设</span>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
+                    <Button
                       onClick={() =>
                         setLocalConfig((prev) => ({
                           ...prev,
                           appearance: { ...prev.appearance, size: { width: 260, height: 360 } },
                         }))
                       }
-                      style={{
-                        padding: '6px 10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        background: 'white',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                      }}
+                      variant="outline"
+                      size="sm"
                     >
                       小
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() =>
                         setLocalConfig((prev) => ({
                           ...prev,
                           appearance: { ...prev.appearance, size: { width: 300, height: 400 } },
                         }))
                       }
-                      style={{
-                        padding: '6px 10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        background: 'white',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                      }}
+                      variant="outline"
+                      size="sm"
                     >
                       标准
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() =>
                         setLocalConfig((prev) => ({
                           ...prev,
                           appearance: { ...prev.appearance, size: { width: 360, height: 480 } },
                         }))
                       }
-                      style={{
-                        padding: '6px 10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        background: 'white',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                      }}
+                      variant="outline"
+                      size="sm"
                     >
                       大
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -499,55 +512,61 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row">
                   <span className="settings-label">属性衰减速度</span>
-                  <select
-                    className="settings-select"
+                  <Select
                     value={localConfig.behavior.decaySpeed}
-                    onChange={(e) =>
+                    onValueChange={(value: AppConfig['behavior']['decaySpeed']) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        behavior: { ...prev.behavior, decaySpeed: e.target.value as AppConfig['behavior']['decaySpeed'] },
+                        behavior: { ...prev.behavior, decaySpeed: value },
                       }))
                     }
                   >
-                    <option value="casual">休闲</option>
-                    <option value="standard">标准</option>
-                    <option value="hardcore">硬核</option>
-                  </select>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="casual">休闲</SelectItem>
+                      <SelectItem value="standard">标准</SelectItem>
+                      <SelectItem value="hardcore">硬核</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="settings-row">
                   <span className="settings-label">互动频率</span>
-                  <select
-                    className="settings-select"
+                  <Select
                     value={localConfig.behavior.interactionFrequency}
-                    onChange={(e) =>
+                    onValueChange={(value: AppConfig['behavior']['interactionFrequency']) =>
                       setLocalConfig((prev) => ({
                         ...prev,
                         behavior: {
                           ...prev.behavior,
-                          interactionFrequency: e.target.value as AppConfig['behavior']['interactionFrequency'],
+                          interactionFrequency: value,
                         },
                       }))
                     }
                   >
-                    <option value="low">低</option>
-                    <option value="standard">标准</option>
-                    <option value="high">高</option>
-                  </select>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">低</SelectItem>
+                      <SelectItem value="standard">标准</SelectItem>
+                      <SelectItem value="high">高</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="settings-row">
                   <span className="settings-label">自动打工</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.behavior.autoWorkEnabled}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        behavior: { ...prev.behavior, autoWorkEnabled: e.target.checked },
+                        behavior: { ...prev.behavior, autoWorkEnabled: !!checked },
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
               </div>
@@ -557,37 +576,33 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row">
                   <span className="settings-label">气泡提示</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.behavior.notifications.bubbleEnabled}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
                         behavior: {
                           ...prev.behavior,
-                          notifications: { ...prev.behavior.notifications, bubbleEnabled: e.target.checked },
+                          notifications: { ...prev.behavior.notifications, bubbleEnabled: !!checked },
                         },
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
 
                 <div className="settings-row" style={{ borderBottom: 'none' }}>
                   <span className="settings-label">Toast 提醒</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.behavior.notifications.toastEnabled}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
                         behavior: {
                           ...prev.behavior,
-                          notifications: { ...prev.behavior.notifications, toastEnabled: e.target.checked },
+                          notifications: { ...prev.behavior.notifications, toastEnabled: !!checked },
                         },
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
               </div>
@@ -601,38 +616,46 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row">
                   <span className="settings-label">模型提供方</span>
-                  <select
-                    className="settings-select"
+                  <Select
                     value={localConfig.llm.provider}
-                    onChange={(e) => handleProviderChange(e.target.value as LLMConfig['provider'])}
+                    onValueChange={(value) => handleProviderChange(value as LLMConfig['provider'])}
                   >
-                    {LLM_PROVIDERS.map((p) => (
-                      <option key={p.value} value={p.value}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LLM_PROVIDERS.map((p) => (
+                        <SelectItem key={p.value} value={p.value}>
+                          {p.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="settings-row">
                   <span className="settings-label">模型</span>
-                  <select
-                    className="settings-select"
+                  <Select
                     value={localConfig.llm.model}
-                    onChange={(e) => handleModelChange(e.target.value)}
+                    onValueChange={handleModelChange}
                   >
-                    {availableModels.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableModels.map((m) => (
+                        <SelectItem key={m} value={m}>
+                          {m}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {localConfig.llm.provider !== 'ollama' && (
                   <div className="settings-row">
                     <span className="settings-label">API Key</span>
-                    <input
+                    <Input
                       type="password"
                       className="settings-input"
                       value={localConfig.llm.apiKey ?? ''}
@@ -645,7 +668,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 {localConfig.llm.provider === 'ollama' && (
                   <div className="settings-row">
                     <span className="settings-label">Base URL</span>
-                    <input
+                    <Input
                       type="text"
                       className="settings-input"
                       value={localConfig.llm.baseUrl ?? 'http://localhost:11434/api'}
@@ -677,7 +700,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row">
                   <span className="settings-label">打开聊天</span>
-                  <input
+                  <Input
                     type="text"
                     className="settings-input"
                     value={localConfig.assistant.shortcuts.openChat}
@@ -696,7 +719,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row" style={{ borderBottom: 'none' }}>
                   <span className="settings-label">打开设置</span>
-                  <input
+                  <Input
                     type="text"
                     className="settings-input"
                     value={localConfig.assistant.shortcuts.openSettings}
@@ -721,19 +744,17 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row">
                   <span className="settings-label">保存对话历史</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.assistant.privacy.saveChatHistory}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
                         assistant: {
                           ...prev.assistant,
-                          privacy: { ...prev.assistant.privacy, saveChatHistory: e.target.checked },
+                          privacy: { ...prev.assistant.privacy, saveChatHistory: !!checked },
                         },
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
 
@@ -763,7 +784,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   <span className="settings-label" style={{ marginBottom: '8px' }}>
                     系统提示词
                   </span>
-                  <textarea
+                  <Textarea
                     className="settings-input"
                     value={localConfig.systemPrompt}
                     onChange={(e) => handleSystemPromptChange(e.target.value)}
@@ -785,31 +806,27 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row">
                   <span className="settings-label">鼠标穿透（点到桌面）</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.interaction.clickThrough}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        interaction: { ...prev.interaction, clickThrough: e.target.checked },
+                        interaction: { ...prev.interaction, clickThrough: !!checked },
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
 
                 <div className="settings-row">
                   <span className="settings-label">左右吸附</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.interaction.snapEnabled}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        interaction: { ...prev.interaction, snapEnabled: e.target.checked },
+                        interaction: { ...prev.interaction, snapEnabled: !!checked },
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
 
@@ -837,31 +854,27 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row" style={{ borderBottom: 'none' }}>
                   <span className="settings-label">记忆窗口位置</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.interaction.rememberPosition}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        interaction: { ...prev.interaction, rememberPosition: e.target.checked },
+                        interaction: { ...prev.interaction, rememberPosition: !!checked },
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
 
                 <div className="settings-row">
                   <span className="settings-label">靠边自动隐藏</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.interaction.autoHideEnabled}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        interaction: { ...prev.interaction, autoHideEnabled: e.target.checked },
+                        interaction: { ...prev.interaction, autoHideEnabled: !!checked },
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
 
@@ -905,35 +918,37 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row">
                   <span className="settings-label">开机自启动</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.performance.launchOnStartup}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        performance: { ...prev.performance, launchOnStartup: e.target.checked },
+                        performance: { ...prev.performance, launchOnStartup: !!checked },
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
 
                 <div className="settings-row">
                   <span className="settings-label">后台运行模式</span>
-                  <select
-                    className="settings-select"
+                  <Select
                     value={localConfig.performance.backgroundMode}
-                    onChange={(e) =>
+                    onValueChange={(value: AppConfig['performance']['backgroundMode']) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        performance: { ...prev.performance, backgroundMode: e.target.value as AppConfig['performance']['backgroundMode'] },
+                        performance: { ...prev.performance, backgroundMode: value },
                       }))
                     }
                   >
-                    <option value="balanced">均衡</option>
-                    <option value="battery">省电</option>
-                    <option value="performance">性能</option>
-                  </select>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="balanced">均衡</SelectItem>
+                      <SelectItem value="battery">省电</SelectItem>
+                      <SelectItem value="performance">性能</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="settings-row">
@@ -959,20 +974,24 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div className="settings-row" style={{ borderBottom: 'none' }}>
                   <span className="settings-label">资源占用限制</span>
-                  <select
-                    className="settings-select"
+                  <Select
                     value={localConfig.performance.resourceLimit}
-                    onChange={(e) =>
+                    onValueChange={(value: AppConfig['performance']['resourceLimit']) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        performance: { ...prev.performance, resourceLimit: e.target.value as AppConfig['performance']['resourceLimit'] },
+                        performance: { ...prev.performance, resourceLimit: value },
                       }))
                     }
                   >
-                    <option value="low">低</option>
-                    <option value="medium">中</option>
-                    <option value="high">高</option>
-                  </select>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">低</SelectItem>
+                      <SelectItem value="medium">中</SelectItem>
+                      <SelectItem value="high">高</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -980,31 +999,27 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <div className="settings-section-title">窗口行为</div>
                 <div className="settings-row">
                   <span className="settings-label">窗口置顶</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.alwaysOnTop}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        alwaysOnTop: e.target.checked,
+                        alwaysOnTop: !!checked,
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
 
                 <div className="settings-row" style={{ borderBottom: 'none' }}>
                   <span className="settings-label">启动最小化</span>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={localConfig.startMinimized}
-                    onChange={(e) =>
+                    onCheckedChange={(checked) =>
                       setLocalConfig((prev) => ({
                         ...prev,
-                        startMinimized: e.target.checked,
+                        startMinimized: !!checked,
                       }))
                     }
-                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </div>
               </div>
@@ -1043,33 +1058,19 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
             gap: '8px',
           }}
         >
-          <button
+          <Button
             onClick={onClose}
-            style={{
-              padding: '8px 16px',
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              background: 'white',
-              cursor: 'pointer',
-            }}
+            variant="outline"
           >
             取消
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleSave}
             disabled={isSaving}
-            style={{
-              padding: '8px 16px',
-              border: 'none',
-              borderRadius: '8px',
-              background: '#007aff',
-              color: 'white',
-              cursor: isSaving ? 'not-allowed' : 'pointer',
-              opacity: isSaving ? 0.7 : 1,
-            }}
+            className="bg-blue-600 hover:bg-blue-700"
           >
             {isSaving ? '保存中...' : '保存'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

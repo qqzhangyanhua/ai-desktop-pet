@@ -1,5 +1,17 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import {
+  Palette,
+  Bone,
+  Brain,
+  Trophy,
+  Zap,
+  Settings2,
+  Home,
+  Save,
+  type LucideIcon,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useConfigStore } from '../../stores';
 import { initDatabase } from '../../services/database';
 import type { AppConfig, LLMConfig, VoiceConfig } from '../../types';
@@ -31,13 +43,13 @@ const DEFAULT_MODELS: Record<string, string[]> = {
 };
 
 const TAB_CONFIGS = {
-  appearance: { icon: '🎨', title: '外观设置' },
-  behavior: { icon: '🦴', title: '行为设置' },
-  assistant: { icon: '🧠', title: '智能助手' },
-  statistics: { icon: '🏆', title: '统计成就' },
-  performance: { icon: '⚡', title: '性能设置' },
-  advanced: { icon: '🔧', title: '高级设置' },
-} as const;
+  appearance: { icon: Palette, title: '外观设置' },
+  behavior: { icon: Bone, title: '行为设置' },
+  assistant: { icon: Brain, title: '智能助手' },
+  statistics: { icon: Trophy, title: '统计成就' },
+  performance: { icon: Zap, title: '性能设置' },
+  advanced: { icon: Settings2, title: '高级设置' },
+} as const satisfies Record<SettingsTab, { icon: LucideIcon; title: string }>;
 
 export function SettingsWindow() {
   const { config, setConfig, saveConfig, loadConfig } = useConfigStore();
@@ -142,7 +154,7 @@ export function SettingsWindow() {
       anthropic: 'Claude',
       ollama: '本地模型',
     };
-    showFeedback(`🤖 已切换到 ${providerLabels[provider] || provider}!`, 'success');
+    showFeedback(`已切换到 ${providerLabels[provider] || provider}!`, 'success');
   }, [showFeedback]);
 
   const handleModelChange = useCallback((model: string) => {
@@ -150,7 +162,7 @@ export function SettingsWindow() {
       ...prev,
       llm: { ...prev.llm, model },
     }));
-    showFeedback(`🧠 模型已切换: ${model}`, 'info');
+    showFeedback(`模型已切换: ${model}`, 'info');
   }, [showFeedback]);
 
   const handleApiKeyChange = useCallback((apiKey: string) => {
@@ -159,7 +171,7 @@ export function SettingsWindow() {
       llm: { ...prev.llm, apiKey },
     }));
     if (apiKey.trim()) {
-      showFeedback('🔑 API Key 已更新!', 'success');
+      showFeedback('API Key 已更新!', 'success');
     }
   }, [showFeedback]);
 
@@ -177,9 +189,9 @@ export function SettingsWindow() {
     }));
 
     if (temperature < 0.3) {
-      showFeedback('🧊 宠物变得严谨了!', 'info');
+      showFeedback('宠物变得严谨了!', 'info');
     } else if (temperature > 1.5) {
-      showFeedback('🔥 宠物变得有创意了!', 'success');
+      showFeedback('宠物变得有创意了!', 'success');
     }
   }, [showFeedback]);
 
@@ -238,32 +250,41 @@ export function SettingsWindow() {
         <aside className="settings-sidebar">
           <div className="settings-sidebar-header">
             <div className="settings-sidebar-title">
-              <span>🏠</span>
+              <Home className="w-4 h-4" />
               <span>宠物小窝</span>
             </div>
           </div>
 
           <nav className="settings-nav">
-            {(Object.keys(TAB_CONFIGS) as SettingsTab[]).map((tab) => (
-              <button
-                key={tab}
-                className={`settings-nav-item ${activeTab === tab ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab)}
-              >
-                <span className="settings-nav-icon">{TAB_CONFIGS[tab].icon}</span>
-                <span>{TAB_CONFIGS[tab].title.replace('设置', '')}</span>
-              </button>
-            ))}
+            {(Object.keys(TAB_CONFIGS) as SettingsTab[]).map((tab) => {
+              const IconComponent = TAB_CONFIGS[tab].icon;
+              return (
+                <Button
+                  key={tab}
+                  className={`settings-nav-item ${activeTab === tab ? 'active' : ''}`}
+                  variant="ghost"
+                  onClick={() => setActiveTab(tab)}
+                >
+                  <span className="settings-nav-icon">
+                    <IconComponent className="w-4 h-4" />
+                  </span>
+                  <span>{TAB_CONFIGS[tab].title.replace('设置', '')}</span>
+                </Button>
+              );
+            })}
           </nav>
         </aside>
 
         <div className="settings-content-area">
           <header className="settings-content-header">
             <h2 className="settings-content-title">
-              <span>{TAB_CONFIGS[activeTab].icon}</span>
+              {(() => {
+                const IconComponent = TAB_CONFIGS[activeTab].icon;
+                return <IconComponent className="w-5 h-5" />;
+              })()}
               <span>{TAB_CONFIGS[activeTab].title}</span>
             </h2>
-            <button onClick={handleClose} className="settings-close-btn">×</button>
+            <Button onClick={handleClose} variant="ghost" className="settings-close-btn">×</Button>
           </header>
 
           <div className="settings-content-body">
@@ -323,12 +344,19 @@ export function SettingsWindow() {
           </div>
 
           <footer className="settings-content-footer">
-            <button onClick={handleClose} className="pet-button">
+            <Button onClick={handleClose} variant="outline">
               取消
-            </button>
-            <button onClick={handleSave} disabled={isSaving} className="pet-button primary">
-              {isSaving ? '保存中...' : '💾 保存'}
-            </button>
+            </Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? (
+                '保存中...'
+              ) : (
+                <span className="flex items-center gap-1">
+                  <Save className="w-4 h-4" />
+                  保存
+                </span>
+              )}
+            </Button>
           </footer>
         </div>
       </div>

@@ -225,7 +225,7 @@ export class Live2DManager {
         this.playActionSound(action);
         break;
       case 'transform':
-        this.instance.tipsMessage('变身中…✨', 3200, 7);
+        this.instance.tipsMessage('变身中...', 3200, 7);
         this.loadNextModel().catch((err) => console.warn('变身切换模型失败', err));
         this.playActionSound(action);
         break;

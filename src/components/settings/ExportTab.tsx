@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { exportToFile } from '../../services/data';
 import type { ExportDataType } from '../../services/data';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export function ExportTab() {
   const [selectedTypes, setSelectedTypes] = useState<ExportDataType[]>([
@@ -73,10 +75,9 @@ export function ExportTab() {
               cursor: 'pointer',
             }}
           >
-            <input
-              type="checkbox"
+            <Checkbox
               checked={selectedTypes.includes(type)}
-              onChange={() => toggleType(type)}
+              onCheckedChange={() => toggleType(type)}
             />
             {label}
           </label>
@@ -94,33 +95,21 @@ export function ExportTab() {
             color: '#ef4444',
           }}
         >
-          <input
-            type="checkbox"
+          <Checkbox
             checked={includeApiKeys}
-            onChange={(e) => setIncludeApiKeys(e.target.checked)}
+            onCheckedChange={(checked) => setIncludeApiKeys(!!checked)}
           />
           Include API Keys (security risk)
         </label>
       )}
 
-      <button
+      <Button
         onClick={handleExport}
         disabled={isExporting || selectedTypes.length === 0}
-        style={{
-          width: '100%',
-          padding: '10px',
-          fontSize: '13px',
-          fontWeight: 'bold',
-          backgroundColor: '#6366f1',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: isExporting ? 'not-allowed' : 'pointer',
-          opacity: isExporting || selectedTypes.length === 0 ? 0.7 : 1,
-        }}
+        className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold"
       >
         {isExporting ? 'Exporting...' : 'Export to File'}
-      </button>
+      </Button>
 
       {message && (
         <div

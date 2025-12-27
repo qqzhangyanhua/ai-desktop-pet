@@ -1,7 +1,9 @@
 // ToastContainer - Displays global toast notifications
 
 import { useEffect } from 'react';
+import { Check, X, AlertTriangle, Info, type LucideIcon } from 'lucide-react';
 import { useToastStore } from '../../stores/toastStore';
+import { Button } from '@/components/ui/button';
 import type { Toast } from '../../types/toast';
 
 interface ToastItemProps {
@@ -22,31 +24,37 @@ function ToastItem({ toast, onClose }: ToastItemProps) {
     return () => clearTimeout(timer);
   }, [toast.duration, toast.id, onClose]);
 
-  const getIcon = () => {
+  const getIcon = (): LucideIcon => {
     switch (toast.type) {
       case 'success':
-        return '✓';
+        return Check;
       case 'error':
-        return '✕';
+        return X;
       case 'warning':
-        return '⚠';
+        return AlertTriangle;
       case 'info':
       default:
-        return 'ℹ';
+        return Info;
     }
   };
 
+  const IconComponent = getIcon();
+
   return (
     <div className={`toast-item toast-${toast.type}`}>
-      <div className="toast-icon">{getIcon()}</div>
+      <div className="toast-icon">
+        <IconComponent className="w-4 h-4" />
+      </div>
       <div className="toast-message">{toast.message}</div>
-      <button
-        className="toast-close"
+      <Button
+        className="toast-close h-4 w-4 p-0"
         onClick={() => onClose(toast.id)}
         aria-label="Close"
+        variant="ghost"
+        size="sm"
       >
-        ×
-      </button>
+        <X className="h-3 w-3" />
+      </Button>
     </div>
   );
 }

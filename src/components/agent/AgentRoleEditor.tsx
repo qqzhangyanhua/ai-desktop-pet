@@ -1,6 +1,9 @@
 // Agent Role Editor Component
 
 import { useState, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import type { AgentRole } from '../../types';
 
 interface AgentRoleEditorProps {
@@ -82,19 +85,12 @@ export function AgentRoleEditor({
         >
           Name *
         </label>
-        <input
+        <Input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., Code Reviewer"
-          style={{
-            width: '100%',
-            padding: '8px 12px',
-            fontSize: '14px',
-            border: errors.name ? '1px solid #ef4444' : '1px solid #e2e8f0',
-            borderRadius: '6px',
-            boxSizing: 'border-box',
-          }}
+          className={errors.name ? 'border-red-500' : ''}
         />
         {errors.name && (
           <span style={{ fontSize: '11px', color: '#ef4444' }}>{errors.name}</span>
@@ -113,19 +109,11 @@ export function AgentRoleEditor({
         >
           Description
         </label>
-        <input
+        <Input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Brief description of the agent's purpose"
-          style={{
-            width: '100%',
-            padding: '8px 12px',
-            fontSize: '14px',
-            border: '1px solid #e2e8f0',
-            borderRadius: '6px',
-            boxSizing: 'border-box',
-          }}
         />
       </div>
 
@@ -141,21 +129,12 @@ export function AgentRoleEditor({
         >
           System Prompt *
         </label>
-        <textarea
+        <Textarea
           value={systemPrompt}
           onChange={(e) => setSystemPrompt(e.target.value)}
           placeholder="Instructions for the agent. Define its role, capabilities, and behavior..."
           rows={6}
-          style={{
-            width: '100%',
-            padding: '8px 12px',
-            fontSize: '13px',
-            border: errors.systemPrompt ? '1px solid #ef4444' : '1px solid #e2e8f0',
-            borderRadius: '6px',
-            resize: 'vertical',
-            fontFamily: 'inherit',
-            boxSizing: 'border-box',
-          }}
+          className={errors.systemPrompt ? 'border-red-500' : ''}
         />
         {errors.systemPrompt && (
           <span style={{ fontSize: '11px', color: '#ef4444' }}>{errors.systemPrompt}</span>
@@ -182,23 +161,15 @@ export function AgentRoleEditor({
           }}
         >
           {availableTools.map((tool) => (
-            <button
+            <Button
               key={tool}
               onClick={() => handleToolToggle(tool)}
-              style={{
-                padding: '6px 12px',
-                fontSize: '12px',
-                border: selectedTools.includes(tool)
-                  ? '1px solid #6366f1'
-                  : '1px solid #e2e8f0',
-                borderRadius: '16px',
-                backgroundColor: selectedTools.includes(tool) ? '#eef2ff' : 'white',
-                color: selectedTools.includes(tool) ? '#6366f1' : '#64748b',
-                cursor: 'pointer',
-              }}
+              variant={selectedTools.includes(tool) ? 'default' : 'outline'}
+              size="sm"
+              className={selectedTools.includes(tool) ? 'bg-indigo-500 hover:bg-indigo-600' : ''}
             >
               {tool}
-            </button>
+            </Button>
           ))}
         </div>
         <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', display: 'block' }}>
@@ -218,51 +189,32 @@ export function AgentRoleEditor({
       >
         <div>
           {role?.id && onDelete && (
-            <button
+            <Button
               onClick={handleDelete}
-              style={{
-                padding: '8px 16px',
-                fontSize: '13px',
-                border: '1px solid #fecaca',
-                borderRadius: '6px',
-                backgroundColor: '#fef2f2',
-                color: '#ef4444',
-                cursor: 'pointer',
-              }}
+              variant="outline"
+              size="sm"
+              className="bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
             >
               Delete
-            </button>
+            </Button>
           )}
         </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button
+          <Button
             onClick={onCancel}
-            style={{
-              padding: '8px 16px',
-              fontSize: '13px',
-              border: '1px solid #e2e8f0',
-              borderRadius: '6px',
-              backgroundColor: 'white',
-              cursor: 'pointer',
-            }}
+            variant="outline"
+            size="sm"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleSave}
-            style={{
-              padding: '8px 16px',
-              fontSize: '13px',
-              border: 'none',
-              borderRadius: '6px',
-              backgroundColor: '#6366f1',
-              color: 'white',
-              cursor: 'pointer',
-            }}
+            className="bg-indigo-500 hover:bg-indigo-600"
+            size="sm"
           >
             {role ? 'Save Changes' : 'Create Role'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -288,20 +240,13 @@ export function AgentRoleList({ roles, onSelect, onCreate }: AgentRoleListProps)
         }}
       >
         <h3 style={{ margin: 0, fontSize: '14px' }}>Agent Roles</h3>
-        <button
+        <Button
           onClick={onCreate}
-          style={{
-            padding: '6px 12px',
-            fontSize: '12px',
-            border: 'none',
-            borderRadius: '6px',
-            backgroundColor: '#6366f1',
-            color: 'white',
-            cursor: 'pointer',
-          }}
+          className="bg-indigo-500 hover:bg-indigo-600"
+          size="sm"
         >
           + New Role
-        </button>
+        </Button>
       </div>
 
       {roles.length === 0 ? (
@@ -311,30 +256,26 @@ export function AgentRoleList({ roles, onSelect, onCreate }: AgentRoleListProps)
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {roles.map((role) => (
-            <button
+            <Button
               key={role.id}
               onClick={() => onSelect(role)}
-              style={{
-                padding: '12px',
-                textAlign: 'left',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                backgroundColor: 'white',
-                cursor: 'pointer',
-              }}
+              variant="outline"
+              className="justify-start text-left h-auto py-3"
             >
-              <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '4px' }}>
-                {role.name}
-              </div>
-              {role.description && (
-                <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>
-                  {role.description}
+              <div className="w-full">
+                <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '4px' }}>
+                  {role.name}
                 </div>
-              )}
-              <div style={{ fontSize: '10px', color: '#94a3b8' }}>
-                {role.tools.length} tools
+                {role.description && (
+                  <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>
+                    {role.description}
+                  </div>
+                )}
+                <div style={{ fontSize: '10px', color: '#94a3b8' }}>
+                  {role.tools.length} tools
+                </div>
               </div>
-            </button>
+            </Button>
           ))}
         </div>
       )}

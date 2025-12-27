@@ -1,6 +1,29 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+import {
+  GlassWater,
+  Gamepad2,
+  Music,
+  Sparkles,
+  Wand2,
+  Palette,
+  Moon,
+  Droplet,
+  Brush,
+  Armchair,
+  Cloud,
+  Clock,
+  Bell,
+  Lightbulb,
+  Monitor,
+  Star,
+  MessageSquare,
+  Settings,
+  BarChart3,
+  EyeOff,
+  X,
+} from 'lucide-react';
 import type { AssistantSkill, PetActionType } from '../../types';
 import { useConfigStore } from '@/stores';
 
@@ -153,78 +176,100 @@ export function ContextMenu({
     >
       <div className="context-menu-title">娱乐与表演</div>
       <div className="context-menu-item" onClick={() => handlePetAction('feed')}>
-        🧃 喂食/吃苹果
+        <GlassWater className="w-4 h-4" />
+        喂食/吃苹果
       </div>
       <div className="context-menu-item" onClick={() => handlePetAction('play')}>
-        🎮 玩小游戏
+        <Gamepad2 className="w-4 h-4" />
+        玩小游戏
       </div>
       <div className="context-menu-item" onClick={() => handlePetAction('dance')}>
-        💃 跳舞秀
+        <Music className="w-4 h-4" />
+        跳舞秀
       </div>
       <div className="context-menu-item" onClick={() => handlePetAction('music')}>
-        🎵 播放音乐
+        <Music className="w-4 h-4" />
+        播放音乐
       </div>
       <div className="context-menu-item" onClick={() => handlePetAction('magic')}>
-        🎩 表演魔术
+        <Wand2 className="w-4 h-4" />
+        表演魔术
       </div>
       <div className="context-menu-item" onClick={() => handlePetAction('art')}>
-        🎨 生成艺术作品
+        <Palette className="w-4 h-4" />
+        生成艺术作品
       </div>
       <div className="context-menu-item" onClick={() => handlePetAction('transform')}>
-        ✨ 变身
+        <Sparkles className="w-4 h-4" />
+        变身
       </div>
       <div className="context-menu-divider" />
 
       <div className="context-menu-title">休息与护理</div>
       <div className="context-menu-item" onClick={() => handlePetAction('sleep')}>
-        😴 睡觉/休息
+        <Moon className="w-4 h-4" />
+        睡觉/休息
       </div>
       <div className="context-menu-item" onClick={() => handlePetAction('clean')}>
-        🫧 清洁
+        <Droplet className="w-4 h-4" />
+        清洁
       </div>
       <div className="context-menu-item" onClick={() => handlePetAction('brush')}>
-        🪮 梳毛
+        <Brush className="w-4 h-4" />
+        梳毛
       </div>
       <div className="context-menu-item" onClick={() => handlePetAction('rest')}>
-        🧘 放松
+        <Armchair className="w-4 h-4" />
+        放松
       </div>
 
       <div className="context-menu-divider" />
       <div className="context-menu-title">智能助手</div>
       <div className="context-menu-item" onClick={() => handleAssistantAction('weather')}>
-        ☁️ 查询天气提示
+        <Cloud className="w-4 h-4" />
+        查询天气提示
       </div>
       <div className="context-menu-item" onClick={() => handleAssistantAction('time')}>
-        ⏰ 播报时间
+        <Clock className="w-4 h-4" />
+        播报时间
       </div>
       <div className="context-menu-item" onClick={() => handleAssistantAction('alarm')}>
-        🔔 创建15分钟提醒
+        <Bell className="w-4 h-4" />
+        创建15分钟提醒
       </div>
       <div className="context-menu-item" onClick={() => handleAssistantAction('lights')}>
-        💡 控制灯光/设备（模拟）
+        <Lightbulb className="w-4 h-4" />
+        控制灯光/设备（模拟）
       </div>
       <div className="context-menu-item" onClick={() => handleAssistantAction('pc_action')}>
-        🖥️ 简单电脑操作
+        <Monitor className="w-4 h-4" />
+        简单电脑操作
       </div>
       <div className="context-menu-item" onClick={() => handleAssistantAction('habit')}>
-        ⭐ 记住偏好/给出建议
+        <Star className="w-4 h-4" />
+        记住偏好/给出建议
       </div>
 
       <div className="context-menu-divider" />
       <div className="context-menu-item" onClick={onChat}>
+        <MessageSquare className="w-4 h-4" />
         Chat
       </div>
       <div className="context-menu-item" onClick={handleOpenSettings}>
+        <Settings className="w-4 h-4" />
         Settings
       </div>
       <div className="context-menu-item" onClick={handleToggleStatusPanel}>
-        {statusPanelVisible ? '📊 隐藏状态面板' : '📊 显示状态面板'}
+        <BarChart3 className="w-4 h-4" />
+        {statusPanelVisible ? '隐藏状态面板' : '显示状态面板'}
       </div>
       <div className="context-menu-divider" />
       <div className="context-menu-item" onClick={handleHide}>
+        <EyeOff className="w-4 h-4" />
         Hide
       </div>
       <div className="context-menu-item danger" onClick={handleQuit}>
+        <X className="w-4 h-4" />
         Quit
       </div>
     </div>

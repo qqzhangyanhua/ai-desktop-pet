@@ -2,6 +2,8 @@
 
 import { useAgentStore } from '../../stores';
 import { ToolCallItem } from './ToolCallItem';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 import type { ToolCallEvent, ToolResultEvent } from '../../types';
 
 interface AgentPanelProps {
@@ -53,20 +55,24 @@ export function AgentPanel({ onClose }: AgentPanelProps) {
         <span>Agent Activity</span>
         <div className="agent-panel-actions">
           {toolCalls.length > 0 && (
-            <button
+            <Button
               className="agent-clear-btn"
               onClick={clearEvents}
               title="Clear history"
+              variant="outline"
+              size="sm"
             >
               Clear
-            </button>
+            </Button>
           )}
-          <button
-            className="agent-close-btn"
+          <Button
+            className="agent-close-btn h-6 w-6 p-0"
             onClick={onClose}
+            variant="ghost"
+            size="sm"
           >
-            x
-          </button>
+            <X className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 

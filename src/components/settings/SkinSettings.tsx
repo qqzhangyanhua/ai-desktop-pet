@@ -4,6 +4,8 @@ import { useState, useCallback } from 'react';
 import type { SkinMeta } from '../../types';
 import { useSkinStore } from '../../stores/skinStore';
 import { getSkinManager, importSkinFromFolder, deleteImportedSkin } from '../../services/skin';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface SkinSettingsProps {
   title?: string;
@@ -28,70 +30,40 @@ function SkinCard({
   return (
     <div
       onClick={onSelect}
-      style={{
-        padding: '8px',
-        border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0',
-        borderRadius: '8px',
-        backgroundColor: isSelected ? '#eef2ff' : 'white',
-        cursor: 'pointer',
-        position: 'relative',
-        transition: 'all 0.2s ease',
-      }}
+      className={`
+        p-2 border rounded-lg cursor-pointer relative transition-all duration-200 ease-out
+        ${isSelected 
+          ? 'border-indigo-500 bg-indigo-50' 
+          : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm'
+        }
+      `}
     >
       {/* Preview image */}
-      <div
-        style={{
-          width: '100%',
-          aspectRatio: '1',
-          backgroundColor: '#f1f5f9',
-          borderRadius: '4px',
-          marginBottom: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="w-full aspect-square bg-slate-100 rounded mb-2 flex items-center justify-center overflow-hidden">
         {skin.previewImage ? (
           <img
             src={skin.previewImage}
             alt={skin.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            className="w-full h-full object-cover"
           />
         ) : (
-          <span style={{ fontSize: '24px', color: '#94a3b8' }}>?</span>
+          <span className="text-2xl text-slate-400">?</span>
         )}
       </div>
 
       {/* Skin name */}
       <div
-        style={{
-          fontSize: '12px',
-          fontWeight: isSelected ? 'bold' : 'normal',
-          color: isSelected ? '#6366f1' : '#334155',
-          textAlign: 'center',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
+        className={`
+          text-xs text-center whitespace-nowrap overflow-hidden text-ellipsis
+          ${isSelected ? 'font-bold text-indigo-500' : 'font-normal text-slate-700'}
+        `}
       >
         {skin.name}
       </div>
 
       {/* Builtin badge */}
       {skin.isBuiltin && (
-        <span
-          style={{
-            position: 'absolute',
-            top: '4px',
-            right: '4px',
-            fontSize: '9px',
-            padding: '2px 4px',
-            backgroundColor: '#dbeafe',
-            color: '#2563eb',
-            borderRadius: '2px',
-          }}
-        >
+        <span className="absolute top-1 right-1 text-[9px] px-1 py-0.5 bg-blue-100 text-blue-600 rounded">
           Built-in
         </span>
       )}
@@ -103,23 +75,7 @@ function SkinCard({
             e.stopPropagation();
             onDelete();
           }}
-          style={{
-            position: 'absolute',
-            top: '4px',
-            right: '4px',
-            width: '20px',
-            height: '20px',
-            padding: 0,
-            border: 'none',
-            borderRadius: '50%',
-            backgroundColor: '#fef2f2',
-            color: '#ef4444',
-            cursor: 'pointer',
-            fontSize: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="absolute top-1 right-1 w-5 h-5 p-0 border-none rounded-full bg-red-50 text-red-500 hover:bg-red-100 cursor-pointer text-xs flex items-center justify-center transition-colors"
         >
           x
         </button>
@@ -182,24 +138,15 @@ export function SkinSettings({
       {typeof live2dEnabled === 'boolean' && onLive2DEnabledChange && (
         <div className="settings-row">
           <span className="settings-label">启用 Live2D</span>
-          <input
-            type="checkbox"
+          <Checkbox
             checked={live2dEnabled}
-            onChange={(e) => onLive2DEnabledChange(e.target.checked)}
-            style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+            onCheckedChange={(checked) => onLive2DEnabledChange(!!checked)}
           />
         </div>
       )}
 
       {/* Skin grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '8px',
-          marginBottom: '12px',
-        }}
-      >
+      <div className="grid grid-cols-3 gap-2 mb-3">
         {skins.map((skin) => (
           <SkinCard
             key={skin.id}
@@ -216,37 +163,17 @@ export function SkinSettings({
       </div>
 
       {/* Import button */}
-      <button
+      <Button
         onClick={handleImport}
         disabled={isImporting}
-        style={{
-          width: '100%',
-          padding: '8px',
-          marginBottom: '12px',
-          fontSize: '12px',
-          border: '1px dashed #e2e8f0',
-          borderRadius: '6px',
-          backgroundColor: 'white',
-          cursor: isImporting ? 'not-allowed' : 'pointer',
-          color: '#64748b',
-          opacity: isImporting ? 0.7 : 1,
-        }}
+        variant="outline"
+        className="w-full p-2 mb-3 text-xs border-dashed"
       >
         {isImporting ? '导入中...' : '+ 导入自定义形象'}
-      </button>
+      </Button>
 
       {error && (
-        <div
-          style={{
-            padding: '8px',
-            marginBottom: '12px',
-            fontSize: '11px',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '6px',
-            color: '#ef4444',
-          }}
-        >
+        <div className="p-2 mb-3 text-[11px] bg-red-50 border border-red-200 rounded-md text-red-500">
           {error}
         </div>
       )}
@@ -261,22 +188,14 @@ export function SkinSettings({
           step="0.1"
           value={scale}
           onChange={(e) => onScaleChange(parseFloat(e.target.value))}
-          style={{ width: '120px' }}
+          className="w-[120px] accent-indigo-500"
         />
-        <span style={{ marginLeft: '8px', fontSize: '12px' }}>
+        <span className="ml-2 text-xs text-slate-600 font-medium">
           {scale.toFixed(1)}x
         </span>
       </div>
 
-      <div
-        className="settings-row"
-        style={{
-          fontSize: '11px',
-          color: '#888',
-          borderBottom: 'none',
-          paddingTop: '4px',
-        }}
-      >
+      <div className="settings-row border-none pt-1 text-[11px] text-slate-400">
         支持导入 Live2D 模型（.model.json / .model3.json）来自定义宠物形象
       </div>
     </div>
