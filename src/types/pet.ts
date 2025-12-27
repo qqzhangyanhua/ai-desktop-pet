@@ -43,6 +43,7 @@ export type PetActionType =
   | 'feed'
   | 'play'
   | 'sleep'
+  | 'work'
   | 'transform'
   | 'music'
   | 'dance'

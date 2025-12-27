@@ -1,5 +1,7 @@
 import { useCallback, useRef, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { isTauri } from '@tauri-apps/api/core';
+import { LogicalPosition, type LogicalSize } from '@tauri-apps/api/dpi';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { usePetStore } from '../stores';
 
 interface UseDragOptions {
@@ -11,9 +13,12 @@ export function useDrag(options: UseDragOptions = {}) {
   const isDragging = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
   const windowStartPos = useRef({ x: 0, y: 0 });
+  const windowSize = useRef<LogicalSize | null>(null);
   const optionsRef = useRef(options);
   const rafId = useRef<number | null>(null);
   const pendingPosition = useRef<{ x: number; y: number } | null>(null);
+  const appWindowRef = useRef<ReturnType<typeof getCurrentWindow> | null>(null);
+  const nativeDragging = useRef(false);
 
   // Update options ref when options change
   useEffect(() => {
@@ -23,18 +28,46 @@ export function useDrag(options: UseDragOptions = {}) {
   const handleMouseDown = useCallback(
     async (e: React.MouseEvent) => {
       if (e.button !== 0) return; // Only left click
+      if (!isTauri()) return;
+      e.preventDefault();
 
+      if (!appWindowRef.current) {
+        appWindowRef.current = getCurrentWindow();
+      }
+      const appWindow = appWindowRef.current;
+
+      // 使用原生拖拽，避免高频 setPosition 造成卡顿甚至崩溃
+      nativeDragging.current = false;
+      optionsRef.current.onDragStart?.();
+      try {
+        await appWindow.startDragging();
+        nativeDragging.current = true;
+        isDragging.current = true;
+        return;
+      } catch (err) {
+        console.warn('[useDrag] startDragging 失败，降级为手动 setPosition 拖拽：', err);
+      }
+
+      // 兜底：手动 setPosition 拖拽
       isDragging.current = true;
       startPos.current = { x: e.screenX, y: e.screenY };
 
       try {
-        const pos = await invoke<[number, number]>('get_window_position');
-        windowStartPos.current = { x: pos[0], y: pos[1] };
+        const [scaleFactor, outerPosition, outerSize] = await Promise.all([
+          appWindow.scaleFactor(),
+          appWindow.outerPosition(),
+          appWindow.outerSize(),
+        ]);
+
+        const logicalPos = outerPosition.toLogical(scaleFactor);
+        windowStartPos.current = { x: logicalPos.x, y: logicalPos.y };
+
+        const logicalSize = outerSize.toLogical(scaleFactor);
+        windowSize.current = logicalSize;
       } catch (err) {
         console.error('Failed to get window position:', err);
       }
 
-      optionsRef.current.onDragStart?.();
     },
     []
   );
@@ -44,9 +77,12 @@ export function useDrag(options: UseDragOptions = {}) {
       const { x, y } = pendingPosition.current;
       pendingPosition.current = null;
 
-      invoke('set_window_position', { x, y }).catch((err) => {
-        console.error('Failed to set window position:', err);
-      });
+      const appWindow = appWindowRef.current;
+      if (appWindow) {
+        appWindow.setPosition(new LogicalPosition(x, y)).catch((err) => {
+          console.error('Failed to set window position:', err);
+        });
+      }
 
       usePetStore.getState().setPosition({ x, y });
     }
@@ -56,6 +92,7 @@ export function useDrag(options: UseDragOptions = {}) {
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!isDragging.current) return;
+      if (nativeDragging.current) return;
 
       const deltaX = e.screenX - startPos.current.x;
       const deltaY = e.screenY - startPos.current.y;
@@ -64,8 +101,7 @@ export function useDrag(options: UseDragOptions = {}) {
       let newY = windowStartPos.current.y + deltaY;
 
       // Boundary check - prevent window from going off-screen
-      const windowWidth = 300;
-      // const windowHeight = 400; // Not used in current boundary logic
+      const { width: windowWidth } = windowSize.current ?? usePetStore.getState().size;
       const screenWidth = window.screen.width;
       const screenHeight = window.screen.height;
 
@@ -90,6 +126,25 @@ export function useDrag(options: UseDragOptions = {}) {
       if (!isDragging.current) return;
 
       isDragging.current = false;
+      const wasNativeDrag = nativeDragging.current;
+      nativeDragging.current = false;
+
+      // 原生拖拽：尽力在 mouseup 时回调最终位置
+      if (wasNativeDrag) {
+        try {
+          const appWindow = appWindowRef.current ?? getCurrentWindow();
+          appWindowRef.current = appWindow;
+          const [scaleFactor, outerPosition] = await Promise.all([
+            appWindow.scaleFactor(),
+            appWindow.outerPosition(),
+          ]);
+          const logicalPos = outerPosition.toLogical(scaleFactor);
+          optionsRef.current.onDragEnd?.({ x: logicalPos.x, y: logicalPos.y });
+        } catch {
+          // 忽略：某些情况下 mouseup 不可靠，位置持久化交给 onMoved 监听处理
+        }
+        return;
+      }
 
       const deltaX = e.screenX - startPos.current.x;
       const deltaY = e.screenY - startPos.current.y;
@@ -103,6 +158,8 @@ export function useDrag(options: UseDragOptions = {}) {
   );
 
   useEffect(() => {
+    if (!isTauri()) return;
+
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
 

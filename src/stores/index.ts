@@ -1,4 +1,5 @@
 export { usePetStore } from './petStore';
+export { usePetStatusStore } from './petStatusStore';
 export { useChatStore } from './chatStore';
 export { useAgentStore } from './agentStore';
 export { useConfigStore } from './configStore';
@@ -6,3 +7,4 @@ export { useSchedulerStore } from './schedulerStore';
 export { useToastStore, toast } from './toastStore';
 export { useCareStore } from './careStore';
 export { useAssistantStore } from './assistantStore';
+export { useSkinStore } from './skinStore';

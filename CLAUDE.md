@@ -184,6 +184,22 @@ Access via `services/database/*.ts` modules. Schema defined in `services/databas
 - Emotion-based animation switching
 - Mouse tracking for head/eye movement
 
+**Window Behavior**
+- Drag Region: Multiple draggable areas for flexibility
+  - StatusBar drag indicator (⋮⋮) in top-right corner
+  - Pet body (PetCanvas placeholder or Live2D model canvas)
+- Auto-hide: `useWindowAutoHide` hook in `PetContainer.tsx`
+  - Triggers when window is within 50px of screen edge
+  - Hides window off-screen leaving 20px visible
+  - Reveals on mouse hover after 100ms delay
+  - Re-hides when mouse leaves after 300ms delay
+  - **CRITICAL**: Delayed initialization (2s) to avoid conflicts with Tauri event loop on macOS
+  - **CRITICAL**: Uses `isCheckingEdge` flag to prevent concurrent window position operations
+  - **CRITICAL**: Do NOT add `data-tauri-drag-region` to parent container with mouse event handlers - causes macOS event loop panic
+- Pet Interaction: `handleMouseDown`/`handleMouseUp` in `PetContainer.tsx`
+  - Distance-based gesture recognition: >5px = drag, ≤5px = interaction
+  - Interaction zones: top 1/3 = pet, middle 1/3 = feed, bottom 1/3 = play
+
 **Voice System**
 - STT: Web Speech API (`stt-web.ts`)
 - TTS: Edge TTS (`tts-edge.ts`) or Web Speech API (`tts-web.ts`)
@@ -246,6 +262,32 @@ Access via `services/database/*.ts` modules. Schema defined in `services/databas
 3. Define action (notification/agent_task/workflow/script)
 4. Task persisted to database automatically
 
+### Working with Pet Status System
+**Core Services**: `src/services/pet/`
+- `status.ts` - Decay calculations, effects application
+- `interaction.ts` - Interaction handling, cooldown checks
+- `emotion.ts` - Mood-based emotion mapping
+
+**Flow**:
+1. User interacts → `PetContainer.handleMouseUp()`
+2. Determine zone (pet/feed/play) → `getInteractionZone()`
+3. Call service → `handleInteraction(type, status)`
+4. Service checks cooldown → `checkCooldown()`
+5. Apply effects → `applyInteractionEffects()`
+6. Update database → `petStatusStore.updateStatus()` (debounced 5s)
+7. Update UI → StatusBar re-renders (React.memo optimized)
+
+**Performance Notes**:
+- Database writes are debounced (5s) for decay updates
+- Use `updateStatusImmediate()` for user interactions
+- Decay calculations cached for 60 seconds
+- StatusBar uses React.memo to prevent unnecessary re-renders
+
+**Cooldown Times**:
+- pet: 60 seconds (抚摸)
+- feed: 120 seconds (喂食)
+- play: 90 seconds (玩耍)
+
 ## Tauri-Specific Patterns
 
 ### Using Tauri Plugins
@@ -300,6 +342,9 @@ await writeText('clipboard content'); // Write to clipboard
 4. **Single file size**: Keep under 500 lines - refactor if exceeded
 5. **Agent timeouts**: Long-running workflows need progress feedback
 6. **Scheduler initialization**: Must happen after database init in App.tsx
+7. **Pet Status debounced updates**: Database writes are debounced by 5 seconds; use `updateStatusImmediate()` for critical updates
+8. **Decay cache**: Cached for 60 seconds; invalidates on `lastTime` change or cache expiry
+9. **Interaction cooldowns**: Stored per type (pet: 60s, feed: 120s, play: 90s) - check `getCooldownRemaining()` before allowing interaction
 
 ## Debugging Tips
 

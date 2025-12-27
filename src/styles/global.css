@@ -1,3 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Z-index hierarchy system
+ * 定义层级体系，避免 z-index 混乱
+ *
+ * Linus 准则: "消除特殊情况，使用统一规则"
+ */
+:root {
+  /* Base layers */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-floating: 200;
+
+  /* Modal & overlay layers */
+  --z-modal: 1000;
+  --z-modal-overlay: 999;
+
+  /* Top-most layers */
+  --z-toast: 9999;
+  --z-tooltip: 10000;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -7,14 +32,15 @@
 html, body, #root {
   width: 100%;
   height: 100%;
-  background: transparent;
+  background: transparent !important;
+  background-color: transparent !important;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 /* Transparent window background */
 body {
-  background-color: transparent;
+  background-color: transparent !important;
 }
 
 /* Make entire window draggable by default */
@@ -109,7 +135,11 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   padding: 4px 0;
   min-width: 150px;
-  z-index: 1000;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: var(--z-modal);
 }
 
 .context-menu-item {
@@ -120,6 +150,9 @@ body {
   gap: 8px;
   font-size: 13px;
   color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: background 0.15s;
 }
 
@@ -198,7 +231,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 100;
+  z-index: var(--z-floating);
 }
 
 .chat-header {
@@ -330,13 +363,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  z-index: var(--z-modal-overlay);
 }
 
 .settings-panel {
-  width: 90%;
-  max-width: 500px;
-  max-height: 80%;
+  width: 95%;
+  max-width: 960px;
+  max-height: 90%;
   background: white;
   border-radius: 16px;
   overflow: hidden;
@@ -445,7 +478,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 100;
+  z-index: var(--z-floating);
 }
 
 .agent-panel-header {
@@ -658,7 +691,7 @@ body {
   position: fixed;
   top: 20px;
   right: 20px;
-  z-index: 9999;
+  z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
   gap: 10px;

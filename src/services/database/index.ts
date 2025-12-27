@@ -103,6 +103,47 @@ CREATE TABLE IF NOT EXISTS task_executions (
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
 );
 
+-- Pet status table (for pet care system)
+CREATE TABLE IF NOT EXISTS pet_status (
+    id INTEGER PRIMARY KEY,
+    mood REAL DEFAULT 80.0,
+    energy REAL DEFAULT 100.0,
+    intimacy REAL DEFAULT 0.0,
+    last_interaction INTEGER NOT NULL,
+    last_feed INTEGER,
+    last_play INTEGER,
+    total_interactions INTEGER DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+-- Daily statistics table (for Phase 2 stats system)
+CREATE TABLE IF NOT EXISTS daily_stats (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL UNIQUE,
+    pet_count INTEGER DEFAULT 0,
+    feed_count INTEGER DEFAULT 0,
+    play_count INTEGER DEFAULT 0,
+    chat_count INTEGER DEFAULT 0,
+    total_duration INTEGER DEFAULT 0,
+    mood_avg REAL,
+    energy_avg REAL,
+    created_at INTEGER NOT NULL
+);
+
+-- Achievements table (for Phase 2 achievement system)
+CREATE TABLE IF NOT EXISTS achievements (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    unlock_condition TEXT NOT NULL,
+    is_unlocked INTEGER DEFAULT 0,
+    unlocked_at INTEGER,
+    created_at INTEGER NOT NULL
+);
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
@@ -110,7 +151,38 @@ CREATE INDEX IF NOT EXISTS idx_tasks_next_run ON tasks(next_run, enabled);
 CREATE INDEX IF NOT EXISTS idx_tasks_enabled ON tasks(enabled);
 CREATE INDEX IF NOT EXISTS idx_executions_task ON task_executions(task_id);
 CREATE INDEX IF NOT EXISTS idx_executions_status ON task_executions(status);
+CREATE INDEX IF NOT EXISTS idx_pet_status_updated ON pet_status(updated_at);
+CREATE INDEX IF NOT EXISTS idx_daily_stats_date ON daily_stats(date);
+CREATE INDEX IF NOT EXISTS idx_achievements_unlocked ON achievements(is_unlocked);
+CREATE INDEX IF NOT EXISTS idx_achievements_type ON achievements(type);
 `;
+
+/**
+ * 迁移pet_status表：首次启动时插入默认记录
+ * @param db Database instance
+ */
+async function migratePetStatus(db: Database): Promise<void> {
+  try {
+    // 检查是否已有记录
+    const existing = await db.select<Array<{ count: number }>>(
+      'SELECT COUNT(*) as count FROM pet_status'
+    );
+
+    if (existing[0]?.count === 0) {
+      // 首次启动，插入默认状态
+      const now = Date.now();
+      await db.execute(
+        `INSERT INTO pet_status (id, last_interaction, created_at, updated_at)
+         VALUES (1, ?, ?, ?)`,
+        [now, now, now]
+      );
+      console.log('[Database] Pet status default record inserted');
+    }
+  } catch (error) {
+    console.error('[Database] Failed to migrate pet_status:', error);
+    throw error;
+  }
+}
 
 export async function initDatabase(): Promise<Database> {
   if (db) return db;
@@ -137,6 +209,9 @@ export async function initDatabase(): Promise<Database> {
       [skin.id, skin.name, skin.path, skin.isBuiltin, Date.now()]
     );
   }
+
+  // Migrate pet_status: insert default record if not exist
+  await migratePetStatus(db);
 
   console.log('Database initialized');
   return db;

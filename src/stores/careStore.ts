@@ -6,8 +6,22 @@ import type {
   PetCareStats,
   EmotionType,
 } from '../types';
+import { useConfigStore } from './configStore';
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(Math.max(value, min), max);
+
+const getDecayMultiplier = (): number => {
+  const preset = useConfigStore.getState().config.behavior.decaySpeed;
+  switch (preset) {
+    case 'casual':
+      return 0.65;
+    case 'hardcore':
+      return 1.5;
+    case 'standard':
+    default:
+      return 1.0;
+  }
+};
 
 const initialCareStats: PetCareStats = {
   satiety: 78,
@@ -34,6 +48,11 @@ const ACTION_EFFECTS: Record<PetActionType, CareEffect> = {
     message: '小憩一下，恢复体力~',
     emotion: 'neutral',
     stats: { energy: 26, mood: 6, boredom: -6 },
+  },
+  work: {
+    message: '我去打工啦，努力赚点小钱~',
+    emotion: 'thinking',
+    stats: { energy: -10, satiety: -8, hygiene: -4, mood: 2, boredom: 12 },
   },
   transform: {
     message: '变身完成，感觉焕然一新！',
@@ -111,12 +130,13 @@ export const useCareStore = create<CareStore>((set, get) => ({
   applyDecay: () => {
     let updated: PetCareStats = initialCareStats;
     set((state) => {
+      const multiplier = getDecayMultiplier();
       const decayed = applyDelta(state, {
-        satiety: -1.6,
-        energy: -1.2,
-        hygiene: -0.9,
-        mood: -0.6,
-        boredom: 1.2,
+        satiety: -1.6 * multiplier,
+        energy: -1.2 * multiplier,
+        hygiene: -0.9 * multiplier,
+        mood: -0.6 * multiplier,
+        boredom: 1.2 * multiplier,
       });
 
       updated = {

@@ -7,3 +7,5 @@ export { usePetCareLoop } from './usePetCareLoop';
 export { usePetActions } from './usePetActions';
 export { useAssistantSkills } from './useAssistantSkills';
 export { useAssistantCommandRouter } from './useAssistantCommandRouter';
+export { useWindowAutoHide } from './useWindowAutoHide';
+export { useAutoWork } from './useAutoWork';

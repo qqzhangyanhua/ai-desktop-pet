@@ -87,12 +87,14 @@ function drawPlaceholderPet(
 interface PetCanvasProps {
   width?: number;
   height?: number;
+  maxFps?: number;
   onContextMenu?: (e: React.MouseEvent) => void;
 }
 
 export function PetCanvas({
   width = 300,
   height = 400,
+  maxFps = 60,
   onContextMenu
 }: PetCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -126,6 +128,7 @@ export function PetCanvas({
 
       containerRef.current.appendChild(app.canvas);
       appRef.current = app;
+      app.ticker.maxFPS = maxFps;
 
       // Create graphics for placeholder pet
       const graphics = new Graphics();
@@ -145,6 +148,11 @@ export function PetCanvas({
       }
     };
   }, [width, height]);
+
+  useEffect(() => {
+    if (!appRef.current) return;
+    appRef.current.ticker.maxFPS = maxFps;
+  }, [maxFps]);
 
   // Update pet appearance based on emotion
   useEffect(() => {

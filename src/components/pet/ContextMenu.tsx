@@ -1,13 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import type { AssistantSkill, PetActionType } from '../../types';
+import { useConfigStore } from '@/stores';
 
 interface ContextMenuProps {
   x: number;
   y: number;
   onClose: () => void;
   onChat: () => void;
-  onSettings: () => void;
   onPetAction: (action: PetActionType) => void;
   onAssistantAction: (skill: AssistantSkill) => void;
 }
@@ -17,11 +18,48 @@ export function ContextMenu({
   y,
   onClose,
   onChat,
-  onSettings,
   onPetAction,
   onAssistantAction,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const statusPanelVisible = useConfigStore((s) => s.config.appearance.statusPanelVisible);
+  const [position, setPosition] = useState<{ left: number; top: number }>({ left: x, top: y });
+
+  useEffect(() => {
+    setPosition({ left: x, top: y });
+  }, [x, y]);
+
+  // 根据窗口可视区域自动调整菜单位置，避免右侧/底部被截断
+  useLayoutEffect(() => {
+    const el = menuRef.current;
+    if (!el) return;
+
+    const margin = 8;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const rect = el.getBoundingClientRect();
+
+    let left = x;
+    let top = y;
+
+    // 右侧溢出则向左展开
+    if (left + rect.width + margin > viewportWidth) {
+      left = x - rect.width;
+    }
+    // 底部溢出则向上展开
+    if (top + rect.height + margin > viewportHeight) {
+      top = y - rect.height;
+    }
+
+    // clamp 到可视区域（若菜单过大，后续靠 max-height/scroll 承担）
+    const maxLeft = Math.max(margin, viewportWidth - rect.width - margin);
+    const maxTop = Math.max(margin, viewportHeight - rect.height - margin);
+    left = Math.max(margin, Math.min(maxLeft, left));
+    top = Math.max(margin, Math.min(maxTop, top));
+
+    setPosition((prev) => (prev.left === left && prev.top === top ? prev : { left, top }));
+  }, [x, y]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -56,6 +94,22 @@ export function ContextMenu({
     await appWindow.close();
   };
 
+  const handleToggleStatusPanel = async () => {
+    const { config, setConfig, saveConfig } = useConfigStore.getState();
+    setConfig({
+      appearance: {
+        ...config.appearance,
+        statusPanelVisible: !config.appearance.statusPanelVisible,
+      },
+    });
+    try {
+      await saveConfig();
+    } catch (err) {
+      console.warn('[ContextMenu] Failed to save config:', err);
+    }
+    onClose();
+  };
+
   const handlePetAction = (action: PetActionType) => {
     onPetAction(action);
     onClose();
@@ -66,11 +120,36 @@ export function ContextMenu({
     onClose();
   };
 
+  const handleOpenSettings = async () => {
+    onClose();
+    const settingsWindow = await WebviewWindow.getByLabel('settings');
+
+    if (settingsWindow) {
+      await settingsWindow.setFocus();
+    } else {
+      // In dev mode, use dev server URL; in production, use settings.html
+      const isDev = window.location.hostname === 'localhost';
+      const url = isDev ? 'http://localhost:1420/settings.html' : 'settings.html';
+
+      new WebviewWindow('settings', {
+        url,
+        title: '设置中心',
+        width: 1000,
+        height: 600,
+        resizable: true,
+        center: true,
+        decorations: true,
+        alwaysOnTop: false,
+        skipTaskbar: false,
+      });
+    }
+  };
+
   return (
     <div
       ref={menuRef}
       className="context-menu no-drag"
-      style={{ left: x, top: y }}
+      style={{ left: position.left, top: position.top }}
     >
       <div className="context-menu-title">娱乐与表演</div>
       <div className="context-menu-item" onClick={() => handlePetAction('feed')}>
@@ -135,8 +214,11 @@ export function ContextMenu({
       <div className="context-menu-item" onClick={onChat}>
         Chat
       </div>
-      <div className="context-menu-item" onClick={onSettings}>
+      <div className="context-menu-item" onClick={handleOpenSettings}>
         Settings
+      </div>
+      <div className="context-menu-item" onClick={handleToggleStatusPanel}>
+        {statusPanelVisible ? '📊 隐藏状态面板' : '📊 显示状态面板'}
       </div>
       <div className="context-menu-divider" />
       <div className="context-menu-item" onClick={handleHide}>

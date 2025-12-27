@@ -1,6 +1,9 @@
 // Re-export all types
 
 export * from './pet';
+export * from './pet-status';
+export * from './growth-stage';
+export * from './statistics';
 export * from './chat';
 export * from './agent';
 export * from './mcp';

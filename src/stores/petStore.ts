@@ -18,7 +18,7 @@ export const usePetStore = create<PetStore>((set) => ({
   scale: 1.0,
   emotion: 'neutral',
   isVisible: true,
-  currentSkinId: 'default',
+  currentSkinId: 'shizuku',
   isSpeaking: false,
   bubbleText: null,
 

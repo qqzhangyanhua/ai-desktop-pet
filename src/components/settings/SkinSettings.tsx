@@ -6,8 +6,12 @@ import { useSkinStore } from '../../stores/skinStore';
 import { getSkinManager, importSkinFromFolder, deleteImportedSkin } from '../../services/skin';
 
 interface SkinSettingsProps {
+  title?: string;
+  live2dEnabled?: boolean;
+  onLive2DEnabledChange?: (enabled: boolean) => void;
   scale: number;
   onScaleChange: (scale: number) => void;
+  onSkinChange?: (skinId: string) => void;
 }
 
 function SkinCard({
@@ -124,15 +128,25 @@ function SkinCard({
   );
 }
 
-export function SkinSettings({ scale, onScaleChange }: SkinSettingsProps) {
+export function SkinSettings({
+  title = '宠物形象',
+  live2dEnabled,
+  onLive2DEnabledChange,
+  scale,
+  onScaleChange,
+  onSkinChange,
+}: SkinSettingsProps) {
   const { skins, currentSkinId } = useSkinStore();
   const [isImporting, setIsImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSelectSkin = useCallback(async (skinId: string) => {
     const manager = getSkinManager();
-    await manager.switchSkin(skinId);
-  }, []);
+    const ok = await manager.switchSkin(skinId);
+    if (ok) {
+      onSkinChange?.(skinId);
+    }
+  }, [onSkinChange]);
 
   const handleImport = useCallback(async () => {
     setIsImporting(true);
@@ -151,19 +165,31 @@ export function SkinSettings({ scale, onScaleChange }: SkinSettingsProps) {
   }, []);
 
   const handleDelete = useCallback(async (skinId: string, skinName: string) => {
-    if (!window.confirm(`Delete skin "${skinName}"?`)) {
+    if (!window.confirm(`确认删除形象「${skinName}」吗？`)) {
       return;
     }
 
     const success = await deleteImportedSkin(skinId);
     if (!success) {
-      setError('Failed to delete skin');
+      setError('删除失败');
     }
   }, []);
 
   return (
     <div className="settings-section">
-      <div className="settings-section-title">Skin / Model</div>
+      <div className="settings-section-title">{title}</div>
+
+      {typeof live2dEnabled === 'boolean' && onLive2DEnabledChange && (
+        <div className="settings-row">
+          <span className="settings-label">启用 Live2D</span>
+          <input
+            type="checkbox"
+            checked={live2dEnabled}
+            onChange={(e) => onLive2DEnabledChange(e.target.checked)}
+            style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+          />
+        </div>
+      )}
 
       {/* Skin grid */}
       <div
@@ -206,7 +232,7 @@ export function SkinSettings({ scale, onScaleChange }: SkinSettingsProps) {
           opacity: isImporting ? 0.7 : 1,
         }}
       >
-        {isImporting ? 'Importing...' : '+ Import Custom Skin'}
+        {isImporting ? '导入中...' : '+ 导入自定义形象'}
       </button>
 
       {error && (
@@ -227,7 +253,7 @@ export function SkinSettings({ scale, onScaleChange }: SkinSettingsProps) {
 
       {/* Scale slider */}
       <div className="settings-row">
-        <span className="settings-label">Pet Scale</span>
+        <span className="settings-label">模型缩放</span>
         <input
           type="range"
           min="0.5"
@@ -251,7 +277,7 @@ export function SkinSettings({ scale, onScaleChange }: SkinSettingsProps) {
           paddingTop: '4px',
         }}
       >
-        Import Live2D models (.model.json or .model3.json) to customize your pet
+        支持导入 Live2D 模型（.model.json / .model3.json）来自定义宠物形象
       </div>
     </div>
   );

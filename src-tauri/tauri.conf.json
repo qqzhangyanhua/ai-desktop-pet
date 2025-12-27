@@ -29,10 +29,12 @@
       "exceptionDomain": "",
       "frameworks": [],
       "providerShortName": null,
-      "signingIdentity": null
+      "signingIdentity": null,
+      "minimumSystemVersion": "10.13"
     }
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "title": "AI Desktop Pet",
@@ -43,7 +45,8 @@
         "transparent": true,
         "decorations": false,
         "alwaysOnTop": true,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "visible": true
       }
     ],
     "security": {

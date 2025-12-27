@@ -220,6 +220,10 @@ export class Live2DManager {
         this.instance.tipsMessage('稍作休息...', 3200, 5);
         this.playActionSound(action);
         break;
+      case 'work':
+        this.instance.tipsMessage('打工中…', 3000, 5);
+        this.playActionSound(action);
+        break;
       case 'transform':
         this.instance.tipsMessage('变身中…✨', 3200, 7);
         this.loadNextModel().catch((err) => console.warn('变身切换模型失败', err));

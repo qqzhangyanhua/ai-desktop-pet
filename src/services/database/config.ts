@@ -38,7 +38,53 @@ export async function loadAppConfig(): Promise<AppConfig> {
 
   try {
     const saved = JSON.parse(configJson) as Partial<AppConfig>;
-    return { ...DEFAULT_CONFIG, ...saved };
+    return {
+      ...DEFAULT_CONFIG,
+      ...saved,
+      llm: { ...DEFAULT_CONFIG.llm, ...saved.llm },
+      voice: { ...DEFAULT_CONFIG.voice, ...saved.voice },
+      live2d: { ...DEFAULT_CONFIG.live2d, ...saved.live2d },
+      appearance: {
+        ...DEFAULT_CONFIG.appearance,
+        ...saved.appearance,
+        background: {
+          ...DEFAULT_CONFIG.appearance.background,
+          ...saved.appearance?.background,
+        },
+        size: {
+          ...DEFAULT_CONFIG.appearance.size,
+          ...saved.appearance?.size,
+        },
+      },
+      behavior: {
+        ...DEFAULT_CONFIG.behavior,
+        ...saved.behavior,
+        notifications: {
+          ...DEFAULT_CONFIG.behavior.notifications,
+          ...saved.behavior?.notifications,
+        },
+      },
+      assistant: {
+        ...DEFAULT_CONFIG.assistant,
+        ...saved.assistant,
+        shortcuts: {
+          ...DEFAULT_CONFIG.assistant.shortcuts,
+          ...saved.assistant?.shortcuts,
+        },
+        privacy: {
+          ...DEFAULT_CONFIG.assistant.privacy,
+          ...saved.assistant?.privacy,
+        },
+      },
+      performance: {
+        ...DEFAULT_CONFIG.performance,
+        ...saved.performance,
+      },
+      interaction: {
+        ...DEFAULT_CONFIG.interaction,
+        ...saved.interaction,
+      },
+    };
   } catch {
     return DEFAULT_CONFIG;
   }

@@ -1,0 +1,80 @@
+.status-bar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  pointer-events: auto;
+  z-index: var(--z-dropdown);
+  cursor: grab;
+}
+
+.status-bar:active {
+  cursor: grabbing;
+}
+
+/* Drag indicator */
+.drag-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 0 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 4px;
+}
+
+.drag-icon {
+  font-size: 16px;
+  color: #999;
+  letter-spacing: -2px;
+}
+
+.drag-hint {
+  font-size: 11px;
+  color: #999;
+  font-weight: 500;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-info {
+  flex: 1;
+}
+
+.status-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.status-bar-bg {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.status-bar-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 3px;
+}
+
+.status-value {
+  font-size: 11px;
+  color: #999;
+  text-align: right;
+  margin-top: 2px;
+}

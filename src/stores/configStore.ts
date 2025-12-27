@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { produce } from 'immer';
 import type { AppConfig, ConfigState } from '../types';
 import { DEFAULT_CONFIG } from '../types';
 import { loadAppConfig, saveAppConfig, getApiKey, setApiKey } from '../services/database/config';
@@ -10,13 +11,34 @@ interface ConfigStore extends ConfigState {
   resetConfig: () => void;
 }
 
+/**
+ * Deep merge utility using immer
+ * Recursively merges partial config into state config
+ */
+function deepMerge(base: AppConfig, partial: Partial<AppConfig>): AppConfig {
+  return produce(base, (draft) => {
+    Object.keys(partial).forEach((key) => {
+      const typedKey = key as keyof AppConfig;
+      const value = partial[typedKey];
+
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        // Recursively merge nested objects
+        Object.assign(draft[typedKey] as object, value);
+      } else if (value !== undefined) {
+        // Directly assign primitive values
+        (draft[typedKey] as typeof value) = value;
+      }
+    });
+  });
+}
+
 export const useConfigStore = create<ConfigStore>((set, get) => ({
   config: DEFAULT_CONFIG,
   isLoaded: false,
 
   setConfig: (partialConfig) =>
     set((state) => ({
-      config: { ...state.config, ...partialConfig },
+      config: deepMerge(state.config, partialConfig),
     })),
 
   loadConfig: async () => {

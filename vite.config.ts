@@ -50,6 +50,11 @@ export default defineConfig(async () => ({
     sourcemap: false,
     // Rollup options for code splitting
     rollupOptions: {
+      // Multi-page app with separate entry points
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        settings: path.resolve(__dirname, 'settings.html'),
+      },
       output: {
         // Manual chunk splitting for better caching
         manualChunks: {

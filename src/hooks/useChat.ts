@@ -35,6 +35,7 @@ export function useChat(options: UseChatOptions = {}) {
 
   const { setEmotion } = usePetStore();
   const { config: appConfig } = useConfigStore();
+  const saveChatHistory = appConfig.assistant.privacy.saveChatHistory;
 
   // Initialize a new conversation if needed
   const ensureConversation = useCallback(async (): Promise<string> => {
@@ -42,13 +43,20 @@ export function useChat(options: UseChatOptions = {}) {
       return currentConversationId;
     }
 
+    if (!saveChatHistory) {
+      const localId = `local:${uuidv4()}`;
+      setCurrentConversation(localId);
+      return localId;
+    }
+
     const conversation = await createConversation('New Chat', appConfig.systemPrompt);
     setCurrentConversation(conversation.id);
     return conversation.id;
-  }, [currentConversationId, appConfig.systemPrompt, setCurrentConversation]);
+  }, [currentConversationId, appConfig.systemPrompt, saveChatHistory, setCurrentConversation]);
 
   // Load messages when conversation changes
   useEffect(() => {
+    if (!saveChatHistory) return;
     if (!currentConversationId || isInitializedRef.current) return;
 
     const loadMessages = async () => {
@@ -62,7 +70,7 @@ export function useChat(options: UseChatOptions = {}) {
     };
 
     loadMessages();
-  }, [currentConversationId, setMessages]);
+  }, [currentConversationId, saveChatHistory, setMessages]);
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -85,13 +93,15 @@ export function useChat(options: UseChatOptions = {}) {
       setEmotion('thinking');
 
       // Save user message to database
-      try {
-        await dbAddMessage(conversationId, {
-          role: userMessage.role,
-          content: userMessage.content,
-        });
-      } catch (error) {
-        console.error('Failed to save user message:', error);
+      if (saveChatHistory && !conversationId.startsWith('local:')) {
+        try {
+          await dbAddMessage(conversationId, {
+            role: userMessage.role,
+            content: userMessage.content,
+          });
+        } catch (error) {
+          console.error('Failed to save user message:', error);
+        }
       }
 
       // Create placeholder assistant message
@@ -133,20 +143,22 @@ export function useChat(options: UseChatOptions = {}) {
             setEmotion('happy');
 
             // Save assistant message to database
-            try {
-              await dbAddMessage(conversationId, {
-                role: 'assistant',
-                content: finalContent,
-              });
+            if (saveChatHistory && !conversationId.startsWith('local:')) {
+              try {
+                await dbAddMessage(conversationId, {
+                  role: 'assistant',
+                  content: finalContent,
+                });
 
-              // Update conversation title if this is the first message
-              if (messages.length === 0) {
-                const title =
-                  content.length > 30 ? content.substring(0, 30) + '...' : content;
-                await updateConversation(conversationId, { title });
+                // Update conversation title if this is the first message
+                if (messages.length === 0) {
+                  const title =
+                    content.length > 30 ? content.substring(0, 30) + '...' : content;
+                  await updateConversation(conversationId, { title });
+                }
+              } catch (error) {
+                console.error('Failed to save assistant message:', error);
               }
-            } catch (error) {
-              console.error('Failed to save assistant message:', error);
             }
           },
           onError: (error) => {
@@ -194,6 +206,7 @@ export function useChat(options: UseChatOptions = {}) {
       appendToLastMessage,
       updateMessage,
       onError,
+      saveChatHistory,
     ]
   );
 
