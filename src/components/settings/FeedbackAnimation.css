@@ -1,0 +1,97 @@
+/**
+ * Feedback Animation Styles
+ * 实时反馈动画样式
+ */
+
+.feedback-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.feedback-bubble {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--feedback-bg, rgba(255, 255, 255, 0.95));
+  border-radius: var(--border-radius-lg, 16px);
+  box-shadow: var(--shadow-frosted, 0 8px 32px rgba(31, 38, 135, 0.15));
+  backdrop-filter: blur(20px);
+  animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+  min-width: 240px;
+  max-width: 400px;
+  pointer-events: auto;
+}
+
+.feedback-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.feedback-message {
+  font-size: 14px;
+  color: var(--text-primary, #1f2937);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Type-specific styles */
+.feedback-success {
+  background: linear-gradient(
+    135deg,
+    rgba(52, 211, 153, 0.1) 0%,
+    rgba(167, 139, 250, 0.1) 100%
+  );
+  border-left: 4px solid var(--color-success, #34d399);
+}
+
+.feedback-info {
+  background: linear-gradient(
+    135deg,
+    rgba(96, 165, 250, 0.1) 0%,
+    rgba(167, 139, 250, 0.1) 100%
+  );
+  border-left: 4px solid var(--color-primary, #a78bfa);
+}
+
+.feedback-warning {
+  background: linear-gradient(
+    135deg,
+    rgba(251, 191, 36, 0.1) 0%,
+    rgba(248, 113, 113, 0.1) 100%
+  );
+  border-left: 4px solid var(--color-warning, #fbbf24);
+}
+
+/* Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(400px);
+  }
+}
+
+/* Hover to pause auto-dismiss */
+.feedback-bubble:hover {
+  animation-play-state: paused;
+}

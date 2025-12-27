@@ -1,0 +1,49 @@
+/* ========== Design Tokens - Pet Settings Theme ========== */
+
+:root {
+  /* ===== 马卡龙色系：温暖、柔和的宠物主题 ===== */
+  --color-primary: #a78bfa;
+  --color-primary-dark: #8b5cf6;
+  --color-accent: #fbbf24;
+  --color-success: #34d399;
+  --color-danger: #f87171;
+
+  /* ===== 渐变背景（桌面底色模拟） ===== */
+  --color-bg-start: #fef3c7;
+  --color-bg-end: #ddd6fe;
+
+  /* ===== 毛玻璃效果 ===== */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+
+  /* ===== 文本层次 ===== */
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-hint: #9ca3af;
+
+  /* ===== 间距系统 ===== */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
+
+  /* ===== 圆角：超大圆角宠物风格 ===== */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  /* ===== 阴影 ===== */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* ===== 过渡动画 ===== */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
