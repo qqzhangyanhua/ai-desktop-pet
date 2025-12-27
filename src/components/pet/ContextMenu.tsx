@@ -146,6 +146,31 @@ export function ContextMenu({
     onClose();
   };
 
+  const handleOpenChat = async () => {
+    onClose();
+    const chatWindow = await WebviewWindow.getByLabel('chat');
+
+    if (chatWindow) {
+      await chatWindow.setFocus();
+    } else {
+      // In dev mode, use dev server URL; in production, use chat.html
+      const isDev = window.location.hostname === 'localhost';
+      const url = isDev ? 'http://localhost:1420/chat.html' : 'chat.html';
+
+      new WebviewWindow('chat', {
+        url,
+        title: '聊天窗口',
+        width: 600,
+        height: 700,
+        resizable: true,
+        center: true,
+        decorations: true,
+        alwaysOnTop: false,
+        skipTaskbar: false,
+      });
+    }
+  };
+
   const handleOpenSettings = async () => {
     onClose();
     const settingsWindow = await WebviewWindow.getByLabel('settings');
@@ -258,7 +283,7 @@ export function ContextMenu({
       </div>
 
       <div className="context-menu-divider" />
-      <div className="context-menu-item" onClick={onChat}>
+      <div className="context-menu-item" onClick={handleOpenChat}>
         <MessageSquare className="w-4 h-4" />
         Chat
       </div>

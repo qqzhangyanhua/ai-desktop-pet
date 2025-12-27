@@ -5,7 +5,7 @@ import { useChatStore, useConfigStore, toast } from '../../stores';
 import { usePushToTalk } from '../../hooks/usePushToTalk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { X, Send, Heart } from 'lucide-react';
 import type { STTResult } from '../../types';
 
 interface ChatInputProps {
@@ -91,12 +91,12 @@ export function ChatInput({ disabled }: ChatInputProps) {
 
   // Generate placeholder text based on state
   const getPlaceholder = () => {
-    if (isLoading) return 'Generating...';
-    if (isPTTActive) return `Listening... (Release ${config.voice.pushToTalkKey})`;
+    if (isLoading) return '正在思考...';
+    if (isPTTActive) return `正在听你说... (松开 ${config.voice.pushToTalkKey})`;
     if (config.voice.sttEnabled) {
-      return `Type or hold ${config.voice.pushToTalkKey} to speak...`;
+      return `打字或按住 ${config.voice.pushToTalkKey} 说话...`;
     }
-    return 'Type a message...';
+    return '想聊点什么？';
   };
 
   return (
@@ -109,16 +109,12 @@ export function ChatInput({ disabled }: ChatInputProps) {
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={isDisabled}
-        style={{
-          borderColor: isPTTActive ? '#4caf50' : undefined,
-          backgroundColor: isPTTActive ? 'rgba(76, 175, 80, 0.05)' : undefined,
-        }}
       />
       {isStreaming ? (
         <Button
           className="chat-send-btn chat-abort-btn"
           onClick={handleAbort}
-          title="Stop generating"
+          title="停止生成"
           variant="outline"
           size="sm"
         >
@@ -129,10 +125,11 @@ export function ChatInput({ disabled }: ChatInputProps) {
           className="chat-send-btn"
           onClick={handleSend}
           disabled={isDisabled || !input.trim()}
+          title="发送"
           variant="default"
           size="sm"
         >
-          &gt;
+          <Send className="h-4 w-4" />
         </Button>
       )}
     </div>
