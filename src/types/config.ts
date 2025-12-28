@@ -68,6 +68,19 @@ export interface BehaviorConfig {
   };
 }
 
+export interface ChatConfig {
+  /** 是否启用流式响应 */
+  streaming: boolean;
+  /** 单次对话最大 token 数 */
+  maxTokens: number;
+  /** 是否显示时间戳 */
+  showTimestamp: boolean;
+  /** 是否自动滚动到底部 */
+  autoScroll: boolean;
+  /** 消息显示模式 */
+  messageDisplay: 'bubbles' | 'compact';
+}
+
 export interface AssistantConfig {
   /** 快捷键设置（预留：当前仅保存配置） */
   shortcuts: {
@@ -124,6 +137,7 @@ export interface DesktopInteractionConfig {
 
 export interface AppConfig {
   llm: LLMConfig;
+  chat: ChatConfig;
   voice: VoiceConfig;
   live2d: Live2DPetConfig;
   appearance: AppearanceConfig;
@@ -149,6 +163,13 @@ export const DEFAULT_CONFIG: AppConfig = {
     model: 'gpt-4o-mini',
     temperature: 0.7,
     maxTokens: 2048,
+  },
+  chat: {
+    streaming: true,
+    maxTokens: 4096,
+    showTimestamp: true,
+    autoScroll: true,
+    messageDisplay: 'bubbles',
   },
   voice: {
     sttEnabled: false,

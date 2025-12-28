@@ -5,7 +5,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow, monitorFromPoint, primaryMonitor } from '@tauri-apps/api/window';
 import { LogicalSize, PhysicalPosition } from '@tauri-apps/api/dpi';
 import { PetContainer } from './components/pet';
-import { ChatWindow } from './components/chat';
 import { ToastContainer } from './components/toast';
 import { RecordingIndicator } from './components/RecordingIndicator';
 import { AchievementToastContainer } from './components/toast/AchievementToastContainer';
@@ -23,7 +22,6 @@ import { useAchievementListener } from './hooks';
 import './styles/global.css';
 
 function App() {
-  const [showChat, setShowChat] = useState(false);
   const [dbReady, setDbReady] = useState(false);
   const { showBubble } = usePetStore();
   const { config, isLoaded: isConfigLoaded } = useConfigStore();
@@ -380,9 +378,7 @@ function App() {
 
   return (
     <>
-      <PetContainer onOpenChat={() => setShowChat(true)} />
-
-      {showChat && <ChatWindow onClose={() => setShowChat(false)} />}
+      <PetContainer />
 
       <RecordingIndicator />
 

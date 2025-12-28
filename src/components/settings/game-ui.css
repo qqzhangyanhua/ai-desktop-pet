@@ -111,6 +111,11 @@
   border-bottom: 4px solid #5D4037;
 }
 
+.game-btn-red {
+  background: linear-gradient(to bottom, #EF9A9A, #D32F2F);
+  border-bottom: 4px solid #B71C1C;
+}
+
 .game-progress-bar {
   background: #E0E0E0;
   border-radius: 8px;

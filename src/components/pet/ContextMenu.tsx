@@ -17,7 +17,7 @@ interface ContextMenuProps {
   x: number;
   y: number;
   onClose: () => void;
-  onChat: () => void;
+  // Chat is now opened in separate window, no callback needed
   onPetAction: (action: PetActionType) => void;
   onAssistantAction: (skill: AssistantSkill) => void;
 }
@@ -26,7 +26,6 @@ export function ContextMenu({
   x,
   y,
   onClose,
-  onChat,
   onPetAction,
   onAssistantAction,
 }: ContextMenuProps) {
@@ -177,8 +176,29 @@ export function ContextMenu({
     onClose();
   };
 
-  const handleOpenChat = () => {
-    onChat();
+  const handleOpenChat = async () => {
+    onClose();
+    const chatWindow = await WebviewWindow.getByLabel('chat');
+
+    if (chatWindow) {
+      await chatWindow.setFocus();
+    } else {
+      // In dev mode, use dev server URL; in production, use chat.html
+      const isDev = window.location.hostname === 'localhost';
+      const url = isDev ? 'http://localhost:1420/chat.html' : 'chat.html';
+
+      new WebviewWindow('chat', {
+        url,
+        title: '聊天窗口',
+        width: 800,
+        height: 600,
+        resizable: true,
+        center: true,
+        decorations: true,
+        alwaysOnTop: false,
+        skipTaskbar: false,
+      });
+    }
   };
 
   const handleOpenSettings = async () => {

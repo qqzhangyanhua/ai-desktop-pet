@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import * as Tabs from '@radix-ui/react-tabs';
+import * as Switch from '@radix-ui/react-switch';
+import * as Slider from '@radix-ui/react-slider';
+import * as Select from '@radix-ui/react-select';
 import {
   Settings,
   X,
@@ -11,22 +15,24 @@ import {
   Download,
   Upload,
   Check,
+  ChevronDown,
+  Sparkles,
+  History,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useConfigStore, useChatStore, toast } from '@/stores';
+import { useConfigStore, useChatStore } from '@/stores';
 import type { LLMConfig } from '@/types';
 import { confirmAction } from '@/lib/confirm';
+import '../settings/game-ui.css';
+
+interface ToastApi {
+  success: (title: string, description?: string, duration?: number) => void;
+  error: (title: string, description?: string, duration?: number) => void;
+  info: (title: string, description?: string, duration?: number) => void;
+  warning: (title: string, description?: string, duration?: number) => void;
+}
 
 interface ChatSettingsProps {
+  toast: ToastApi;
   onClose: () => void;
 }
 
@@ -42,7 +48,7 @@ const MODEL_PRESETS = {
   ollama: ['llama3.2', 'llama2', 'mistral', 'codellama'],
 };
 
-export function ChatSettings({ onClose }: ChatSettingsProps) {
+export function ChatSettings({ toast, onClose }: ChatSettingsProps) {
   const { config, setConfig, saveConfig } = useConfigStore();
   const { messages, clearMessages } = useChatStore();
 
@@ -50,11 +56,15 @@ export function ChatSettings({ onClose }: ChatSettingsProps) {
   const [llmConfig, setLlmConfig] = useState<LLMConfig>(config.llm);
   const [systemPrompt, setSystemPrompt] = useState(config.systemPrompt || '');
 
+  // 对话设置状态
+  const [chatStreaming, setChatStreaming] = useState(config.chat?.streaming ?? true);
+  const [chatMaxTokens, setChatMaxTokens] = useState(config.chat?.maxTokens ?? 2048);
+
   // 知识库导入状态
   const [knowledgeBase, setKnowledgeBase] = useState<string>('');
   const [isImporting, setIsImporting] = useState(false);
 
-  // 获取当前 provider 的可用模型（用于建议）
+  // 获取当前 provider 的可用模型
   const availableModels = MODEL_PRESETS[llmConfig.provider] || [];
 
   // 保存 LLM 配置
@@ -69,6 +79,24 @@ export function ChatSettings({ onClose }: ChatSettingsProps) {
     }
   };
 
+  // 保存对话设置
+  const handleSaveChatConfig = async () => {
+    setConfig({
+      chat: {
+        ...config.chat,
+        streaming: chatStreaming,
+        maxTokens: chatMaxTokens
+      }
+    });
+    try {
+      await saveConfig();
+      toast.success('对话设置已保存');
+    } catch (error) {
+      console.error('Failed to save chat config:', error);
+      toast.error('保存失败');
+    }
+  };
+
   // 导入知识库
   const handleImportKnowledge = async () => {
     if (!knowledgeBase.trim()) {
@@ -78,7 +106,6 @@ export function ChatSettings({ onClose }: ChatSettingsProps) {
 
     setIsImporting(true);
     try {
-      // 将知识库内容追加到系统提示词
       const newSystemPrompt = systemPrompt + '\n\n# 知识库\n' + knowledgeBase;
       setSystemPrompt(newSystemPrompt);
       setConfig({ systemPrompt: newSystemPrompt });
@@ -151,193 +178,313 @@ export function ChatSettings({ onClose }: ChatSettingsProps) {
   };
 
   return (
-    <div className="chat-settings-overlay" onClick={onClose}>
-      <div className="chat-settings-panel" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[1000] flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="game-card w-full h-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="chat-settings-header">
-          <div className="chat-settings-title">
+        <div className="flex items-center justify-between p-4 border-b border-[#8B4513]/20 shrink-0">
+          <div className="flex items-center gap-2 text-[#8B4513] font-bold">
             <Settings className="w-5 h-5" />
             <span>聊天设置</span>
           </div>
-          <Button onClick={onClose} variant="ghost" size="sm" className="chat-settings-close">
+          <button
+            onClick={onClose}
+            className="game-btn game-btn-brown p-1 w-8 h-8 justify-center rounded-lg"
+            title="关闭"
+          >
             <X className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
 
-        {/* Content */}
-        <div className="chat-settings-content">
-          {/* LLM 配置 */}
-          <div className="settings-section">
-            <div className="settings-section-title">
+        {/* Tabs Container */}
+        <Tabs.Root defaultValue="llm" className="flex-1 flex flex-col overflow-hidden">
+          {/* Tab List */}
+          <Tabs.List className="shrink-0 flex border-b border-[#8B4513]/20 bg-gradient-to-r from-[#FFF8DC] to-[#F5DEB3]">
+            <Tabs.Trigger
+              value="llm"
+              className="flex-1 px-6 py-3 text-sm font-medium text-[#8B4513]/60 hover:text-[#8B4513] hover:bg-[#FFE4B5]/30 data-[state=active]:text-[#8B4513] data-[state=active]:bg-[#FFF8DC] data-[state=active]:border-b-2 data-[state=active]:border-[#FFB74D] transition-all flex items-center justify-center gap-2"
+            >
               <Brain className="w-4 h-4" />
               LLM 配置
-            </div>
-
-            <div className="settings-row">
-              <span className="settings-label">Provider</span>
-              <Select
-                value={llmConfig.provider}
-                onValueChange={(value) =>
-                  setLlmConfig({ ...llmConfig, provider: value as LLMConfig['provider'] })
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LLM_PROVIDERS.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="settings-row">
-              <span className="settings-label">Model</span>
-              <Input
-                value={llmConfig.model}
-                onChange={(e) => setLlmConfig({ ...llmConfig, model: e.target.value })}
-                placeholder="gpt-4o-mini"
-                list="model-suggestions"
-                className="flex-1"
-              />
-              <datalist id="model-suggestions">
-                {availableModels.map((model) => (
-                  <option key={model} value={model}>
-                    {model}
-                  </option>
-                ))}
-              </datalist>
-            </div>
-
-            <div className="settings-row">
-              <span className="settings-label">
-                <Key className="w-4 h-4" />
-                API Key
-              </span>
-              <Input
-                type="password"
-                value={llmConfig.apiKey || ''}
-                onChange={(e) => setLlmConfig({ ...llmConfig, apiKey: e.target.value })}
-                placeholder="sk-..."
-                className="flex-1"
-              />
-            </div>
-
-            {llmConfig.provider !== 'anthropic' && (
-              <div className="settings-row">
-                <span className="settings-label">
-                  <Link className="w-4 h-4" />
-                  Base URL
-                </span>
-                <Input
-                  value={llmConfig.baseUrl || ''}
-                  onChange={(e) => setLlmConfig({ ...llmConfig, baseUrl: e.target.value })}
-                  placeholder="https://api.openai.com/v1"
-                  className="flex-1"
-                />
-              </div>
-            )}
-
-            <div className="settings-row">
-              <span className="settings-label">Temperature</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="2"
-                  step="0.1"
-                  value={llmConfig.temperature || 0.7}
-                  onChange={(e) =>
-                    setLlmConfig({ ...llmConfig, temperature: parseFloat(e.target.value) })
-                  }
-                  className="w-24"
-                />
-                <span className="text-sm text-gray-600 w-12">
-                  {llmConfig.temperature || 0.7}
-                </span>
-              </div>
-            </div>
-
-            <div className="settings-actions">
-              <Button onClick={handleSaveLLM} size="sm" className="settings-save-btn">
-                <Check className="w-4 h-4" />
-                保存 LLM 配置
-              </Button>
-            </div>
-          </div>
-
-          {/* 系统提示词 */}
-          <div className="settings-section">
-            <div className="settings-section-title">
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="prompt"
+              className="flex-1 px-6 py-3 text-sm font-medium text-[#8B4513]/60 hover:text-[#8B4513] hover:bg-[#FFE4B5]/30 data-[state=active]:text-[#8B4513] data-[state=active]:bg-[#FFF8DC] data-[state=active]:border-b-2 data-[state=active]:border-[#FFB74D] transition-all flex items-center justify-center gap-2"
+            >
               <MessageSquare className="w-4 h-4" />
               系统提示词
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="chat"
+              className="flex-1 px-6 py-3 text-sm font-medium text-[#8B4513]/60 hover:text-[#8B4513] hover:bg-[#FFE4B5]/30 data-[state=active]:text-[#8B4513] data-[state=active]:bg-[#FFF8DC] data-[state=active]:border-b-2 data-[state=active]:border-[#FFB74D] transition-all flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              对话设置
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="knowledge"
+              className="flex-1 px-6 py-3 text-sm font-medium text-[#8B4513]/60 hover:text-[#8B4513] hover:bg-[#FFE4B5]/30 data-[state=active]:text-[#8B4513] data-[state=active]:bg-[#FFF8DC] data-[state=active]:border-b-2 data-[state=active]:border-[#FFB74D] transition-all flex items-center justify-center gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              知识库
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="history"
+              className="flex-1 px-6 py-3 text-sm font-medium text-[#8B4513]/60 hover:text-[#8B4513] hover:bg-[#FFE4B5]/30 data-[state=active]:text-[#8B4513] data-[state=active]:bg-[#FFF8DC] data-[state=active]:border-b-2 data-[state=active]:border-[#FFB74D] transition-all flex items-center justify-center gap-2"
+            >
+              <History className="w-4 h-4" />
+              历史管理
+            </Tabs.Trigger>
+          </Tabs.List>
+
+          {/* Tab Content - LLM 配置 */}
+          <Tabs.Content value="llm" className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-3xl mx-auto space-y-6">
+              {/* Provider */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#8B4513]">Provider</label>
+                <Select.Root
+                  value={llmConfig.provider}
+                  onValueChange={(value) =>
+                    setLlmConfig({ ...llmConfig, provider: value as LLMConfig['provider'] })
+                  }
+                >
+                  <Select.Trigger className="w-full px-4 py-3 bg-white/80 border-2 border-[#8B4513]/30 rounded-xl focus:border-[#FFB74D] focus:outline-none flex items-center justify-between text-[#5D4037]">
+                    <Select.Value />
+                    <Select.Icon>
+                      <ChevronDown className="w-4 h-4" />
+                    </Select.Icon>
+                  </Select.Trigger>
+                  <Select.Portal>
+                    <Select.Content className="bg-white border-2 border-[#8B4513]/30 rounded-xl shadow-lg overflow-hidden z-[2000]">
+                      <Select.Viewport className="p-2">
+                        {LLM_PROVIDERS.map((p) => (
+                          <Select.Item
+                            key={p.value}
+                            value={p.value}
+                            className="px-4 py-2 rounded-lg hover:bg-[#FFE4B5] cursor-pointer outline-none text-[#5D4037]"
+                          >
+                            <Select.ItemText>{p.label}</Select.ItemText>
+                          </Select.Item>
+                        ))}
+                      </Select.Viewport>
+                    </Select.Content>
+                  </Select.Portal>
+                </Select.Root>
+              </div>
+
+              {/* Model */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#8B4513]">Model</label>
+                <input
+                  type="text"
+                  value={llmConfig.model}
+                  onChange={(e) => setLlmConfig({ ...llmConfig, model: e.target.value })}
+                  placeholder="gpt-4o-mini"
+                  list="model-suggestions"
+                  className="w-full px-4 py-3 bg-white/80 border-2 border-[#8B4513]/30 rounded-xl focus:border-[#FFB74D] focus:outline-none text-[#5D4037]"
+                />
+                <datalist id="model-suggestions">
+                  {availableModels.map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))}
+                </datalist>
+              </div>
+
+              {/* API Key */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#8B4513] flex items-center gap-1">
+                  <Key className="w-4 h-4" />
+                  API Key
+                </label>
+                <input
+                  type="password"
+                  value={llmConfig.apiKey || ''}
+                  onChange={(e) => setLlmConfig({ ...llmConfig, apiKey: e.target.value })}
+                  placeholder="sk-..."
+                  className="w-full px-4 py-3 bg-white/80 border-2 border-[#8B4513]/30 rounded-xl focus:border-[#FFB74D] focus:outline-none text-[#5D4037]"
+                />
+              </div>
+
+              {/* Base URL */}
+              {llmConfig.provider !== 'anthropic' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[#8B4513] flex items-center gap-1">
+                    <Link className="w-4 h-4" />
+                    Base URL
+                  </label>
+                  <input
+                    type="text"
+                    value={llmConfig.baseUrl || ''}
+                    onChange={(e) => setLlmConfig({ ...llmConfig, baseUrl: e.target.value })}
+                    placeholder="https://api.openai.com/v1"
+                    className="w-full px-4 py-3 bg-white/80 border-2 border-[#8B4513]/30 rounded-xl focus:border-[#FFB74D] focus:outline-none text-[#5D4037]"
+                  />
+                </div>
+              )}
+
+              {/* Temperature */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-[#8B4513]">Temperature</label>
+                <div className="flex items-center gap-4">
+                  <Slider.Root
+                    className="relative flex items-center select-none touch-none flex-1 h-5"
+                    value={[llmConfig.temperature || 0.7]}
+                    onValueChange={(value) =>
+                      setLlmConfig({ ...llmConfig, temperature: value[0] })
+                    }
+                    max={2}
+                    step={0.1}
+                    min={0}
+                  >
+                    <Slider.Track className="bg-[#D2B48C]/50 relative grow rounded-full h-2">
+                      <Slider.Range className="absolute bg-gradient-to-r from-[#4FC3F7] to-[#0288D1] rounded-full h-full" />
+                    </Slider.Track>
+                    <Slider.Thumb className="block w-5 h-5 bg-white border-2 border-[#8B4513] rounded-full shadow-md hover:bg-[#FFE4B5] focus:outline-none focus:ring-2 focus:ring-[#FFB74D]" />
+                  </Slider.Root>
+                  <span className="text-sm text-[#8B4513] w-12 text-center font-mono font-bold">
+                    {llmConfig.temperature || 0.7}
+                  </span>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <button onClick={handleSaveLLM} className="game-btn game-btn-green w-full h-12">
+                <Check className="w-4 h-4" />
+                保存 LLM 配置
+              </button>
             </div>
-            <Textarea
-              value={systemPrompt}
-              onChange={(e) => setSystemPrompt(e.target.value)}
-              placeholder="你是智能桌面宠物助手..."
-              rows={6}
-              className="settings-textarea"
-            />
-            <div className="settings-actions">
-              <Button onClick={handleSaveLLM} size="sm" className="settings-save-btn">
+          </Tabs.Content>
+
+          {/* Tab Content - 系统提示词 */}
+          <Tabs.Content value="prompt" className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-3xl mx-auto space-y-4">
+              <textarea
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+                placeholder="你是智能桌面宠物助手..."
+                rows={16}
+                className="w-full px-4 py-3 bg-white/80 border-2 border-[#8B4513]/30 rounded-xl focus:border-[#FFB74D] focus:outline-none resize-none text-[#5D4037]"
+              />
+              <button onClick={handleSaveLLM} className="game-btn game-btn-green w-full h-12">
                 <Check className="w-4 h-4" />
                 保存提示词
-              </Button>
+              </button>
             </div>
-          </div>
+          </Tabs.Content>
 
-          {/* 知识库导入 */}
-          <div className="settings-section">
-            <div className="settings-section-title">
-              <FileText className="w-4 h-4" />
-              知识库导入
+          {/* Tab Content - 对话设置 */}
+          <Tabs.Content value="chat" className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-3xl mx-auto space-y-6">
+              {/* Streaming */}
+              <div className="flex items-center justify-between p-4 bg-white/60 rounded-xl border-2 border-[#8B4513]/20">
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-[#8B4513]">流式输出</div>
+                  <div className="text-xs text-[#8B4513]/60">实时显示 AI 回复内容</div>
+                </div>
+                <Switch.Root
+                  checked={chatStreaming}
+                  onCheckedChange={setChatStreaming}
+                  className="w-11 h-6 bg-[#D2B48C]/50 rounded-full relative data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-[#4FC3F7] data-[state=checked]:to-[#0288D1] transition-colors"
+                >
+                  <Switch.Thumb className="block w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-100 translate-x-0.5 will-change-transform data-[state=checked]:translate-x-[22px]" />
+                </Switch.Root>
+              </div>
+
+              {/* Max Tokens */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-[#8B4513]">最大 Token 数</label>
+                <div className="flex items-center gap-4">
+                  <Slider.Root
+                    className="relative flex items-center select-none touch-none flex-1 h-5"
+                    value={[chatMaxTokens]}
+                    onValueChange={(value) => setChatMaxTokens(value[0] as number)}
+                    max={8192}
+                    step={256}
+                    min={512}
+                  >
+                    <Slider.Track className="bg-[#D2B48C]/50 relative grow rounded-full h-2">
+                      <Slider.Range className="absolute bg-gradient-to-r from-[#4FC3F7] to-[#0288D1] rounded-full h-full" />
+                    </Slider.Track>
+                    <Slider.Thumb className="block w-5 h-5 bg-white border-2 border-[#8B4513] rounded-full shadow-md hover:bg-[#FFE4B5] focus:outline-none focus:ring-2 focus:ring-[#FFB74D]" />
+                  </Slider.Root>
+                  <span className="text-sm text-[#8B4513] w-20 text-center font-mono font-bold">
+                    {chatMaxTokens}
+                  </span>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <button onClick={handleSaveChatConfig} className="game-btn game-btn-green w-full h-12">
+                <Check className="w-4 h-4" />
+                保存对话设置
+              </button>
             </div>
-            <Textarea
-              value={knowledgeBase}
-              onChange={(e) => setKnowledgeBase(e.target.value)}
-              placeholder="粘贴知识库内容（文档、笔记、规则等），将追加到系统提示词..."
-              rows={4}
-              className="settings-textarea"
-            />
-            <div className="settings-actions">
-              <Button
+          </Tabs.Content>
+
+          {/* Tab Content - 知识库 */}
+          <Tabs.Content value="knowledge" className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-3xl mx-auto space-y-4">
+              <div className="text-sm text-[#8B4513]/70 mb-4">
+                粘贴知识库内容（文档、笔记、规则等），将追加到系统提示词
+              </div>
+              <textarea
+                value={knowledgeBase}
+                onChange={(e) => setKnowledgeBase(e.target.value)}
+                placeholder="输入或粘贴知识库内容..."
+                rows={14}
+                className="w-full px-4 py-3 bg-white/80 border-2 border-[#8B4513]/30 rounded-xl focus:border-[#FFB74D] focus:outline-none resize-none text-[#5D4037]"
+              />
+              <button
                 onClick={handleImportKnowledge}
                 disabled={isImporting || !knowledgeBase.trim()}
-                size="sm"
-                className="settings-save-btn"
+                className="game-btn game-btn-blue w-full h-12 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Upload className="w-4 h-4" />
                 导入知识库
-              </Button>
+              </button>
             </div>
-          </div>
+          </Tabs.Content>
 
-          {/* 对话管理 */}
-          <div className="settings-section">
-            <div className="settings-section-title">
-              <FileText className="w-4 h-4" />
-              对话管理
+          {/* Tab Content - 历史管理 */}
+          <Tabs.Content value="history" className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-3xl mx-auto space-y-6">
+              {/* Stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-gradient-to-br from-[#E3F2FD] to-[#BBDEFB] rounded-xl border-2 border-[#2196F3]/30">
+                  <div className="text-2xl font-bold text-[#1976D2]">{messages.length}</div>
+                  <div className="text-sm text-[#1565C0]">总消息数</div>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-[#F3E5F5] to-[#E1BEE7] rounded-xl border-2 border-[#9C27B0]/30">
+                  <div className="text-2xl font-bold text-[#7B1FA2]">
+                    {Math.ceil(messages.reduce((sum, m) => sum + m.content.length, 0) / 1000)}K
+                  </div>
+                  <div className="text-sm text-[#6A1B9A]">字符数</div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-3">
+                <button onClick={handleExportChat} className="game-btn game-btn-orange w-full h-12">
+                  <Download className="w-4 h-4" />
+                  导出对话
+                </button>
+                <button onClick={handleImportChat} className="game-btn game-btn-blue w-full h-12">
+                  <Upload className="w-4 h-4" />
+                  导入对话
+                </button>
+                <button onClick={handleClearHistory} className="game-btn game-btn-red w-full h-12">
+                  <Trash2 className="w-4 h-4" />
+                  清除历史
+                </button>
+              </div>
             </div>
-            <div className="settings-actions settings-actions-row">
-              <Button onClick={handleExportChat} size="sm" variant="outline">
-                <Download className="w-4 h-4" />
-                导出对话
-              </Button>
-              <Button onClick={handleImportChat} size="sm" variant="outline">
-                <Upload className="w-4 h-4" />
-                导入对话
-              </Button>
-              <Button onClick={handleClearHistory} size="sm" variant="outline">
-                <Trash2 className="w-4 h-4" />
-                清除历史
-              </Button>
-            </div>
-          </div>
-        </div>
+          </Tabs.Content>
+        </Tabs.Root>
       </div>
     </div>
   );

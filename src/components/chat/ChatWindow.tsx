@@ -1,14 +1,16 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { isTauri } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { X, Heart, Sparkles, Settings, Send, RotateCcw } from 'lucide-react';
+import { Heart, Sparkles, Settings, Send, RotateCcw } from 'lucide-react';
 import { useChatStore } from '../../stores';
 import { ChatSettings } from './ChatSettings';
+import { ToastProvider } from './Toast';
+import { useToast } from './useToast';
 import { useChat } from '../../hooks';
 import '../../components/settings/game-ui.css';
 
 interface ChatWindowProps {
-  onClose: () => void;
+  // Window is managed by Tauri, no close callback needed
 }
 
 const SUGGESTED_QUESTIONS = [
@@ -18,13 +20,16 @@ const SUGGESTED_QUESTIONS = [
   { icon: '💭', text: '你现在的心情如何？' },
 ];
 
-export function ChatWindow({ onClose }: ChatWindowProps) {
+export function ChatWindow(_props: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, isLoading, isStreaming } = useChatStore();
   const [showSettings, setShowSettings] = useState(false);
   const [input, setInput] = useState('');
   const dragCandidateRef = useRef<{ x: number; y: number } | null>(null);
   const isWindowDragTriggeredRef = useRef(false);
+
+  // Local toast for chat window
+  const toast = useToast();
   
   const { sendMessage, abort } = useChat({
     onError: (error) => {
@@ -101,14 +106,15 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
   };
 
   return (
-    <div className="game-chat-window no-drag">
-      {/* Header - draggable */}
-      <div
-        className="game-chat-header chat-header-draggable"
-        onMouseDown={handleHeaderMouseDown}
-        onMouseMove={handleHeaderMouseMove}
-        onMouseUp={handleHeaderMouseUp}
-      >
+    <ToastProvider toasts={toast.toasts} onRemove={toast.removeToast}>
+      <div className="game-chat-window no-drag">
+        {/* Header - draggable */}
+        <div
+          className="game-chat-header chat-header-draggable"
+          onMouseDown={handleHeaderMouseDown}
+          onMouseMove={handleHeaderMouseMove}
+          onMouseUp={handleHeaderMouseUp}
+        >
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-white/50 rounded-full flex items-center justify-center border border-[#8B4513]">
             <Sparkles className="w-4 h-4 text-[#8B4513]" />
@@ -128,13 +134,6 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
             title="聊天设置"
           >
             <Settings className="h-4 w-4" />
-          </button>
-          <button
-            onClick={onClose}
-            className="game-btn game-btn-brown p-1 w-8 h-8 justify-center rounded-lg"
-            title="关闭"
-          >
-            <X className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -218,7 +217,8 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
       </div>
 
       {/* Settings Panel */}
-      {showSettings && <ChatSettings onClose={() => setShowSettings(false)} />}
-    </div>
+      {showSettings && <ChatSettings toast={toast} onClose={() => setShowSettings(false)} />}
+      </div>
+    </ToastProvider>
   );
 }

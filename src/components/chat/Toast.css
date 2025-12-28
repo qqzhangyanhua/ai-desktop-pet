@@ -1,0 +1,130 @@
+.toast-viewport {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 380px;
+  max-width: 100vw;
+  z-index: 9999;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+.toast-viewport * {
+  pointer-events: auto;
+}
+
+.toast-root {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 220, 0.9));
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(139, 69, 19, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(139, 69, 19, 0.2);
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toast-root:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(139, 69, 19, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast-root[data-state="closed"] {
+  animation: slideOut 0.2s ease-in forwards;
+}
+
+.toast-root[data-swipe="move"] {
+  transform: translateX(var(--radix-toast-swipe-move-x));
+}
+
+.toast-root[data-swipe="cancel"] {
+  transform: translateX(0);
+  transition: transform 200ms ease-out;
+}
+
+.toast-root[data-swipe="end"] {
+  animation: swipeOut 200ms ease-out forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes swipeOut {
+  from {
+    transform: translateX(var(--radix-toast-swipe-end-x));
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.toast-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #8B4513;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.toast-description {
+  font-size: 13px;
+  color: #A0522D;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.toast-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #8B4513;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.15s ease;
+}
+
+.toast-close:hover {
+  opacity: 1;
+  background: rgba(139, 69, 19, 0.1);
+}
+
+.toast-close:focus {
+  outline: none;
+  opacity: 1;
+  background: rgba(139, 69, 19, 0.15);
+  box-shadow: 0 0 0 2px rgba(255, 183, 77, 0.5);
+}

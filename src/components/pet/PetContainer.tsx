@@ -22,10 +22,10 @@ import { usePetStatus } from '../../hooks/usePetStatus';
 import type { InteractionType } from '@/types';
 
 interface PetContainerProps {
-  onOpenChat: () => void;
+  // No props needed - chat opens in separate window
 }
 
-export function PetContainer({ onOpenChat }: PetContainerProps) {
+export function PetContainer(_props: PetContainerProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [live2dReady, setLive2dReady] = useState(false);
   const [live2dError, setLive2dError] = useState<Error | null>(null);
@@ -399,10 +399,6 @@ export function PetContainer({ onOpenChat }: PetContainerProps) {
           x={contextMenu.x}
           y={contextMenu.y}
           onClose={handleCloseContextMenu}
-          onChat={() => {
-            handleCloseContextMenu();
-            onOpenChat();
-          }}
           onPetAction={(action) => {
             runPetAction(action);
           }}
