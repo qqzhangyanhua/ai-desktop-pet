@@ -14,5 +14,19 @@ export {
   enablePushToTalk,
   disablePushToTalk,
 } from './push-to-talk';
+export {
+  VoiceEmotionRecognition,
+  getVoiceEmotionRecognition,
+  destroyVoiceEmotionRecognition,
+} from './emotion-recognition';
 export type { STTEngine, TTSEngine } from './manager';
 export type { PushToTalkStatus, PushToTalkConfig, PushToTalkState } from '@/types/voice';
+export type {
+  VoiceEmotion,
+  VoiceEmotionResult,
+  AudioFeatures,
+  VoiceEmotionConfig,
+  MultimodalEmotionResult,
+  VoiceEmotionCallbacks,
+  VoiceEmotionAnalysisOptions,
+} from '@/types/voice-emotion';

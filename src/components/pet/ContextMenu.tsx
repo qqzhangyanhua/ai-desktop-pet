@@ -172,8 +172,8 @@ export function ContextMenu({
     onClose();
   };
 
-  const handleAssistantAction = (skill: AssistantSkill) => {
-    onAssistantAction(skill);
+  const handleAssistantAction = (skill: string) => {
+    onAssistantAction(skill as AssistantSkill);
     onClose();
   };
 

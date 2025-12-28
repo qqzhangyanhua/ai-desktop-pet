@@ -11,6 +11,7 @@ import type { AppConfig } from '../../../types';
 interface BehaviorTabProps {
   localConfig: AppConfig;
   setLocalConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
+  onFeedback?: (message: string, type?: any, duration?: number) => void;
 }
 
 export function BehaviorTab({ localConfig, setLocalConfig }: BehaviorTabProps) {
@@ -69,11 +70,14 @@ export function BehaviorTab({ localConfig, setLocalConfig }: BehaviorTabProps) {
         <div className="settings-row">
           <span className="settings-label">自动打工</span>
           <Checkbox
-            checked={localConfig.behavior.autoWorkEnabled}
+            checked={localConfig.behavior.autoWork.enabled}
             onCheckedChange={(checked) =>
               setLocalConfig((prev) => ({
                 ...prev,
-                behavior: { ...prev.behavior, autoWorkEnabled: !!checked },
+                behavior: {
+                  ...prev.behavior,
+                  autoWork: { ...prev.behavior.autoWork, enabled: !!checked }
+                },
               }))
             }
           />

@@ -6,6 +6,10 @@ export type {
   ChatCompletionOptions,
   ChatCompletionResult,
   StreamingChatOptions,
+  EmotionDialogueContext,
+  EmotionDialogueOptions,
+  EmotionDialogueResult,
+  SystemPromptTemplate,
 } from './types';
 
 export {
@@ -19,3 +23,15 @@ export {
   streamChatCompletion,
   ChatSession,
 } from './chat';
+
+export {
+  generateEmotionDialogue,
+  clearDialogueHistory,
+  getDialogueHistory,
+  setDialogueHistory,
+} from './emotion-dialogue';
+
+export {
+  getSystemPrompt,
+  selectSystemPromptTemplate,
+} from './system-prompts';

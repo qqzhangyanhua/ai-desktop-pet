@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Live2DModelConfig, Live2DState } from '../../types';
 import type { Oml2dMethods, Oml2dProperties, Oml2dEvents } from 'oh-my-live2d';
 

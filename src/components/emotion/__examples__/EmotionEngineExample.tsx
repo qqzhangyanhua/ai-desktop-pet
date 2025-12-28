@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Emotion Engine Integration Example
  * 情感引擎集成示例

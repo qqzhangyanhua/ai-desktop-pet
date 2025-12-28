@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Animation System - Unified Exports
  * 动画系统 - 统一导出

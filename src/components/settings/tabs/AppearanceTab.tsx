@@ -13,6 +13,7 @@ import type { AppConfig } from '../../../types';
 interface AppearanceTabProps {
   localConfig: AppConfig;
   setLocalConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
+  onFeedback?: (message: string, type?: any, duration?: number) => void;
 }
 
 export function AppearanceTab({ localConfig, setLocalConfig }: AppearanceTabProps) {

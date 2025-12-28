@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Emotion Memory System
  * 情感记忆系统

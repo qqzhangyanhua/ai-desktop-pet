@@ -301,7 +301,7 @@ class PetCoreService {
       play: ['好开心!', '哈哈~', '再来!'],
     };
     const responses = responseMap[type];
-    return responses[Math.floor(Math.random() * responses.length)] || "";
+    return responses[Math.floor(Math.random() * responses.length)];
   }
 
   private getInteractionMessage(type: 'pet' | 'feed' | 'play'): string {

@@ -147,7 +147,7 @@ export async function isMigrationApplied(): Promise<boolean> {
       "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='interaction_history'"
     );
 
-    return result[0].count > 0;
+    return (result[0]?.count || 0) > 0;
   } catch (error) {
     console.error('[Migration 003] Failed to check migration status:', error);
     return false;

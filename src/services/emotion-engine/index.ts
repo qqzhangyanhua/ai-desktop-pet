@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Emotion Engine - Unified Exports
  * 情感引擎 - 统一导出

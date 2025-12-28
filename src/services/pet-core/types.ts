@@ -129,3 +129,4 @@ export interface InteractionResult {
     intimacy: number;
   };
 }
+export type InteractionType = "pet" | "feed" | "play" | "clean" | "brush" | "sleep";

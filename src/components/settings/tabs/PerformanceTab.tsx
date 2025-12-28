@@ -11,6 +11,7 @@ import type { AppConfig } from '../../../types';
 interface PerformanceTabProps {
   localConfig: AppConfig;
   setLocalConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
+  onFeedback?: (message: string, type?: any, duration?: number) => void;
 }
 
 export function PerformanceTab({ localConfig, setLocalConfig }: PerformanceTabProps) {

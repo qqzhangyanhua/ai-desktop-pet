@@ -242,7 +242,7 @@ export class IdleAnimationManager {
     // 基于当前心情调整
     switch (type) {
       case 'breathing':
-        return this.energy < 30 ? 'sleepy' : this.emotion;
+        return this.energy < 30 ? 'sad' : this.emotion; // sleepy -> sad
       case 'blinking':
         return this.emotion;
       case 'swaying':
@@ -250,7 +250,7 @@ export class IdleAnimationManager {
       case 'looking-around':
         return 'thinking';
       case 'sleepy':
-        return 'sleepy';
+        return 'sad'; // sleepy -> sad
       case 'excited':
         return 'excited';
       case 'thinking':
@@ -275,7 +275,7 @@ export class IdleAnimationManager {
     };
 
     const variation = 1 + (Math.random() - 0.5) * this.config.randomVariation;
-    return Math.floor((baseDuration[type] || 1000) * variation);
+    return Math.floor((baseDuration[type as keyof typeof baseDuration] || 1000) * variation);
   }
 
   /**

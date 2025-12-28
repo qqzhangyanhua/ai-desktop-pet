@@ -350,24 +350,24 @@ export function GameSettingsWindow() {
               <div className="max-w-3xl mx-auto space-y-6">
                 {activeTab === 'appearance' && (
                     <AppearanceTab
-                    config={localConfig}
-                    onConfigChange={setLocalConfig}
+                    localConfig={localConfig}
+                    setLocalConfig={setLocalConfig}
                     onFeedback={showFeedback}
                     />
                 )}
 
                 {activeTab === 'behavior' && (
                     <BehaviorTab
-                    config={localConfig}
-                    onConfigChange={setLocalConfig}
+                    localConfig={localConfig}
+                    setLocalConfig={setLocalConfig}
                     onFeedback={showFeedback}
                     />
                 )}
 
                 {activeTab === 'assistant' && (
                     <AssistantTab
-                    config={localConfig}
-                    onConfigChange={setLocalConfig}
+                    localConfig={localConfig}
+                    setLocalConfig={setLocalConfig}
                     llmProviders={LLM_PROVIDERS}
                     availableModels={availableModels}
                     onProviderChange={handleProviderChange}
@@ -385,8 +385,8 @@ export function GameSettingsWindow() {
 
                 {activeTab === 'performance' && (
                     <PerformanceTab
-                    config={localConfig}
-                    onConfigChange={setLocalConfig}
+                    localConfig={localConfig}
+                    setLocalConfig={setLocalConfig}
                     onFeedback={showFeedback}
                     />
                 )}
@@ -395,10 +395,10 @@ export function GameSettingsWindow() {
                     <AdvancedTab
                     mcpServers={mcpServers}
                     mcpServerStates={mcpServerStates}
-                    onAddServer={handleMCPAddServer}
-                    onRemoveServer={handleMCPRemoveServer}
-                    onConnect={handleMCPConnect}
-                    onDisconnect={handleMCPDisconnect}
+                    onMCPAddServer={handleMCPAddServer}
+                    onMCPRemoveServer={handleMCPRemoveServer}
+                    onMCPConnect={handleMCPConnect}
+                    onMCPDisconnect={handleMCPDisconnect}
                     />
                 )}
               </div>

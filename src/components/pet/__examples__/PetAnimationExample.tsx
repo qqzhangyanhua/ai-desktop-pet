@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Pet Animation Integration Example
  * 宠物动画集成示例

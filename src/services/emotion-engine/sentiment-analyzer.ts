@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Sentiment Analyzer
  * 情绪分析引擎

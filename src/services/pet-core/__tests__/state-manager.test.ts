@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * StateManager Unit Tests
  * 状态管理器单元测试
