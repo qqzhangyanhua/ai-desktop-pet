@@ -3,18 +3,21 @@
  * 宠物状态显示条
  *
  * 显示 mood/energy/intimacy 三项属性的实时数值和进度条
+ * 以及金币和等级信息
  *
  * Linus 准则: "消除特殊情况" - status 永远有值，无需 null 检查
  */
 
 import { memo } from 'react';
 import { usePetStatus } from '@/hooks/usePetStatus';
+import { useEconomy } from '@/hooks/useEconomy';
 import { useDrag } from '@/hooks/useDrag';
 import { useConfigStore } from '@/stores';
 import './StatusBar.css';
 
 export const StatusBar = memo(function StatusBar() {
   const { status } = usePetStatus();
+  const { coins, levelInfo } = useEconomy();
   const statusPanelVisible = useConfigStore((s) => s.config.appearance.statusPanelVisible);
   const { handleMouseDown } = useDrag();
 
@@ -53,6 +56,12 @@ export const StatusBar = memo(function StatusBar() {
         value={status.intimacy}
         color="#FF6B9D"
       />
+      <div className="status-divider" />
+      <EconomyItem
+        coins={coins}
+        level={levelInfo.level}
+        levelProgress={levelInfo.progress}
+      />
     </div>
   );
 });
@@ -78,6 +87,36 @@ function StatusItem({ label, value, color }: StatusItemProps) {
           />
         </div>
         <div className="status-value">{Math.round(value)}</div>
+      </div>
+    </div>
+  );
+}
+
+interface EconomyItemProps {
+  coins: number;
+  level: number;
+  levelProgress: number;
+}
+
+function EconomyItem({ coins, level, levelProgress }: EconomyItemProps) {
+  return (
+    <div className="status-economy">
+      <div className="economy-item">
+        <span className="economy-icon">💰</span>
+        <span className="economy-value">{coins}</span>
+      </div>
+      <div className="economy-item">
+        <span className="economy-icon">⭐</span>
+        <span className="economy-value">Lv.{level}</span>
+        <div className="economy-progress-bg">
+          <div
+            className="economy-progress-fill"
+            style={{
+              width: `${levelProgress * 100}%`,
+              backgroundColor: '#a78bfa',
+            }}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,8 +1,4 @@
-import type { AppConfig } from '../../../types';
-import type { FeedbackType } from '../FeedbackAnimation';
 import { SkinSettings } from '../SkinSettings';
-import { getSkinManager } from '../../../services/skin';
-import { Home, Palette, Sparkles, Mouse, Cat, CircleHelp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,69 +8,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import type { AppConfig } from '../../../types';
 
 interface AppearanceTabProps {
-  config: AppConfig;
-  onConfigChange: (updater: (prev: AppConfig) => AppConfig) => void;
-  onFeedback?: (message: string, type?: FeedbackType) => void;
+  localConfig: AppConfig;
+  setLocalConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
 }
 
-export function AppearanceTab({ config, onConfigChange, onFeedback }: AppearanceTabProps) {
+export function AppearanceTab({ localConfig, setLocalConfig }: AppearanceTabProps) {
   return (
     <>
       <SkinSettings
         title="宠物形象选择"
-        live2dEnabled={config.useLive2D}
-        onLive2DEnabledChange={(enabled) => {
-          onConfigChange((prev) => ({
+        live2dEnabled={localConfig.useLive2D}
+        onLive2DEnabledChange={(enabled) =>
+          setLocalConfig((prev) => ({
             ...prev,
             useLive2D: enabled,
             live2d: { ...prev.live2d, useLive2D: enabled },
-          }));
-          onFeedback?.(
-            enabled ? '宠物动起来啦!' : '宠物休息中~',
-            'success'
-          );
-        }}
-        scale={config.live2d.modelScale}
-        onScaleChange={(scale) => {
-          const prevScale = config.live2d.modelScale;
-          onConfigChange((prev) => ({
+          }))
+        }
+        scale={localConfig.live2d.modelScale}
+        onScaleChange={(scale) =>
+          setLocalConfig((prev) => ({
             ...prev,
             live2d: { ...prev.live2d, modelScale: scale },
-          }));
-          if (Math.abs(scale - prevScale) > 0.1) {
-            onFeedback?.(
-              scale > prevScale ? '宠物长大啦!' : '宠物缩小啦!',
-              'info'
-            );
-          }
-        }}
-        onSkinChange={(skinId) => {
-          onConfigChange((prev) => ({
+          }))
+        }
+        onSkinChange={(skinId) =>
+          setLocalConfig((prev) => ({
             ...prev,
             appearance: { ...prev.appearance, skinId },
-          }));
-          getSkinManager().switchSkin(skinId).then(() => {
-            onFeedback?.('宠物换上新衣服啦!', 'success');
-          }).catch(() => {
-            onFeedback?.('皮肤切换失败', 'warning');
-          });
-        }}
+          }))
+        }
       />
 
       <div className="settings-section">
-        <div className="settings-section-title flex items-center gap-2">
-          <Home className="w-4 h-4" />
-          小窝背景
-        </div>
+        <div className="settings-section-title">场景背景</div>
 
         <div className="settings-row">
           <span className="settings-label">背景类型</span>
           <Select
-            value={config.appearance.background.mode}
+            value={localConfig.appearance.background.mode}
             onValueChange={(mode: AppConfig['appearance']['background']['mode']) =>
-              onConfigChange((prev) => ({
+              setLocalConfig((prev) => ({
                 ...prev,
                 appearance: {
                   ...prev.appearance,
@@ -98,13 +75,13 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
           </Select>
         </div>
 
-        {config.appearance.background.mode === 'preset' && (
+        {localConfig.appearance.background.mode === 'preset' && (
           <div className="settings-row">
             <span className="settings-label">预设</span>
             <Select
-              value={config.appearance.background.value ?? 'light'}
+              value={localConfig.appearance.background.value ?? 'light'}
               onValueChange={(value) =>
-                onConfigChange((prev) => ({
+                setLocalConfig((prev) => ({
                   ...prev,
                   appearance: {
                     ...prev.appearance,
@@ -125,15 +102,15 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
           </div>
         )}
 
-        {config.appearance.background.mode === 'color' && (
+        {localConfig.appearance.background.mode === 'color' && (
           <div className="settings-row">
             <span className="settings-label">颜色</span>
             <Input
               type="text"
               className="settings-input"
-              value={config.appearance.background.value ?? 'rgba(255,255,255,0.75)'}
+              value={localConfig.appearance.background.value ?? 'rgba(255,255,255,0.75)'}
               onChange={(e) =>
-                onConfigChange((prev) => ({
+                setLocalConfig((prev) => ({
                   ...prev,
                   appearance: {
                     ...prev.appearance,
@@ -146,15 +123,15 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
           </div>
         )}
 
-        {config.appearance.background.mode === 'image' && (
+        {localConfig.appearance.background.mode === 'image' && (
           <div className="settings-row">
             <span className="settings-label">图片 URL</span>
             <Input
               type="text"
               className="settings-input"
-              value={config.appearance.background.value ?? ''}
+              value={localConfig.appearance.background.value ?? ''}
               onChange={(e) =>
-                onConfigChange((prev) => ({
+                setLocalConfig((prev) => ({
                   ...prev,
                   appearance: {
                     ...prev.appearance,
@@ -169,49 +146,38 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
       </div>
 
       <div className="settings-section">
-        <div className="settings-section-title flex items-center gap-2">
-          <Palette className="w-4 h-4" />
-          透明度与尺寸
+        <div className="settings-section-title">透明度与尺寸</div>
+
+        <div className="settings-row">
+          <span className="settings-label">透明度</span>
+          <input
+            type="range"
+            min="0.2"
+            max="1"
+            step="0.05"
+            value={localConfig.appearance.opacity}
+            onChange={(e) =>
+              setLocalConfig((prev) => ({
+                ...prev,
+                appearance: { ...prev.appearance, opacity: parseFloat(e.target.value) },
+              }))
+            }
+            style={{ width: '150px' }}
+          />
+          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
+            {Math.round(localConfig.appearance.opacity * 100)}%
+          </span>
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">小窝透明度</span>
-          <div className="slider-container">
-            <span className="slider-icon">
-              <Sparkles className="w-4 h-4 opacity-50" />
-            </span>
-            <input
-              type="range"
-              className="slider"
-              min="0.2"
-              max="1"
-              step="0.05"
-              value={config.appearance.opacity}
-              onChange={(e) =>
-                onConfigChange((prev) => ({
-                  ...prev,
-                  appearance: { ...prev.appearance, opacity: parseFloat(e.target.value) },
-                }))
-              }
-            />
-            <span className="slider-icon">
-              <Palette className="w-4 h-4 opacity-50" />
-            </span>
-            <span className="slider-value">
-              {Math.round(config.appearance.opacity * 100)}%
-            </span>
-          </div>
-        </div>
-
-        <div className="settings-row">
-          <span className="settings-label">宠物大小</span>
-          <div className="settings-size-inputs">
+          <span className="settings-label">显示尺寸</span>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <Input
               type="number"
-              className="settings-input settings-size-input"
-              value={config.appearance.size.width}
+              className="settings-input"
+              value={localConfig.appearance.size.width}
               onChange={(e) =>
-                onConfigChange((prev) => ({
+                setLocalConfig((prev) => ({
                   ...prev,
                   appearance: {
                     ...prev.appearance,
@@ -222,14 +188,15 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
                   },
                 }))
               }
+              style={{ width: '92px' }}
             />
-            <span className="settings-size-separator">×</span>
+            <span style={{ fontSize: '12px', color: '#666' }}>×</span>
             <Input
               type="number"
-              className="settings-input settings-size-input"
-              value={config.appearance.size.height}
+              className="settings-input"
+              value={localConfig.appearance.size.height}
               onChange={(e) =>
-                onConfigChange((prev) => ({
+                setLocalConfig((prev) => ({
                   ...prev,
                   appearance: {
                     ...prev.appearance,
@@ -240,60 +207,49 @@ export function AppearanceTab({ config, onConfigChange, onFeedback }: Appearance
                   },
                 }))
               }
+              style={{ width: '92px' }}
             />
           </div>
         </div>
 
-        <div className="settings-row settings-row-no-border">
+        <div className="settings-row" style={{ borderBottom: 'none', gap: '8px' }}>
           <span className="settings-label">快速预设</span>
-          <div className="size-presets">
+          <div style={{ display: 'flex', gap: '8px' }}>
             <Button
-              className="preset-btn"
-              variant="outline"
-              size="sm"
               onClick={() =>
-                onConfigChange((prev) => ({
+                setLocalConfig((prev) => ({
                   ...prev,
                   appearance: { ...prev.appearance, size: { width: 260, height: 360 } },
                 }))
               }
-            >
-              <div className="preset-icon">
-                <Mouse className="w-6 h-6" />
-              </div>
-              <div className="preset-label">小</div>
-            </Button>
-            <Button
-              className="preset-btn"
               variant="outline"
               size="sm"
+            >
+              小
+            </Button>
+            <Button
               onClick={() =>
-                onConfigChange((prev) => ({
+                setLocalConfig((prev) => ({
                   ...prev,
                   appearance: { ...prev.appearance, size: { width: 300, height: 400 } },
                 }))
               }
-            >
-              <div className="preset-icon">
-                <Cat className="w-6 h-6" />
-              </div>
-              <div className="preset-label">标准</div>
-            </Button>
-            <Button
-              className="preset-btn"
               variant="outline"
               size="sm"
+            >
+              标准
+            </Button>
+            <Button
               onClick={() =>
-                onConfigChange((prev) => ({
+                setLocalConfig((prev) => ({
                   ...prev,
                   appearance: { ...prev.appearance, size: { width: 360, height: 480 } },
                 }))
               }
+              variant="outline"
+              size="sm"
             >
-              <div className="preset-icon">
-                <CircleHelp className="w-6 h-6" />
-              </div>
-              <div className="preset-label">大</div>
+              大
             </Button>
           </div>
         </div>

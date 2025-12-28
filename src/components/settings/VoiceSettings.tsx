@@ -5,8 +5,8 @@ import type { VoiceConfig, TTSVoice } from '../../types';
 import type { TTSEngine } from '../../services/voice';
 import { getVoiceManager } from '../../services/voice';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { ShortcutInput } from './ShortcutInput';
 import {
   Select,
   SelectContent,
@@ -156,24 +156,29 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">按住说话键</span>
-          <Input
-            type="text"
-            className="settings-input w-[100px] text-center"
-            value={config.pushToTalkKey}
-            onChange={(e) => handleChange('pushToTalkKey', e.target.value)}
-            placeholder="按下一个键..."
-            onKeyDown={(e) => {
-              e.preventDefault();
-              handleChange('pushToTalkKey', e.key);
-            }}
+          <span className="settings-label">启用按键说话</span>
+          <Checkbox
+            checked={config.pushToTalkEnabled}
+            onCheckedChange={(checked) => handleChange('pushToTalkEnabled', !!checked)}
             disabled={!config.sttEnabled}
+          />
+        </div>
+
+        <div className="settings-row settings-row-column">
+          <span className="settings-label">按键说话触发键</span>
+          <ShortcutInput
+            value={config.pushToTalkKey}
+            onChange={(value) => handleChange('pushToTalkKey', value)}
+            placeholder="点击后按下快捷键，如 Space 或 KeyV"
+            disabled={!config.sttEnabled || !config.pushToTalkEnabled}
           />
         </div>
 
         <div className="settings-row border-none pt-1 text-[11px] text-slate-400">
           {config.sttEnabled
-            ? '按住按键说话，松开发送'
+            ? config.pushToTalkEnabled
+              ? '按住按键开始录音，松开后自动识别并发送'
+              : '启用按键说话以使用此功能'
             : '启用 STT 以使用语音输入'}
         </div>
       </div>

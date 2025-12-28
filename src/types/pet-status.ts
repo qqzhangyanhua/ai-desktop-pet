@@ -29,6 +29,12 @@ export interface PetStatus {
   /** 累计互动次数 */
   totalInteractions: number;
 
+  /** 金币数 */
+  coins: number;
+
+  /** 经验值 */
+  experience: number;
+
   /** 首次创建时间戳 (毫秒) */
   createdAt: number;
 }
@@ -47,6 +53,8 @@ export const DEFAULT_PET_STATUS: PetStatus = {
   lastFeed: null,
   lastPlay: null,
   totalInteractions: 0,
+  coins: 0,
+  experience: 0,
   createdAt: Date.now(),
 };
 

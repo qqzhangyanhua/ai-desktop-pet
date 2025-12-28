@@ -12,9 +12,7 @@ import type {
   PetStatus,
 } from '@/types';
 import { applyInteractionEffects, checkCooldown } from './status';
-import { recordInteraction } from '@/services/statistics';
-import { checkAndUnlockAchievements } from '@/services/achievements';
-import { getStatsSummary } from '@/services/statistics';
+import { recordInteractionAndCheck } from '@/hooks';
 
 /**
  * Interaction configuration table
@@ -85,31 +83,10 @@ export async function handleInteraction(
   // 2. Apply effects
   const newStatus = applyInteractionEffects(currentStatus, config.effects);
 
-  // 3. Record interaction for statistics
-  void recordInteraction(type);
+  // 3. Record interaction and trigger achievement check (non-blocking)
+  void recordInteractionAndCheck(type);
 
-  // 4. Check and unlock achievements (non-blocking)
-  void (async () => {
-    try {
-      const stats = await getStatsSummary();
-      const unlockedAchievements = await checkAndUnlockAchievements(
-        stats,
-        newStatus.intimacy
-      );
-
-      if (unlockedAchievements.length > 0) {
-        console.log(
-          `[InteractionService] Unlocked ${unlockedAchievements.length} achievement(s):`,
-          unlockedAchievements.map((a) => a.name).join(', ')
-        );
-        // TODO: 触发成就解锁 Toast 通知
-      }
-    } catch (error) {
-      console.error('[InteractionService] Failed to check achievements:', error);
-    }
-  })();
-
-  // 5. Randomly select voice response
+  // 4. Randomly select voice response
   const voice =
     config.voiceResponses[
       Math.floor(Math.random() * config.voiceResponses.length)

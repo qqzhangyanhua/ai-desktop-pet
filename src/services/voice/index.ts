@@ -9,4 +9,10 @@ export {
   initVoiceManager,
   destroyVoiceManager,
 } from './manager';
+export {
+  getPushToTalkManager,
+  enablePushToTalk,
+  disablePushToTalk,
+} from './push-to-talk';
 export type { STTEngine, TTSEngine } from './manager';
+export type { PushToTalkStatus, PushToTalkConfig, PushToTalkState } from '@/types/voice';

@@ -1,6 +1,3 @@
-import type { AppConfig } from '../../../types';
-import type { FeedbackType } from '../FeedbackAnimation';
-import { Mouse, Magnet, Ruler, HardDrive, EyeOff, Eye, Zap, Rocket, Battery, Film, Monitor, Pipette, Pin, Package } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
@@ -9,98 +6,73 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import type { AppConfig } from '../../../types';
 
 interface PerformanceTabProps {
-  config: AppConfig;
-  onConfigChange: (updater: (prev: AppConfig) => AppConfig) => void;
-  onFeedback?: (message: string, type?: FeedbackType) => void;
+  localConfig: AppConfig;
+  setLocalConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
 }
 
-export function PerformanceTab({ config, onConfigChange, onFeedback }: PerformanceTabProps) {
+export function PerformanceTab({ localConfig, setLocalConfig }: PerformanceTabProps) {
   return (
     <>
       <div className="settings-section">
-        <div className="settings-section-title flex items-center gap-2">
-          <Mouse className="w-4 h-4" />
-          桌宠交互体验
-        </div>
+        <div className="settings-section-title">桌宠交互体验</div>
 
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <EyeOff className="w-4 h-4" />
-            鼠标穿透（点到桌面）
-          </span>
+          <span className="settings-label">鼠标穿透（点到桌面）</span>
           <Checkbox
-            checked={config.interaction.clickThrough}
-            onCheckedChange={(enabled) => {
-              onConfigChange((prev) => ({
-                ...prev,
-                interaction: { ...prev.interaction, clickThrough: !!enabled },
-              }));
-              onFeedback?.(
-                !!enabled ? '宠物变成幽灵啦!' : '宠物回来了!',
-                !!enabled ? 'warning' : 'success'
-              );
-            }}
-          />
-        </div>
-
-        <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Magnet className="w-4 h-4" />
-            左右吸附
-          </span>
-          <Checkbox
-            checked={config.interaction.snapEnabled}
-            onCheckedChange={(enabled) => {
-              onConfigChange((prev) => ({
-                ...prev,
-                interaction: { ...prev.interaction, snapEnabled: !!enabled },
-              }));
-              onFeedback?.(
-                !!enabled ? '吸附功能已开启!' : '宠物自由飞翔~',
-                'info'
-              );
-            }}
-          />
-        </div>
-
-        <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Ruler className="w-4 h-4" />
-            吸附阈值
-          </span>
-          <div className="slider-container">
-            <input
-              type="range"
-              className="slider"
-              min="8"
-              max="48"
-              step="2"
-              value={config.interaction.snapThreshold}
-              onChange={(e) =>
-                onConfigChange((prev) => ({
-                  ...prev,
-                  interaction: { ...prev.interaction, snapThreshold: parseInt(e.target.value, 10) },
-                }))
-              }
-              disabled={!config.interaction.snapEnabled}
-            />
-            <span className="slider-value">
-              {config.interaction.snapThreshold}px
-            </span>
-          </div>
-        </div>
-
-        <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <HardDrive className="w-4 h-4" />
-            记忆窗口位置
-          </span>
-          <Checkbox
-            checked={config.interaction.rememberPosition}
+            checked={localConfig.interaction.clickThrough}
             onCheckedChange={(checked) =>
-              onConfigChange((prev) => ({
+              setLocalConfig((prev) => ({
+                ...prev,
+                interaction: { ...prev.interaction, clickThrough: !!checked },
+              }))
+            }
+          />
+        </div>
+
+        <div className="settings-row">
+          <span className="settings-label">左右吸附</span>
+          <Checkbox
+            checked={localConfig.interaction.snapEnabled}
+            onCheckedChange={(checked) =>
+              setLocalConfig((prev) => ({
+                ...prev,
+                interaction: { ...prev.interaction, snapEnabled: !!checked },
+              }))
+            }
+          />
+        </div>
+
+        <div className="settings-row">
+          <span className="settings-label">吸附阈值</span>
+          <input
+            type="range"
+            min="8"
+            max="48"
+            step="2"
+            value={localConfig.interaction.snapThreshold}
+            onChange={(e) =>
+              setLocalConfig((prev) => ({
+                ...prev,
+                interaction: { ...prev.interaction, snapThreshold: parseInt(e.target.value, 10) },
+              }))
+            }
+            style={{ width: '150px' }}
+            disabled={!localConfig.interaction.snapEnabled}
+          />
+          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
+            {localConfig.interaction.snapThreshold}px
+          </span>
+        </div>
+
+        <div className="settings-row" style={{ borderBottom: 'none' }}>
+          <span className="settings-label">记忆窗口位置</span>
+          <Checkbox
+            checked={localConfig.interaction.rememberPosition}
+            onCheckedChange={(checked) =>
+              setLocalConfig((prev) => ({
                 ...prev,
                 interaction: { ...prev.interaction, rememberPosition: !!checked },
               }))
@@ -109,72 +81,62 @@ export function PerformanceTab({ config, onConfigChange, onFeedback }: Performan
         </div>
 
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <EyeOff className="w-4 h-4" />
-            靠边自动隐藏
-          </span>
+          <span className="settings-label">靠边自动隐藏</span>
           <Checkbox
-            checked={config.interaction.autoHideEnabled}
-            onCheckedChange={(enabled) => {
-              onConfigChange((prev) => ({
+            checked={localConfig.interaction.autoHideEnabled}
+            onCheckedChange={(checked) =>
+              setLocalConfig((prev) => ({
                 ...prev,
-                interaction: { ...prev.interaction, autoHideEnabled: !!enabled },
-              }));
-              onFeedback?.(
-                !!enabled ? '宠物会自动躲猫猫了!' : '宠物一直在你身边~',
-                'info'
-              );
-            }}
+                interaction: { ...prev.interaction, autoHideEnabled: !!checked },
+              }))
+            }
           />
         </div>
 
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Eye className="w-4 h-4" />
-            隐藏露出
+          <span className="settings-label">隐藏露出</span>
+          <input
+            type="range"
+            min="30"
+            max="120"
+            step="5"
+            value={localConfig.interaction.autoHideOffset}
+            onChange={(e) =>
+              setLocalConfig((prev) => ({
+                ...prev,
+                interaction: { ...prev.interaction, autoHideOffset: parseInt(e.target.value, 10) },
+              }))
+            }
+            style={{ width: '150px' }}
+            disabled={!localConfig.interaction.autoHideEnabled}
+          />
+          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
+            {localConfig.interaction.autoHideOffset}px
           </span>
-          <div className="slider-container">
-            <input
-              type="range"
-              className="slider"
-              min="30"
-              max="120"
-              step="5"
-              value={config.interaction.autoHideOffset}
-              onChange={(e) =>
-                onConfigChange((prev) => ({
-                  ...prev,
-                  interaction: { ...prev.interaction, autoHideOffset: parseInt(e.target.value, 10) },
-                }))
-              }
-              disabled={!config.interaction.autoHideEnabled}
-            />
-            <span className="slider-value">
-              {config.interaction.autoHideOffset}px
-            </span>
-          </div>
         </div>
 
-        <div className="settings-row settings-hint-row">
-          开启"鼠标穿透"后无法点击宠物与设置窗口,请通过菜单栏托盘关闭穿透。
+        <div
+          className="settings-row"
+          style={{
+            fontSize: '11px',
+            color: '#888',
+            borderBottom: 'none',
+            paddingTop: '4px',
+          }}
+        >
+          开启"鼠标穿透"后无法点击宠物与设置窗口，请通过菜单栏托盘关闭穿透。
         </div>
       </div>
 
       <div className="settings-section">
-        <div className="settings-section-title flex items-center gap-2">
-          <Zap className="w-4 h-4" />
-          性能优化
-        </div>
+        <div className="settings-section-title">性能优化</div>
 
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Rocket className="w-4 h-4" />
-            开机自启动
-          </span>
+          <span className="settings-label">开机自启动</span>
           <Checkbox
-            checked={config.performance.launchOnStartup}
+            checked={localConfig.performance.launchOnStartup}
             onCheckedChange={(checked) =>
-              onConfigChange((prev) => ({
+              setLocalConfig((prev) => ({
                 ...prev,
                 performance: { ...prev.performance, launchOnStartup: !!checked },
               }))
@@ -183,25 +145,15 @@ export function PerformanceTab({ config, onConfigChange, onFeedback }: Performan
         </div>
 
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Battery className="w-4 h-4" />
-            后台运行模式
-          </span>
+          <span className="settings-label">后台运行模式</span>
           <Select
-            value={config.performance.backgroundMode}
-            onValueChange={(mode: AppConfig['performance']['backgroundMode']) => {
-              onConfigChange((prev) => ({
+            value={localConfig.performance.backgroundMode}
+            onValueChange={(value: AppConfig['performance']['backgroundMode']) =>
+              setLocalConfig((prev) => ({
                 ...prev,
-                performance: { ...prev.performance, backgroundMode: mode },
-              }));
-
-              const modeMessages: Record<string, string> = {
-                balanced: '已切换到均衡模式',
-                battery: '省电模式启动!',
-                performance: '性能全开!',
-              };
-              onFeedback?.(modeMessages[mode] || '', 'info');
-            }}
+                performance: { ...prev.performance, backgroundMode: value },
+              }))
+            }
           >
             <SelectTrigger className="w-[140px]">
               <SelectValue />
@@ -215,40 +167,32 @@ export function PerformanceTab({ config, onConfigChange, onFeedback }: Performan
         </div>
 
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Film className="w-4 h-4" />
-            动画帧率
+          <span className="settings-label">动画帧率</span>
+          <input
+            type="range"
+            min="15"
+            max="60"
+            step="5"
+            value={localConfig.performance.animationFps}
+            onChange={(e) =>
+              setLocalConfig((prev) => ({
+                ...prev,
+                performance: { ...prev.performance, animationFps: parseInt(e.target.value, 10) },
+              }))
+            }
+            style={{ width: '150px' }}
+          />
+          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
+            {localConfig.performance.animationFps} FPS
           </span>
-          <div className="slider-container">
-            <input
-              type="range"
-              className="slider"
-              min="15"
-              max="60"
-              step="5"
-              value={config.performance.animationFps}
-              onChange={(e) =>
-                onConfigChange((prev) => ({
-                  ...prev,
-                  performance: { ...prev.performance, animationFps: parseInt(e.target.value, 10) },
-                }))
-              }
-            />
-            <span className="slider-value">
-              {config.performance.animationFps} FPS
-            </span>
-          </div>
         </div>
 
-        <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Monitor className="w-4 h-4" />
-            资源占用限制
-          </span>
+        <div className="settings-row" style={{ borderBottom: 'none' }}>
+          <span className="settings-label">资源占用限制</span>
           <Select
-            value={config.performance.resourceLimit}
+            value={localConfig.performance.resourceLimit}
             onValueChange={(value: AppConfig['performance']['resourceLimit']) =>
-              onConfigChange((prev) => ({
+              setLocalConfig((prev) => ({
                 ...prev,
                 performance: { ...prev.performance, resourceLimit: value },
               }))
@@ -267,49 +211,39 @@ export function PerformanceTab({ config, onConfigChange, onFeedback }: Performan
       </div>
 
       <div className="settings-section">
-        <div className="settings-section-title flex items-center gap-2">
-          <Pipette className="w-4 h-4" />
-          窗口行为
-        </div>
+        <div className="settings-section-title">窗口行为</div>
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Pin className="w-4 h-4" />
-            窗口置顶
-          </span>
+          <span className="settings-label">窗口置顶</span>
           <Checkbox
-            checked={config.alwaysOnTop}
-            onCheckedChange={(enabled) => {
-              onConfigChange((prev) => ({
+            checked={localConfig.alwaysOnTop}
+            onCheckedChange={(checked) =>
+              setLocalConfig((prev) => ({
                 ...prev,
-                alwaysOnTop: !!enabled,
-              }));
-              onFeedback?.(
-                !!enabled ? '宠物永远在最前面!' : '窗口恢复正常层级',
-                'info'
-              );
-            }}
+                alwaysOnTop: !!checked,
+              }))
+            }
           />
         </div>
 
-        <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Package className="w-4 h-4" />
-            启动最小化
-          </span>
+        <div className="settings-row" style={{ borderBottom: 'none' }}>
+          <span className="settings-label">启动最小化</span>
           <Checkbox
-            checked={config.startMinimized}
+            checked={localConfig.startMinimized}
             onCheckedChange={(checked) =>
-              onConfigChange((prev) => ({
+              setLocalConfig((prev) => ({
                 ...prev,
                 startMinimized: !!checked,
               }))
             }
           />
         </div>
+      </div>
 
-        <div className="settings-row settings-hint-row">
-          部分性能项当前仅保存配置，后续可接入原生插件实现真正的开机自启/后台策略。
-        </div>
+      <div
+        className="settings-section"
+        style={{ marginBottom: 0, color: '#888', fontSize: '11px' }}
+      >
+        部分性能项当前仅保存配置，后续可接入原生插件实现真正的开机自启/后台策略。
       </div>
     </>
   );

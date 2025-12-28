@@ -1,34 +1,28 @@
 import { useEffect } from 'react';
 import { useConfigStore } from '@/stores';
-import { usePetActions } from '@/hooks/usePetActions';
-
-const getAutoWorkIntervalMs = (frequency: 'low' | 'standard' | 'high') => {
-  switch (frequency) {
-    case 'low':
-      return 35 * 60 * 1000;
-    case 'high':
-      return 12 * 60 * 1000;
-    case 'standard':
-    default:
-      return 20 * 60 * 1000;
-  }
-};
+import { getAutoWorkManager } from '@/services/auto-work-manager';
 
 export function useAutoWork() {
   const behavior = useConfigStore((s) => s.config.behavior);
-  const { runPetAction } = usePetActions();
 
   useEffect(() => {
-    if (!behavior.autoWorkEnabled) return;
+    const manager = getAutoWorkManager();
 
-    const intervalMs = getAutoWorkIntervalMs(behavior.interactionFrequency);
-    const timer = setInterval(() => {
-      runPetAction('work');
-    }, intervalMs);
+    // 定期检查是否应该开始打工
+    const checkInterval = setInterval(() => {
+      if (behavior.autoWork.enabled) {
+        void manager.startWork();
+      }
+    }, 60 * 1000); // 每分钟检查一次
+
+    // 启动时立即检查一次
+    if (behavior.autoWork.enabled) {
+      void manager.startWork();
+    }
 
     return () => {
-      clearInterval(timer);
+      clearInterval(checkInterval);
     };
-  }, [behavior.autoWorkEnabled, behavior.interactionFrequency, runPetAction]);
+  }, [behavior.autoWork.enabled, behavior.autoWork.idleTriggerMinutes]);
 }
 

@@ -18,6 +18,8 @@ const TS_TO_DB_MAPPING: Record<keyof PetStatus, string> = {
   lastFeed: 'last_feed',
   lastPlay: 'last_play',
   totalInteractions: 'total_interactions',
+  coins: 'coins',
+  experience: 'experience',
   createdAt: 'created_at',
 };
 
@@ -33,6 +35,8 @@ interface PetStatusRow {
   last_feed: number | null;
   last_play: number | null;
   total_interactions: number;
+  coins: number;
+  experience: number;
   created_at: number;
   updated_at: number;
 }
@@ -50,6 +54,8 @@ function rowToPetStatus(row: PetStatusRow): PetStatus {
     lastFeed: row.last_feed,
     lastPlay: row.last_play,
     totalInteractions: row.total_interactions,
+    coins: row.coins,
+    experience: row.experience,
     createdAt: row.created_at,
   };
 }

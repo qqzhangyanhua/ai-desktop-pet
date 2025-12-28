@@ -10,6 +10,7 @@ import {
   getMessages,
   updateConversation,
 } from '../services/database/conversations';
+import { recordInteractionAndCheck } from './useAchievementListener';
 import type { Message } from '../types';
 
 interface UseChatOptions {
@@ -91,6 +92,9 @@ export function useChat(options: UseChatOptions = {}) {
       setLoading(true);
       setStreaming(true);
       setEmotion('thinking');
+
+      // Record chat interaction for achievement tracking
+      void recordInteractionAndCheck('chat');
 
       // Save user message to database
       if (saveChatHistory && !conversationId.startsWith('local:')) {

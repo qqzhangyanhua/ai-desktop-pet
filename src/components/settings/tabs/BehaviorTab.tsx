@@ -1,6 +1,3 @@
-import type { AppConfig } from '../../../types';
-import type { FeedbackType } from '../FeedbackAnimation';
-import { Bone, Clock, Gamepad2, DollarSign, Bell, MessageSquare, Volume2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
@@ -9,46 +6,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getAvailableExpressionPacks } from '@/services/pet/expression-pack';
+import type { AppConfig } from '../../../types';
 
 interface BehaviorTabProps {
-  config: AppConfig;
-  onConfigChange: (updater: (prev: AppConfig) => AppConfig) => void;
-  onFeedback?: (message: string, type?: FeedbackType) => void;
+  localConfig: AppConfig;
+  setLocalConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
 }
 
-export function BehaviorTab({ config, onConfigChange, onFeedback }: BehaviorTabProps) {
-  const packs = getAvailableExpressionPacks();
-
+export function BehaviorTab({ localConfig, setLocalConfig }: BehaviorTabProps) {
   return (
     <>
       <div className="settings-section">
-        <div className="settings-section-title flex items-center gap-2">
-          <Bone className="w-4 h-4" />
-          宠物养成
-        </div>
+        <div className="settings-section-title">属性衰减与互动</div>
 
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            饿得快慢
-          </span>
+          <span className="settings-label">属性衰减速度</span>
           <Select
-            value={config.behavior.decaySpeed}
-            onValueChange={(newSpeed: AppConfig['behavior']['decaySpeed']) => {
-              onConfigChange((prev) => ({
+            value={localConfig.behavior.decaySpeed}
+            onValueChange={(value: AppConfig['behavior']['decaySpeed']) =>
+              setLocalConfig((prev) => ({
                 ...prev,
-                behavior: { ...prev.behavior, decaySpeed: newSpeed },
-              }));
-
-              if (newSpeed === 'hardcore') {
-                onFeedback?.('宠物现在饿得更快了!', 'info');
-              } else if (newSpeed === 'casual') {
-                onFeedback?.('宠物进入悠闲模式~', 'success');
-              } else {
-                onFeedback?.('已恢复标准节奏', 'info');
-              }
-            }}
+                behavior: { ...prev.behavior, decaySpeed: value },
+              }))
+            }
           >
             <SelectTrigger className="w-[140px]">
               <SelectValue />
@@ -62,29 +42,18 @@ export function BehaviorTab({ config, onConfigChange, onFeedback }: BehaviorTabP
         </div>
 
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <Gamepad2 className="w-4 h-4" />
-            互动节奏
-          </span>
+          <span className="settings-label">互动频率</span>
           <Select
-            value={config.behavior.interactionFrequency}
-            onValueChange={(newFreq: AppConfig['behavior']['interactionFrequency']) => {
-              onConfigChange((prev) => ({
+            value={localConfig.behavior.interactionFrequency}
+            onValueChange={(value: AppConfig['behavior']['interactionFrequency']) =>
+              setLocalConfig((prev) => ({
                 ...prev,
                 behavior: {
                   ...prev.behavior,
-                  interactionFrequency: newFreq,
+                  interactionFrequency: value,
                 },
-              }));
-
-              if (newFreq === 'high') {
-                onFeedback?.('宠物变得更活泼了!', 'success');
-              } else if (newFreq === 'low') {
-                onFeedback?.('宠物想要安静一下~', 'info');
-              } else {
-                onFeedback?.('已恢复标准节奏', 'info');
-              }
-            }}
+              }))
+            }
           >
             <SelectTrigger className="w-[140px]">
               <SelectValue />
@@ -98,104 +67,51 @@ export function BehaviorTab({ config, onConfigChange, onFeedback }: BehaviorTabP
         </div>
 
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <MessageSquare className="w-4 h-4" />
-            台词风格
-          </span>
-          <Select
-            value={config.behavior.expressionPackId}
-            onValueChange={(id: string) => {
-              onConfigChange((prev) => ({
-                ...prev,
-                behavior: { ...prev.behavior, expressionPackId: id },
-              }));
-              const name = packs.find((p) => p.id === id)?.name ?? id;
-              onFeedback?.(`已切换：${name}`, 'success');
-            }}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {packs.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <DollarSign className="w-4 h-4" />
-            自动打工
-          </span>
+          <span className="settings-label">自动打工</span>
           <Checkbox
-            checked={config.behavior.autoWorkEnabled}
-            onCheckedChange={(enabled) => {
-              onConfigChange((prev) => ({
+            checked={localConfig.behavior.autoWorkEnabled}
+            onCheckedChange={(checked) =>
+              setLocalConfig((prev) => ({
                 ...prev,
-                behavior: { ...prev.behavior, autoWorkEnabled: !!enabled },
-              }));
-              onFeedback?.(
-                !!enabled ? '宠物会自己工作啦!' : '宠物要休息了~',
-                'success'
-              );
-            }}
+                behavior: { ...prev.behavior, autoWorkEnabled: !!checked },
+              }))
+            }
           />
         </div>
       </div>
 
       <div className="settings-section">
-        <div className="settings-section-title flex items-center gap-2">
-          <Bell className="w-4 h-4" />
-          通知提醒
-        </div>
+        <div className="settings-section-title">通知提醒设置</div>
 
         <div className="settings-row">
-          <span className="settings-label flex items-center gap-2">
-            <MessageSquare className="w-4 h-4" />
-            气泡提示
-          </span>
+          <span className="settings-label">气泡提示</span>
           <Checkbox
-            checked={config.behavior.notifications.bubbleEnabled}
-            onCheckedChange={(enabled) => {
-              onConfigChange((prev) => ({
+            checked={localConfig.behavior.notifications.bubbleEnabled}
+            onCheckedChange={(checked) =>
+              setLocalConfig((prev) => ({
                 ...prev,
                 behavior: {
                   ...prev.behavior,
-                  notifications: { ...prev.behavior.notifications, bubbleEnabled: !!enabled },
+                  notifications: { ...prev.behavior.notifications, bubbleEnabled: !!checked },
                 },
-              }));
-              onFeedback?.(
-                !!enabled ? '气泡提示已开启!' : '气泡提示已关闭',
-                'info'
-              );
-            }}
+              }))
+            }
           />
         </div>
 
-        <div className="settings-row settings-row-no-border">
-          <span className="settings-label flex items-center gap-2">
-            <Volume2 className="w-4 h-4" />
-            Toast 提醒
-          </span>
+        <div className="settings-row" style={{ borderBottom: 'none' }}>
+          <span className="settings-label">Toast 提醒</span>
           <Checkbox
-            checked={config.behavior.notifications.toastEnabled}
-            onCheckedChange={(enabled) => {
-              onConfigChange((prev) => ({
+            checked={localConfig.behavior.notifications.toastEnabled}
+            onCheckedChange={(checked) =>
+              setLocalConfig((prev) => ({
                 ...prev,
                 behavior: {
                   ...prev.behavior,
-                  notifications: { ...prev.behavior.notifications, toastEnabled: !!enabled },
+                  notifications: { ...prev.behavior.notifications, toastEnabled: !!checked },
                 },
-              }));
-              onFeedback?.(
-                !!enabled ? 'Toast 提醒已开启!' : 'Toast 提醒已关闭',
-                'info'
-              );
-            }}
+              }))
+            }
           />
         </div>
       </div>

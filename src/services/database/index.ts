@@ -130,6 +130,8 @@ CREATE TABLE IF NOT EXISTS pet_status (
     last_feed INTEGER,
     last_play INTEGER,
     total_interactions INTEGER DEFAULT 0,
+    coins INTEGER DEFAULT 0,
+    experience INTEGER DEFAULT 0,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
 );
@@ -161,6 +163,21 @@ CREATE TABLE IF NOT EXISTS achievements (
     created_at INTEGER NOT NULL
 );
 
+-- Auto work history table (for Phase 3 auto work system)
+CREATE TABLE IF NOT EXISTS auto_work_history (
+    id TEXT PRIMARY KEY,
+    work_type TEXT NOT NULL,
+    start_time INTEGER NOT NULL,
+    end_time INTEGER NOT NULL,
+    duration_hours REAL NOT NULL,
+    reward_coins INTEGER NOT NULL,
+    reward_experience INTEGER NOT NULL,
+    mood_consumed REAL NOT NULL,
+    energy_consumed REAL NOT NULL,
+    intimacy_level REAL NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
@@ -174,10 +191,12 @@ CREATE INDEX IF NOT EXISTS idx_pet_status_updated ON pet_status(updated_at);
 CREATE INDEX IF NOT EXISTS idx_daily_stats_date ON daily_stats(date);
 CREATE INDEX IF NOT EXISTS idx_achievements_unlocked ON achievements(is_unlocked);
 CREATE INDEX IF NOT EXISTS idx_achievements_type ON achievements(type);
+CREATE INDEX IF NOT EXISTS idx_auto_work_created ON auto_work_history(created_at);
+CREATE INDEX IF NOT EXISTS idx_auto_work_type ON auto_work_history(work_type);
 `;
 
 /**
- * 迁移pet_status表：首次启动时插入默认记录
+ * 迁移pet_status表：首次启动时插入默认记录，已有数据添加金币/经验字段
  * @param db Database instance
  */
 async function migratePetStatus(db: Database): Promise<void> {
@@ -191,11 +210,22 @@ async function migratePetStatus(db: Database): Promise<void> {
       // 首次启动，插入默认状态
       const now = Date.now();
       await db.execute(
-        `INSERT INTO pet_status (id, last_interaction, created_at, updated_at)
-         VALUES (1, ?, ?, ?)`,
+        `INSERT INTO pet_status (id, last_interaction, coins, experience, created_at, updated_at)
+         VALUES (1, ?, 0, 0, ?, ?)`,
         [now, now, now]
       );
       console.log('[Database] Pet status default record inserted');
+    } else {
+      // 已有数据，检查并添加新字段（如果不存在）
+      try {
+        // 尝试查询 coins 字段，如果不存在会抛出错误
+        await db.select('SELECT coins FROM pet_status LIMIT 1');
+      } catch {
+        // 字段不存在，添加新字段
+        await db.execute('ALTER TABLE pet_status ADD COLUMN coins INTEGER DEFAULT 0');
+        await db.execute('ALTER TABLE pet_status ADD COLUMN experience INTEGER DEFAULT 0');
+        console.log('[Database] Added coins and experience columns to pet_status');
+      }
     }
   } catch (error) {
     console.error('[Database] Failed to migrate pet_status:', error);

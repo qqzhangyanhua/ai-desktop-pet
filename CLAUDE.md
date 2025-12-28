@@ -61,6 +61,13 @@ pnpm build
 
 # Type check
 tsc --noEmit
+
+# Live2D utilities
+pnpm check:live2d    # Check Live2D model integrity
+pnpm enable:live2d   # Enable Live2D integration
+
+# Config utilities
+pnpm reset:config    # Reset configuration to defaults
 ```
 
 ### Tauri Development
@@ -118,7 +125,7 @@ Configured in `tsconfig.json` and `vite.config.ts`.
 - Components consume services via custom hooks in `src/hooks/`
 
 **2. State Management**
-- Zustand stores for global state (pet, chat, agent, config, scheduler, skin)
+- Zustand stores for global state (pet, chat, agent, config, scheduler, skin, petStatus, toast, contextMenu, care, assistant)
 - Location: `src/stores/`
 - Pattern: `useXxxStore()` hooks
 - All stores exported from `src/stores/index.ts`
@@ -150,14 +157,47 @@ Configured in `tsconfig.json` and `vite.config.ts`.
 - **Event System**: EventEmitter for task lifecycle events
 - **Persistence**: Tasks stored in SQLite with execution history
 
+**7. Statistics & Achievements System**
+- **Statistics**: `services/statistics/index.ts` - Track user interactions, chat metrics, pet care stats
+- **Achievements**: `services/achievements/index.ts` - Achievement tracking and unlocking
+- Both initialized in App.tsx after database init
+
+**8. Expression Pack System**
+- **Manager**: `services/pet/expression-pack.ts`
+- **Packs**: `services/pet/expression-packs/` - Multiple personality/action feedback styles
+  - `default.ts` - Default responses
+  - `qq.ts` - Cute/QQ-style responses
+- Configurable via `config.behavior.expressionPackId`
+
+**9. Pet Behavior Services** (`services/pet/`):
+- `status.ts` - Status decay, mood calculations
+- `interaction.ts` - Interaction handling with cooldowns
+- `emotion.ts` - Mood-based emotion mapping
+- `growth.ts` - Growth stage system (egg → baby → child → adult)
+- `idle-behavior.ts` - Idle animations and actions
+- `action-feedback.ts` - Action result messages
+- `voice-link.ts` - Voice-to-expression integration
+
+**10. Data Import/Export System** (`services/data/`):
+- `export.ts` - Export data to JSON file (conversations, config, skins, agent_roles, mcp_servers)
+- `import.ts` - Import data from JSON file with validation
+- `backup.ts` - Create/restore/delete database backups
+- `validators.ts` - Schema validation for imported data
+- `importers.ts` - Batch import handlers for each data type
+
 ### Application Initialization Flow
 
 **CRITICAL**: The initialization order in `App.tsx` is:
 
 1. **Database Init**: `initDatabase()` creates tables and connection
 2. **Config Load**: `useConfigStore.getState().loadConfig()` loads settings
-3. **Scheduler Init**: `getSchedulerManager().initialize()` starts task scheduler
-4. **Render**: Main UI components rendered after `dbReady` state is true
+3. **Window Settings**: Apply window size, position, always-on-top, click-through
+4. **Skin Load**: Load skins and apply selected skin (best-effort)
+5. **Pet Status**: `usePetStatusStore.getState().loadStatus()`
+6. **Statistics Service**: `initializeStatsService()`
+7. **Achievements**: `initializeAchievements()`
+8. **Scheduler Init**: `getSchedulerManager().initialize()` starts task scheduler
+9. **Render**: Main UI components rendered after `dbReady` state is true
 
 If you modify initialization, maintain this order to avoid race conditions.
 
@@ -175,6 +215,10 @@ Tables:
 - `skins` - Live2D model metadata
 - `tasks` - Scheduler task definitions
 - `task_executions` - Task execution history
+- `pet_status` - Pet status (mood, energy, intimacy, fullness)
+- `statistics` - Usage statistics and metrics
+- `achievements` - Achievement tracking and unlocks
+- `agent_audit` - Agent execution audit logs
 
 Access via `services/database/*.ts` modules. Schema defined in `services/database/index.ts`.
 
@@ -255,6 +299,26 @@ Access via `services/database/*.ts` modules. Schema defined in `services/databas
 1. Place model files in `public/models/[model-name]/`
 2. Add metadata to `skins` table via settings UI or `database/skins.ts`
 3. Use `services/skin/manager.ts` to load
+
+**Settings Panel Architecture** (`components/settings/`):
+- `SettingsPanel.tsx` - Main settings window container
+- `LLMSettings.tsx` - LLM provider configuration
+- `VoiceSettings.tsx` - STT/TTS settings
+- `MCPSettings.tsx` - MCP server management
+- `SkinSettings.tsx` / `Live2DSettings.tsx` - Live2D model configuration
+- `DataSettings.tsx` - Data management (export/import/backup)
+- `SchedulerTestPanel.tsx` - Task scheduler testing UI
+- `AgentAuditPanel.tsx` - Agent execution audit log viewer
+- `AgentToolPolicyPanel.tsx` - Agent tool permission settings
+- `StatsPanel.tsx` - Statistics display
+- `tabs/`:
+  - `AssistantTab.tsx` - AI assistant behavior settings
+  - `BehaviorTab.tsx` - Pet behavior and care settings
+  - `AppearanceTab.tsx` - Visual appearance settings
+  - `PerformanceTab.tsx` - Performance tuning
+  - `StatisticsTab.tsx` - Usage statistics
+  - `AdvancedTab.tsx` - Advanced options
+- `BackupTab.tsx`, `ExportTab.tsx`, `ImportTab.tsx` - Data management tabs
 
 ### Adding a Scheduled Task
 1. Use `getSchedulerManager().createTask()`
@@ -371,6 +435,50 @@ await writeText('clipboard content'); // Write to clipboard
 - MCP Protocol: https://modelcontextprotocol.io/
 - Live2D Cubism: https://www.live2d.com/
 - oh-my-live2d: https://oml2d.com/
+
+## Game-Style UI System
+
+**Visual Design**: Macaron color scheme with warm, soft pet-themed aesthetics
+
+**Design Tokens** (`src/styles/design-tokens.css`):
+```css
+--color-primary: #a78bfa /* Macaron purple */
+--color-accent: #fbbf24 /* Macaron yellow */
+--glass-bg: rgba(255, 255, 255, 0.7) /* Glassmorphism */
+--radius-lg: 24px /* Extra rounded corners */
+```
+
+**CSS Classes** (defined in `src/styles/global.css`):
+- `.settings-section` - Section cards with hover effects
+- `.settings-row` - Label/value pairs
+- `.game-card` - Game-style card component
+- `.game-list-item` - Interactive list items
+- `.game-log-panel` / `.game-log-entry` - Log panels
+- `.game-alert` / `.game-alert-success` / `.game-alert-error` - Alert messages
+
+**Window Architecture**:
+- **Main Window**: Pet container (transparent, draggable)
+- **Settings Window**: Independent webview window (`settings.html` entry point)
+- **Chat Window**: Independent webview window (`chat.html` entry point)
+- All windows are Tauri WebviewWindows with separate HTML entry points
+
+**Entry Points** (`vite.config.ts`):
+```typescript
+input: {
+  main: 'index.html',        // Pet window
+  settings: 'settings.html', // Settings center
+  chat: 'chat.html',         // Chat interface
+}
+```
+
+**Z-Index Hierarchy** (`global.css:root`):
+- `--z-base: 1`
+- `--z-dropdown: 100`
+- `--z-floating: 200`
+- `--z-modal: 1000`
+- `--z-toast: 9999`
+
+**Shimming**: `src/shims/async_hooks.ts` - Polyfill for LangGraph browser compatibility
 
 ## Project-Specific Constraints
 

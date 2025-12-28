@@ -12,6 +12,7 @@ export interface VoiceConfig {
   ttsRate: number;
   ttsPitch: number;
   ttsVolume: number;
+  pushToTalkEnabled: boolean;
   pushToTalkKey: string;
 }
 
@@ -47,8 +48,17 @@ export interface BehaviorConfig {
   decaySpeed: DecaySpeedPreset;
   /** 互动频率（影响提示与衰减轮询频率） */
   interactionFrequency: InteractionFrequency;
-  /** 自动打工开关（预留） */
-  autoWorkEnabled: boolean;
+  /** 自动打工配置 */
+  autoWork: {
+    /** 是否启用自动打工 */
+    enabled: boolean;
+    /** 闲置触发时长（分钟） */
+    idleTriggerMinutes: number;
+    /** 最大工作时长（小时） */
+    maxWorkHours: number;
+    /** 每日最大工作时长（小时） */
+    dailyMaxWorkHours: number;
+  };
   /** 动作台词/表情包 ID（预留：后续可扩展多套性格/语气） */
   expressionPackId: string;
   /** 通知提醒设置 */
@@ -150,6 +160,7 @@ export const DEFAULT_CONFIG: AppConfig = {
     ttsRate: 1.0,
     ttsPitch: 1.0,
     ttsVolume: 1.0,
+    pushToTalkEnabled: false, // 默认关闭，需要用户手动启用
     pushToTalkKey: 'Space',
   },
   live2d: {
@@ -167,7 +178,12 @@ export const DEFAULT_CONFIG: AppConfig = {
   behavior: {
     decaySpeed: 'standard',
     interactionFrequency: 'standard',
-    autoWorkEnabled: false,
+    autoWork: {
+      enabled: false,
+      idleTriggerMinutes: 30,
+      maxWorkHours: 4,
+      dailyMaxWorkHours: 8,
+    },
     expressionPackId: 'default',
     notifications: {
       bubbleEnabled: true,

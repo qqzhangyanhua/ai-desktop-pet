@@ -51,3 +51,30 @@ export interface TTSCallbacks {
   onError?: (error: Error) => void;
   onBoundary?: (charIndex: number) => void;
 }
+
+/**
+ * 按键说话状态
+ */
+export type PushToTalkStatus = 'idle' | 'recording' | 'processing';
+
+/**
+ * 按键说话配置
+ */
+export interface PushToTalkConfig {
+  /** 触发键（如 "Space", "KeyV"） */
+  triggerKey: string;
+  /** 最短录音时长（毫秒），防止误触 */
+  minDuration: number;
+  /** 最长录音时长（毫秒），防止忘记松开 */
+  maxDuration: number;
+}
+
+/**
+ * 按键说话状态接口
+ */
+export interface PushToTalkState {
+  status: PushToTalkStatus;
+  isRecording: boolean;
+  recordingDuration: number;
+  lastRecognizedText: string;
+}

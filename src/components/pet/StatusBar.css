@@ -78,3 +78,51 @@
   text-align: right;
   margin-top: 2px;
 }
+
+/* Divider */
+.status-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 4px 0;
+}
+
+/* Economy section */
+.status-economy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.economy-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.economy-icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+}
+
+.economy-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  min-width: 50px;
+}
+
+.economy-progress-bg {
+  flex: 1;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-left: auto;
+}
+
+.economy-progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}

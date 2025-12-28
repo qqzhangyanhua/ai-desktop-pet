@@ -7,13 +7,19 @@ import { LogicalSize, PhysicalPosition } from '@tauri-apps/api/dpi';
 import { PetContainer } from './components/pet';
 import { ChatWindow } from './components/chat';
 import { ToastContainer } from './components/toast';
+import { RecordingIndicator } from './components/RecordingIndicator';
+import { AchievementToastContainer } from './components/toast/AchievementToastContainer';
 import { initDatabase } from './services/database';
 import { getSchedulerManager } from './services/scheduler';
+import { getShortcutManager } from './services/keyboard';
+import { getAutostartManager } from './services/system';
+import { getPushToTalkManager } from './services/voice';
 import { initializeStatsService } from './services/statistics';
 import { initializeAchievements } from './services/achievements';
 import { AgentRuntime } from './services/agent';
 import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, toast } from './stores';
 import { getSkinManager } from './services/skin';
+import { useAchievementListener } from './hooks';
 import './styles/global.css';
 
 function App() {
@@ -21,6 +27,9 @@ function App() {
   const [dbReady, setDbReady] = useState(false);
   const { showBubble } = usePetStore();
   const { config, isLoaded: isConfigLoaded } = useConfigStore();
+
+  // 监听成就解锁事件
+  useAchievementListener();
 
   // Initialize database, scheduler, and load config
   useEffect(() => {
@@ -94,6 +103,24 @@ function App() {
         const scheduler = getSchedulerManager();
         await scheduler.initialize();
         console.log('[App] Scheduler initialized');
+
+        // Initialize shortcuts (best-effort)
+        try {
+          const shortcutManager = getShortcutManager();
+          await shortcutManager.registerShortcuts(config.assistant.shortcuts);
+          console.log('[App] Shortcuts registered');
+        } catch (error) {
+          console.warn('[App] Failed to register shortcuts:', error);
+        }
+
+        // Sync autostart status (best-effort)
+        try {
+          const autostartManager = getAutostartManager();
+          await autostartManager.setAutostart(config.performance.launchOnStartup);
+          console.log('[App] Autostart synced');
+        } catch (error) {
+          console.warn('[App] Failed to sync autostart:', error);
+        }
 
         setDbReady(true);
         console.log('[App] Database and scheduler ready');
@@ -285,6 +312,51 @@ function App() {
     );
   }, [config.interaction.clickThrough, isConfigLoaded]);
 
+  // Enable/disable push-to-talk based on config (best-effort)
+  useEffect(() => {
+    if (!isConfigLoaded) return;
+    if (!dbReady) return;
+
+    const manager = getPushToTalkManager();
+
+    if (config.voice.pushToTalkEnabled && config.voice.sttEnabled) {
+      try {
+        manager.setConfig({
+          triggerKey: config.voice.pushToTalkKey,
+          minDuration: 200,
+          maxDuration: 30000,
+        });
+
+        // Set message callback to send recognized text to chat
+        manager.onMessage((text) => {
+          // Show in pet bubble for now
+          // TODO: Integrate with chat window to send message
+          usePetStore.getState().showBubble(`识别: ${text}`, 3000);
+          console.log('[App] Push-to-talk recognized:', text);
+        });
+
+        manager.enable().catch((err) => {
+          console.warn('[App] Failed to enable push-to-talk:', err);
+        });
+
+        console.log('[App] Push-to-talk enabled with key:', config.voice.pushToTalkKey);
+      } catch (error) {
+        console.warn('[App] Failed to setup push-to-talk:', error);
+      }
+    } else {
+      manager.disable().catch((err) => {
+        console.warn('[App] Failed to disable push-to-talk:', err);
+      });
+      console.log('[App] Push-to-talk disabled');
+    }
+  }, [
+    config.voice.pushToTalkEnabled,
+    config.voice.sttEnabled,
+    config.voice.pushToTalkKey,
+    isConfigLoaded,
+    dbReady,
+  ]);
+
   if (!dbReady) {
     return (
       <div
@@ -312,7 +384,11 @@ function App() {
 
       {showChat && <ChatWindow onClose={() => setShowChat(false)} />}
 
+      <RecordingIndicator />
+
       <ToastContainer />
+
+      <AchievementToastContainer />
     </>
   );
 }

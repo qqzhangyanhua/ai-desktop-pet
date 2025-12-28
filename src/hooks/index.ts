@@ -11,3 +11,5 @@ export { useAssistantSkills } from './useAssistantSkills';
 export { useAssistantCommandRouter } from './useAssistantCommandRouter';
 export { useWindowAutoHide } from './useWindowAutoHide';
 export { useAutoWork } from './useAutoWork';
+export { useEconomy } from './useEconomy';
+export { useAchievementListener, triggerAchievementCheck, recordInteractionAndCheck } from './useAchievementListener';
