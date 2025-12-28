@@ -12,14 +12,14 @@ export function DataSettings() {
   const [activeTab, setActiveTab] = useState<TabType>('backup');
 
   const tabs: { id: TabType; label: string }[] = [
-    { id: 'backup', label: 'Backup' },
-    { id: 'export', label: 'Export' },
-    { id: 'import', label: 'Import' },
+    { id: 'backup', label: '备份' },
+    { id: 'export', label: '导出' },
+    { id: 'import', label: '导入' },
   ];
 
   return (
     <div className="settings-section">
-      <div className="settings-section-title">Data Management</div>
+      <div className="settings-section-title">数据管理</div>
 
       <div className="tab-switcher">
         {tabs.map((tab) => (

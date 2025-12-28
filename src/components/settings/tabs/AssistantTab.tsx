@@ -120,7 +120,7 @@ export function AssistantTab({
         <div className="settings-row">
           <span className="settings-label flex items-center gap-2">
             <Thermometer className="w-4 h-4" />
-            Temperature
+            温度
           </span>
           <div className="slider-container">
             <input

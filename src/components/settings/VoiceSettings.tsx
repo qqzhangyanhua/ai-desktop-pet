@@ -21,28 +21,28 @@ interface VoiceSettingsProps {
 }
 
 const STT_LANGUAGES = [
-  { value: 'zh-CN', label: 'Chinese (Simplified)' },
-  { value: 'zh-TW', label: 'Chinese (Traditional)' },
-  { value: 'en-US', label: 'English (US)' },
-  { value: 'en-GB', label: 'English (UK)' },
-  { value: 'ja-JP', label: 'Japanese' },
-  { value: 'ko-KR', label: 'Korean' },
+  { value: 'zh-CN', label: '中文（简体）' },
+  { value: 'zh-TW', label: '中文（繁体）' },
+  { value: 'en-US', label: '英语（美国）' },
+  { value: 'en-GB', label: '英语（英国）' },
+  { value: 'ja-JP', label: '日语' },
+  { value: 'ko-KR', label: '韩语' },
 ];
 
 const TTS_ENGINES: { value: TTSEngine; label: string }[] = [
-  { value: 'web-speech', label: 'Web Speech (Built-in)' },
-  { value: 'edge-tts', label: 'Edge TTS (High Quality)' },
+  { value: 'web-speech', label: 'Web Speech（内置）' },
+  { value: 'edge-tts', label: 'Edge TTS（高品质）' },
 ];
 
 const EDGE_TTS_VOICES: TTSVoice[] = [
-  { id: 'zh-CN-XiaoxiaoNeural', name: 'Xiaoxiao (Female)', language: 'zh-CN', gender: 'female' },
-  { id: 'zh-CN-XiaoyiNeural', name: 'Xiaoyi (Female)', language: 'zh-CN', gender: 'female' },
-  { id: 'zh-CN-YunxiNeural', name: 'Yunxi (Male)', language: 'zh-CN', gender: 'male' },
-  { id: 'zh-CN-YunyangNeural', name: 'Yunyang (Male)', language: 'zh-CN', gender: 'male' },
-  { id: 'en-US-JennyNeural', name: 'Jenny (Female)', language: 'en-US', gender: 'female' },
-  { id: 'en-US-GuyNeural', name: 'Guy (Male)', language: 'en-US', gender: 'male' },
-  { id: 'ja-JP-NanamiNeural', name: 'Nanami (Female)', language: 'ja-JP', gender: 'female' },
-  { id: 'ja-JP-KeitaNeural', name: 'Keita (Male)', language: 'ja-JP', gender: 'male' },
+  { id: 'zh-CN-XiaoxiaoNeural', name: '晓晓（女）', language: 'zh-CN', gender: 'female' },
+  { id: 'zh-CN-XiaoyiNeural', name: '晓伊（女）', language: 'zh-CN', gender: 'female' },
+  { id: 'zh-CN-YunxiNeural', name: '云希（男）', language: 'zh-CN', gender: 'male' },
+  { id: 'zh-CN-YunyangNeural', name: '云扬（男）', language: 'zh-CN', gender: 'male' },
+  { id: 'en-US-JennyNeural', name: 'Jenny（女）', language: 'en-US', gender: 'female' },
+  { id: 'en-US-GuyNeural', name: 'Guy（男）', language: 'en-US', gender: 'male' },
+  { id: 'ja-JP-NanamiNeural', name: 'Nanami（女）', language: 'ja-JP', gender: 'female' },
+  { id: 'ja-JP-KeitaNeural', name: 'Keita（男）', language: 'ja-JP', gender: 'male' },
 ];
 
 export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
@@ -115,7 +115,7 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
         },
       });
       await manager.init();
-      await manager.speak('Hello! This is a voice test.');
+      await manager.speak('你好！这是语音测试。');
     } catch (error) {
       console.error('TTS test failed:', error);
     }
@@ -125,10 +125,10 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
     <>
       {/* STT Settings */}
       <div className="settings-section">
-        <div className="settings-section-title">Speech Recognition (STT)</div>
+        <div className="settings-section-title">语音识别（STT）</div>
 
         <div className="settings-row">
-          <span className="settings-label">Enable STT</span>
+          <span className="settings-label">启用 STT</span>
           <Checkbox
             checked={config.sttEnabled}
             onCheckedChange={(checked) => handleChange('sttEnabled', !!checked)}
@@ -136,7 +136,7 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">Language</span>
+          <span className="settings-label">语言</span>
           <Select
             value={config.sttLanguage}
             onValueChange={(value) => handleChange('sttLanguage', value)}
@@ -156,13 +156,13 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">Push-to-Talk Key</span>
+          <span className="settings-label">按住说话键</span>
           <Input
             type="text"
             className="settings-input w-[100px] text-center"
             value={config.pushToTalkKey}
             onChange={(e) => handleChange('pushToTalkKey', e.target.value)}
-            placeholder="Press a key..."
+            placeholder="按下一个键..."
             onKeyDown={(e) => {
               e.preventDefault();
               handleChange('pushToTalkKey', e.key);
@@ -173,17 +173,17 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
 
         <div className="settings-row border-none pt-1 text-[11px] text-slate-400">
           {config.sttEnabled
-            ? 'Hold the key to speak, release to send'
-            : 'Enable STT to use voice input'}
+            ? '按住按键说话，松开发送'
+            : '启用 STT 以使用语音输入'}
         </div>
       </div>
 
       {/* TTS Settings */}
       <div className="settings-section">
-        <div className="settings-section-title">Text-to-Speech (TTS)</div>
+        <div className="settings-section-title">语音合成（TTS）</div>
 
         <div className="settings-row">
-          <span className="settings-label">Enable TTS</span>
+          <span className="settings-label">启用 TTS</span>
           <Checkbox
             checked={config.ttsEnabled}
             onCheckedChange={(checked) => handleChange('ttsEnabled', !!checked)}
@@ -191,7 +191,7 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">Engine</span>
+          <span className="settings-label">引擎</span>
           <Select
             value={config.ttsEngine}
             onValueChange={(value) => handleEngineChange(value as TTSEngine)}
@@ -211,7 +211,7 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">Voice</span>
+          <span className="settings-label">语音</span>
           <Select
             value={config.ttsVoice}
             onValueChange={(value) => handleChange('ttsVoice', value)}
@@ -223,7 +223,7 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
             <SelectContent>
               {availableVoices.map((voice) => (
                 <SelectItem key={voice.id} value={voice.id}>
-                  {voice.name} ({voice.language})
+                  {voice.name}（{voice.language}）
                 </SelectItem>
               ))}
             </SelectContent>
@@ -231,7 +231,7 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">Rate</span>
+          <span className="settings-label">语速</span>
           <input
             type="range"
             min="0.5"
@@ -248,7 +248,7 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">Pitch</span>
+          <span className="settings-label">音调</span>
           <input
             type="range"
             min="0.5"
@@ -265,7 +265,7 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
         </div>
 
         <div className="settings-row">
-          <span className="settings-label">Volume</span>
+          <span className="settings-label">音量</span>
           <input
             type="range"
             min="0"
@@ -282,7 +282,7 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
         </div>
 
         <div className="settings-row border-none">
-          <span className="settings-label">Test</span>
+          <span className="settings-label">测试</span>
           <Button
             onClick={handleTestTTS}
             disabled={!config.ttsEnabled}
@@ -290,16 +290,16 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
             size="sm"
             className="px-3 py-1.5 text-xs"
           >
-            Play Test
+            播放测试
           </Button>
         </div>
 
         <div className="settings-row border-none pt-1 text-[11px] text-slate-400">
           {config.ttsEnabled
             ? config.ttsEngine === 'edge-tts'
-              ? 'Using Microsoft Edge TTS (requires edge-tts CLI)'
-              : 'Using browser built-in speech synthesis'
-            : 'Enable TTS to hear AI responses'}
+              ? '使用 Microsoft Edge TTS（需要 edge-tts CLI）'
+              : '使用浏览器内置语音合成'
+            : '启用 TTS 以听到 AI 回复'}
         </div>
       </div>
     </>

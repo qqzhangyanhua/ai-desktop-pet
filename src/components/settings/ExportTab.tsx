@@ -1,4 +1,4 @@
-// Export Tab Component - Data export UI
+// 导出标签组件 - 数据导出界面
 
 import { useState } from 'react';
 import { exportToFile } from '../../services/data';
@@ -18,11 +18,11 @@ export function ExportTab() {
   );
 
   const allTypes: { type: ExportDataType; label: string }[] = [
-    { type: 'conversations', label: 'Chat History' },
-    { type: 'config', label: 'Settings' },
-    { type: 'skins', label: 'Custom Skins' },
-    { type: 'agent_roles', label: 'Agent Roles' },
-    { type: 'mcp_servers', label: 'MCP Servers' },
+    { type: 'conversations', label: '聊天记录' },
+    { type: 'config', label: '设置' },
+    { type: 'skins', label: '自定义形象' },
+    { type: 'agent_roles', label: '智能体角色' },
+    { type: 'mcp_servers', label: 'MCP 服务器' },
   ];
 
   const toggleType = (type: ExportDataType) => {
@@ -33,7 +33,7 @@ export function ExportTab() {
 
   const handleExport = async () => {
     if (selectedTypes.length === 0) {
-      setMessage({ type: 'error', text: 'Please select at least one data type' });
+      setMessage({ type: 'error', text: '请至少选择一种数据类型' });
       return;
     }
 
@@ -47,10 +47,10 @@ export function ExportTab() {
       });
 
       if (success) {
-        setMessage({ type: 'success', text: 'Data exported successfully' });
+        setMessage({ type: 'success', text: '数据导出成功' });
       }
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : 'Export failed';
+      const errMsg = error instanceof Error ? error.message : '导出失败';
       setMessage({ type: 'error', text: errMsg });
     } finally {
       setIsExporting(false);
@@ -61,7 +61,7 @@ export function ExportTab() {
     <div>
       <div className="mb-3">
         <div className="text-xs font-bold mb-2 text-amber-900">
-          Select data to export:
+          选择要导出的数据：
         </div>
         {allTypes.map(({ type, label }) => (
           <label
@@ -83,7 +83,7 @@ export function ExportTab() {
             checked={includeApiKeys}
             onCheckedChange={(checked) => setIncludeApiKeys(!!checked)}
           />
-          Include API Keys (security risk)
+          包含 API 密钥（存在安全风险）
         </label>
       )}
 
@@ -92,7 +92,7 @@ export function ExportTab() {
         disabled={isExporting || selectedTypes.length === 0}
         className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold"
       >
-        {isExporting ? 'Exporting...' : 'Export to File'}
+        {isExporting ? '导出中...' : '导出到文件'}
       </Button>
 
       {message && (

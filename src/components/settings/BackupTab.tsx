@@ -1,4 +1,4 @@
-// Backup Tab Component - Backup management UI
+// 备份管理组件 - 备份管理界面
 
 import { useState, useEffect, useCallback } from 'react';
 import {
@@ -45,9 +45,9 @@ export function BackupTab() {
     try {
       await createBackup();
       await loadBackups();
-      setMessage({ type: 'success', text: 'Backup created successfully' });
+      setMessage({ type: 'success', text: '备份创建成功' });
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : 'Failed to create backup';
+      const errMsg = error instanceof Error ? error.message : '创建备份失败';
       setMessage({ type: 'error', text: errMsg });
     } finally {
       setIsCreating(false);
@@ -72,12 +72,12 @@ export function BackupTab() {
     try {
       const result = await restoreBackup(backup.name);
       if (result.success) {
-        setMessage({ type: 'success', text: 'Backup restored successfully' });
+        setMessage({ type: 'success', text: '备份恢复成功' });
       } else {
         setMessage({ type: 'error', text: result.errors.join(', ') });
       }
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : 'Failed to restore backup';
+      const errMsg = error instanceof Error ? error.message : '恢复备份失败';
       setMessage({ type: 'error', text: errMsg });
     } finally {
       setIsRestoring(null);
@@ -96,9 +96,9 @@ export function BackupTab() {
     try {
       await deleteBackup(backup.name);
       await loadBackups();
-      setMessage({ type: 'success', text: 'Backup deleted' });
+      setMessage({ type: 'success', text: '备份已删除' });
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : 'Failed to delete backup';
+      const errMsg = error instanceof Error ? error.message : '删除备份失败';
       setMessage({ type: 'error', text: errMsg });
     }
   };
@@ -107,10 +107,10 @@ export function BackupTab() {
     try {
       const success = await exportBackupToFile();
       if (success) {
-        setMessage({ type: 'success', text: 'Backup exported to file' });
+        setMessage({ type: 'success', text: '备份已导出到文件' });
       }
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : 'Export failed';
+      const errMsg = error instanceof Error ? error.message : '导出失败';
       setMessage({ type: 'error', text: errMsg });
     }
   };
@@ -120,13 +120,13 @@ export function BackupTab() {
       const result = await importBackupFromFile();
       if (result) {
         if (result.success) {
-          setMessage({ type: 'success', text: 'Backup imported and restored' });
+          setMessage({ type: 'success', text: '备份已导入并恢复' });
         } else {
           setMessage({ type: 'error', text: result.errors.join(', ') });
         }
       }
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : 'Import failed';
+      const errMsg = error instanceof Error ? error.message : '导入失败';
       setMessage({ type: 'error', text: errMsg });
     }
   };
@@ -149,21 +149,21 @@ export function BackupTab() {
           disabled={isCreating}
           className="flex-1 bg-indigo-500 hover:bg-indigo-600"
         >
-          {isCreating ? 'Creating...' : 'Create Backup'}
+          {isCreating ? '创建中...' : '创建备份'}
         </Button>
         <Button
           onClick={handleExportBackup}
           variant="outline"
           className="flex-1"
         >
-          Export to File
+          导出到文件
         </Button>
         <Button
           onClick={handleImportBackup}
           variant="outline"
           className="flex-1"
         >
-          Import File
+          从文件导入
         </Button>
       </div>
 
@@ -178,16 +178,16 @@ export function BackupTab() {
       )}
 
       <div className="text-xs font-bold mb-2 text-amber-900">
-        Available Backups
+        可用备份
       </div>
 
       {isLoading ? (
         <div className="text-xs text-amber-900/60 text-center p-4">
-          Loading...
+          加载中...
         </div>
       ) : backups.length === 0 ? (
         <div className="text-xs text-amber-900/60 text-center p-4">
-          No backups found
+          未找到备份
         </div>
       ) : (
         <div className="max-h-[200px] overflow-y-auto pr-1">
@@ -207,7 +207,7 @@ export function BackupTab() {
                   size="sm"
                   className="h-7 text-[10px] px-3 bg-emerald-500 hover:bg-emerald-600"
                 >
-                  {isRestoring === backup.id ? 'Restoring...' : 'Restore'}
+                  {isRestoring === backup.id ? '恢复中...' : '恢复'}
                 </Button>
                 <Button
                   onClick={() => handleDelete(backup)}
@@ -215,7 +215,7 @@ export function BackupTab() {
                   size="sm"
                   className="h-7 text-[10px] px-3 bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
                 >
-                  Delete
+                  删除
                 </Button>
               </div>
             </div>

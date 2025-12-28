@@ -71,14 +71,14 @@ function ServerCard({
 
           {state?.error && (
             <p className="text-[11px] text-red-500 my-1">
-              Error: {state.error}
+              错误: {state.error}
             </p>
           )}
 
           {isConnected && state?.tools && state.tools.length > 0 && (
             <div className="mt-2">
               <span className="text-[11px] text-slate-500">
-                {state.tools.length} tools available
+                可用 {state.tools.length} 个工具
               </span>
               <div className="flex flex-wrap gap-1 mt-1">
                 {state.tools.slice(0, 5).map((tool: MCPToolSchema) => (
@@ -91,7 +91,7 @@ function ServerCard({
                 ))}
                 {state.tools.length > 5 && (
                   <span className="text-[10px] text-slate-400">
-                    +{state.tools.length - 5} more
+                    还有 {state.tools.length - 5} 个
                   </span>
                 )}
               </div>
@@ -107,7 +107,7 @@ function ServerCard({
               size="sm"
               className="px-2 py-1 text-[11px] border-red-200 bg-red-50 text-red-500 hover:bg-red-100"
             >
-              Disconnect
+              断开连接
             </Button>
           ) : (
             <Button
@@ -123,7 +123,7 @@ function ServerCard({
                 }
               `}
             >
-              {isConnecting ? 'Connecting...' : 'Connect'}
+              {isConnecting ? '连接中...' : '连接'}
             </Button>
           )}
           <Button
@@ -132,7 +132,7 @@ function ServerCard({
             size="sm"
             className="px-2 py-1 text-[11px] border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
           >
-            Remove
+            移除
           </Button>
         </div>
       </div>
@@ -159,15 +159,15 @@ function AddServerForm({
     const newErrors: Record<string, string> = {};
 
     if (!name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = '名称不能为空';
     }
 
     if (transport === 'stdio' && !command.trim()) {
-      newErrors.command = 'Command is required';
+      newErrors.command = '命令不能为空';
     }
 
     if (transport === 'http' && !url.trim()) {
-      newErrors.url = 'URL is required';
+      newErrors.url = 'URL 不能为空';
     }
 
     setErrors(newErrors);
@@ -197,17 +197,17 @@ function AddServerForm({
 
   return (
     <div className="game-card">
-      <h4 className="m-0 mb-3 text-sm font-semibold text-slate-700">Add MCP Server</h4>
+      <h4 className="m-0 mb-3 text-sm font-semibold text-slate-700">添加 MCP 服务器</h4>
 
       <div className="mb-3">
         <label className="block text-xs font-bold mb-1 text-slate-600">
-          Name *
+          名称 *
         </label>
         <Input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g., File System"
+          placeholder="例如：文件系统"
           className={`
             w-full p-2 text-[13px]
             ${errors.name ? 'border-red-500' : 'border-slate-200'}
@@ -218,20 +218,20 @@ function AddServerForm({
 
       <div className="mb-3">
         <label className="block text-xs font-bold mb-1 text-slate-600">
-          Description
+          描述
         </label>
         <Input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Brief description"
+          placeholder="简短描述"
           className="w-full p-2 text-[13px] border-slate-200"
         />
       </div>
 
       <div className="mb-3">
         <label className="block text-xs font-bold mb-1 text-slate-600">
-          Transport
+          传输方式
         </label>
         <div className="flex gap-2">
           <Button
@@ -257,13 +257,13 @@ function AddServerForm({
         <>
           <div className="mb-3">
             <label className="block text-xs font-bold mb-1 text-slate-600">
-              Command *
+              命令 *
             </label>
             <Input
               type="text"
               value={command}
               onChange={(e) => setCommand(e.target.value)}
-              placeholder="e.g., npx"
+              placeholder="例如：npx"
               className={`
                 w-full p-2 text-[13px] font-mono
                 ${errors.command ? 'border-red-500' : 'border-slate-200'}
@@ -274,13 +274,13 @@ function AddServerForm({
 
           <div className="mb-3">
             <label className="block text-xs font-bold mb-1 text-slate-600">
-              Arguments
+              参数
             </label>
             <Input
               type="text"
               value={args}
               onChange={(e) => setArgs(e.target.value)}
-              placeholder="e.g., -y @modelcontextprotocol/server-filesystem"
+              placeholder="例如：-y @modelcontextprotocol/server-filesystem"
               className="w-full p-2 text-[13px] font-mono border-slate-200"
             />
           </div>
@@ -296,7 +296,7 @@ function AddServerForm({
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="e.g., http://localhost:3000/mcp"
+            placeholder="例如：http://localhost:3000/mcp"
             className={`
               w-full p-2 text-[13px] font-mono
               ${errors.url ? 'border-red-500' : 'border-slate-200'}
@@ -313,14 +313,14 @@ function AddServerForm({
           size="sm"
           className="px-3 py-1.5 text-xs"
         >
-          Cancel
+          取消
         </Button>
         <Button
           onClick={handleSubmit}
           size="sm"
           className="px-3 py-1.5 text-xs bg-indigo-500 hover:bg-indigo-600"
         >
-          Add Server
+          添加服务器
         </Button>
       </div>
     </div>
@@ -347,7 +347,7 @@ export function MCPSettings({
 
   return (
     <div className="settings-section">
-      <div className="settings-section-title">MCP Servers</div>
+      <div className="settings-section-title">MCP 服务器</div>
 
       {showAddForm ? (
         <AddServerForm onAdd={handleAdd} onCancel={() => setShowAddForm(false)} />
@@ -357,13 +357,13 @@ export function MCPSettings({
           variant="outline"
           className="w-full p-2 mb-3 text-xs border-dashed"
         >
-          + Add MCP Server
+          + 添加 MCP 服务器
         </Button>
       )}
 
       {servers.length === 0 ? (
         <p className="text-xs text-slate-400 text-center p-5">
-          No MCP servers configured
+          尚未配置 MCP 服务器
         </p>
       ) : (
         servers.map((server) => (
@@ -379,8 +379,7 @@ export function MCPSettings({
       )}
 
       <div className="text-[11px] text-slate-400 p-2 bg-slate-50 rounded-md mt-2">
-        MCP servers provide additional tools for the AI agent. Connect to servers like filesystem,
-        GitHub, or custom servers to extend capabilities.
+        MCP 服务器为 AI 助手提供额外工具。可以连接到文件系统、GitHub 或自定义服务器来扩展功能。
       </div>
     </div>
   );
