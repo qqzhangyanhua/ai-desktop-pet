@@ -362,6 +362,7 @@ export function PetContainer({ onOpenChat }: PetContainerProps) {
       onMouseUp={handleMouseUp}
       style={{
         opacity: Math.min(1, Math.max(0.2, appearance.opacity)),
+        paddingTop: 100, // 进一步增加顶部内边距，确保气泡不溢出
         ...backgroundStyle,
       }}
     >

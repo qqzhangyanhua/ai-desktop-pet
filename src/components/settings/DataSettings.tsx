@@ -21,15 +21,7 @@ export function DataSettings() {
     <div className="settings-section">
       <div className="settings-section-title">Data Management</div>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: '4px',
-          marginBottom: '12px',
-          borderBottom: '1px solid #e2e8f0',
-          paddingBottom: '8px',
-        }}
-      >
+      <div className="tab-switcher">
         {tabs.map((tab) => (
           <Button
             key={tab.id}

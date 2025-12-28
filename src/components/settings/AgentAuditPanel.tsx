@@ -98,53 +98,31 @@ export function AgentAuditPanel() {
 
       <div className="settings-row settings-row-no-border" style={{ display: 'block' }}>
         {logs.length === 0 ? (
-          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)', padding: '6px 0' }}>
+          <div className="text-slate-400 text-xs italic py-2">
             暂无记录。提示：当智能体调用工具（搜索/文件/打开应用等）时会写入这里。
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="flex flex-col gap-2">
             {logs.map((l) => {
               const risk = riskLabel(l.toolName);
               const expanded = expandedId === l.id;
               return (
-                <div
-                  key={l.id}
-                  style={{
-                    border: '1px solid rgba(0,0,0,0.08)',
-                    borderRadius: 10,
-                    padding: 10,
-                    background: 'rgba(255,255,255,0.7)',
-                  }}
-                >
+                <div key={l.id} className="game-list-item">
                   <button
                     type="button"
                     onClick={() => setExpandedId(expanded ? null : l.id)}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      background: 'transparent',
-                      border: 0,
-                      padding: 0,
-                      cursor: 'pointer',
-                    }}
+                    className="w-full text-left bg-transparent border-0 p-0 cursor-pointer"
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                      <div style={{ display: 'flex', gap: 10, alignItems: 'center', minWidth: 0 }}>
+                    <div className="flex justify-between gap-2">
+                      <div className="flex gap-2 items-center min-w-0">
                         <span
-                          style={{
-                            width: 10,
-                            height: 10,
-                            borderRadius: 999,
-                            background: statusColor(l.status),
-                            flex: '0 0 auto',
-                          }}
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ background: statusColor(l.status) }}
                         />
-                        <span style={{ fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>{l.toolName}</span>
+                        <span className="text-xs font-bold whitespace-nowrap text-amber-900">{l.toolName}</span>
                         <span
+                          className="text-[10px] px-2 py-0.5 rounded-full flex-shrink-0"
                           style={{
-                            fontSize: 11,
-                            padding: '2px 8px',
-                            borderRadius: 999,
                             background:
                               risk.level === 'high'
                                 ? 'rgba(239, 68, 68, 0.10)'
@@ -157,36 +135,35 @@ export function AgentAuditPanel() {
                                 : risk.level === 'medium'
                                   ? 'rgba(180, 83, 9, 1)'
                                   : 'rgba(22, 101, 52, 1)',
-                            flex: '0 0 auto',
                           }}
                         >
                           {risk.label}
                         </span>
-                        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <span className="text-[11px] text-amber-900/60 truncate">
                           {formatTime(l.startedAt)} · {l.source}
                           {typeof l.durationMs === 'number' ? ` · ${l.durationMs}ms` : ''}
                           {l.requiresConfirmation ? ' · 需确认' : ''}
                         </span>
                       </div>
-                      <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)' }}>
+                      <span className="text-[11px] text-amber-900/60">
                         {expanded ? '收起' : '展开'}
                       </span>
                     </div>
                   </button>
 
                   {expanded && (
-                    <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                    <div className="mt-2 grid gap-2">
                       <div>
-                        <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', marginBottom: 4 }}>参数（脱敏/截断）</div>
-                        <pre style={{ fontSize: 11, padding: 10, borderRadius: 8, background: 'rgba(0,0,0,0.04)', overflow: 'auto' }}>
+                        <div className="text-[11px] text-amber-900/60 mb-1">参数（脱敏/截断）</div>
+                        <pre className="text-[11px] p-2 rounded-lg bg-amber-900/5 overflow-auto text-amber-900">
                           {l.argsJson ?? '(空)'}
                         </pre>
                       </div>
                       <div>
-                        <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', marginBottom: 4 }}>
+                        <div className="text-[11px] text-amber-900/60 mb-1">
                           结果 {l.error ? `（错误：${l.error}）` : ''}
                         </div>
-                        <pre style={{ fontSize: 11, padding: 10, borderRadius: 8, background: 'rgba(0,0,0,0.04)', overflow: 'auto' }}>
+                        <pre className="text-[11px] p-2 rounded-lg bg-amber-900/5 overflow-auto text-amber-900">
                           {l.resultJson ?? '(空)'}
                         </pre>
                       </div>

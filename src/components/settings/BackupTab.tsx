@@ -143,7 +143,7 @@ export function BackupTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+      <div className="flex gap-2 mb-3">
         <Button
           onClick={handleCreateBackup}
           disabled={isCreating}
@@ -169,57 +169,43 @@ export function BackupTab() {
 
       {message && (
         <div
-          style={{
-            padding: '8px',
-            marginBottom: '12px',
-            fontSize: '11px',
-            borderRadius: '4px',
-            backgroundColor: message.type === 'success' ? '#dcfce7' : '#fef2f2',
-            color: message.type === 'success' ? '#16a34a' : '#ef4444',
-          }}
+          className={`game-alert ${
+            message.type === 'success' ? 'game-alert-success' : 'game-alert-error'
+          }`}
         >
           {message.text}
         </div>
       )}
 
-      <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>
+      <div className="text-xs font-bold mb-2 text-amber-900">
         Available Backups
       </div>
 
       {isLoading ? (
-        <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', padding: '16px' }}>
+        <div className="text-xs text-amber-900/60 text-center p-4">
           Loading...
         </div>
       ) : backups.length === 0 ? (
-        <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', padding: '16px' }}>
+        <div className="text-xs text-amber-900/60 text-center p-4">
           No backups found
         </div>
       ) : (
-        <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+        <div className="max-h-[200px] overflow-y-auto pr-1">
           {backups.map((backup) => (
-            <div
-              key={backup.id}
-              style={{
-                padding: '8px',
-                marginBottom: '6px',
-                backgroundColor: '#f8fafc',
-                borderRadius: '4px',
-                fontSize: '11px',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontWeight: 'bold' }}>{backup.name}</span>
-                <span style={{ color: '#64748b' }}>{formatSize(backup.size)}</span>
+            <div key={backup.id} className="game-card mb-2 !p-3">
+              <div className="flex justify-between mb-1">
+                <span className="font-bold text-xs text-amber-900">{backup.name}</span>
+                <span className="text-xs text-amber-900/60">{formatSize(backup.size)}</span>
               </div>
-              <div style={{ color: '#64748b', marginBottom: '6px' }}>
+              <div className="text-[10px] text-amber-900/60 mb-2">
                 {formatDate(backup.createdAt)}
               </div>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div className="flex gap-2">
                 <Button
                   onClick={() => handleRestore(backup)}
                   disabled={isRestoring === backup.id}
                   size="sm"
-                  className="bg-emerald-500 hover:bg-emerald-600"
+                  className="h-7 text-[10px] px-3 bg-emerald-500 hover:bg-emerald-600"
                 >
                   {isRestoring === backup.id ? 'Restoring...' : 'Restore'}
                 </Button>
@@ -227,7 +213,7 @@ export function BackupTab() {
                   onClick={() => handleDelete(backup)}
                   variant="outline"
                   size="sm"
-                  className="bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
+                  className="h-7 text-[10px] px-3 bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
                 >
                   Delete
                 </Button>

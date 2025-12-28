@@ -41,20 +41,11 @@ export function ImportTab() {
 
   return (
     <div>
-      <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
+      <div className="text-xs text-amber-900/60 mb-3 italic">
         Import data from a previously exported JSON file.
       </div>
 
-      <label
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          marginBottom: '12px',
-          fontSize: '12px',
-          cursor: 'pointer',
-        }}
-      >
+      <label className="flex items-center gap-2 mb-3 text-xs cursor-pointer text-amber-900/80 hover:text-amber-900">
         <Checkbox
           checked={overwrite}
           onCheckedChange={(checked) => setOverwrite(!!checked)}
@@ -72,19 +63,14 @@ export function ImportTab() {
 
       {result && (
         <div
-          style={{
-            marginTop: '12px',
-            padding: '10px',
-            fontSize: '11px',
-            borderRadius: '6px',
-            backgroundColor: result.success ? '#dcfce7' : '#fef2f2',
-            border: `1px solid ${result.success ? '#86efac' : '#fecaca'}`,
-          }}
+          className={`game-alert ${
+            result.success ? 'game-alert-success' : 'game-alert-error'
+          }`}
         >
-          <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>
+          <div className="font-bold mb-1.5">
             {result.success ? 'Import completed' : 'Import completed with errors'}
           </div>
-          <ul style={{ margin: 0, paddingLeft: '16px' }}>
+          <ul className="m-0 pl-4 list-disc">
             {result.imported.conversations > 0 && (
               <li>Conversations: {result.imported.conversations}</li>
             )}
@@ -99,7 +85,7 @@ export function ImportTab() {
             )}
           </ul>
           {result.errors.length > 0 && (
-            <div style={{ marginTop: '8px', color: '#ef4444' }}>
+            <div className="mt-2 text-red-600">
               Errors: {result.errors.join(', ')}
             </div>
           )}

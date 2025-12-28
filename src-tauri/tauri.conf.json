@@ -39,7 +39,7 @@
       {
         "title": "AI Desktop Pet",
         "width": 400,
-        "height": 500,
+        "height": 600,
         "resizable": true,
         "fullscreen": false,
         "transparent": true,

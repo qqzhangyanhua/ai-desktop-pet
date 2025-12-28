@@ -152,11 +152,8 @@ export function AgentToolPolicyPanel() {
             return (
               <div
                 key={t.name}
+                className="game-list-item"
                 style={{
-                  border: '1px solid rgba(0,0,0,0.08)',
-                  borderRadius: 10,
-                  padding: 10,
-                  background: 'rgba(255,255,255,0.7)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -164,24 +161,22 @@ export function AgentToolPolicyPanel() {
                 }}
               >
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', minWidth: 0 }}>
-                  <span style={{ color: 'rgba(0,0,0,0.65)' }}>{t.icon}</span>
+                  <span className="text-amber-900/60">{t.icon}</span>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600 }}>{t.label}</span>
+                      <span className="text-xs font-bold text-amber-900">{t.label}</span>
                       <span
+                        className="text-[10px] px-2 py-0.5 rounded-full"
                         style={{
-                          fontSize: 11,
-                          padding: '2px 8px',
-                          borderRadius: 999,
                           background: risk.bg,
                           color: risk.fg,
                         }}
                       >
                         {risk.label}
                       </span>
-                      <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>{t.name}</span>
+                      <span className="text-[11px] text-amber-900/40">{t.name}</span>
                     </div>
-                    <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div className="text-[11px] text-amber-900/60 mt-0.5 truncate">
                       {t.description}
                     </div>
                   </div>
@@ -192,7 +187,7 @@ export function AgentToolPolicyPanel() {
           })}
         </div>
 
-        <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)', marginTop: 10, lineHeight: 1.5 }}>
+        <div className="text-[11px] text-amber-900/60 mt-2.5 leading-relaxed italic">
           提示：高风险工具即使开启也会弹确认；若关闭，智能体将无法调用（工作流/定时任务也同样受限）。
         </div>
       </div>

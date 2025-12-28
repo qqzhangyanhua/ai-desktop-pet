@@ -59,21 +59,14 @@ export function ExportTab() {
 
   return (
     <div>
-      <div style={{ marginBottom: '12px' }}>
-        <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>
+      <div className="mb-3">
+        <div className="text-xs font-bold mb-2 text-amber-900">
           Select data to export:
         </div>
         {allTypes.map(({ type, label }) => (
           <label
             key={type}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '6px',
-              fontSize: '12px',
-              cursor: 'pointer',
-            }}
+            className="flex items-center gap-2 mb-1.5 text-xs cursor-pointer text-amber-900/80 hover:text-amber-900"
           >
             <Checkbox
               checked={selectedTypes.includes(type)}
@@ -85,16 +78,7 @@ export function ExportTab() {
       </div>
 
       {selectedTypes.includes('config') && (
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '12px',
-            fontSize: '11px',
-            color: '#ef4444',
-          }}
-        >
+        <label className="flex items-center gap-2 mb-3 text-[11px] text-red-500 cursor-pointer">
           <Checkbox
             checked={includeApiKeys}
             onCheckedChange={(checked) => setIncludeApiKeys(!!checked)}
@@ -113,14 +97,9 @@ export function ExportTab() {
 
       {message && (
         <div
-          style={{
-            marginTop: '8px',
-            padding: '8px',
-            fontSize: '11px',
-            borderRadius: '4px',
-            backgroundColor: message.type === 'success' ? '#dcfce7' : '#fef2f2',
-            color: message.type === 'success' ? '#16a34a' : '#ef4444',
-          }}
+          className={`game-alert ${
+            message.type === 'success' ? 'game-alert-success' : 'game-alert-error'
+          }`}
         >
           {message.text}
         </div>

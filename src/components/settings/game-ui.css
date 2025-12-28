@@ -527,10 +527,119 @@
 }
 
 /* Buttons inside Tabs */
-.game-container button.bg-blue-500 {
+.game-container button.bg-blue-500,
+.game-container button.bg-indigo-500,
+.game-container button.bg-emerald-500,
+.game-container button.bg-emerald-600,
+.game-container button.bg-blue-600 {
   background: linear-gradient(to bottom, #4FC3F7, #0288D1) !important;
   border-bottom: 4px solid #01579B !important;
   color: white !important;
+  border-radius: 12px !important;
+  font-weight: bold !important;
+  transition: all 0.1s !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+}
+
+.game-container button:active {
+  transform: translateY(2px) !important;
+  border-bottom-width: 2px !important;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.1) !important;
+}
+
+.game-container button.bg-red-50,
+.game-container button.bg-red-500,
+.game-container button.bg-red-600 {
+  background: linear-gradient(to bottom, #ef5350, #c62828) !important;
+  border-bottom: 4px solid #b71c1c !important;
+  color: white !important;
+  border: none !important;
+}
+
+/* Tab Switcher Buttons */
+.game-container .tab-switcher {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #D2B48C;
+  padding-bottom: 12px;
+}
+
+.game-container .tab-switcher button {
+  background: transparent !important;
+  border: 2px solid transparent !important;
+  border-bottom: none !important;
+  color: #8B4513 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  font-weight: normal !important;
+}
+
+.game-container .tab-switcher button.bg-indigo-500 {
+  background: #FFE4B5 !important;
+  border: 2px solid #D2B48C !important;
+  color: #8B4513 !important;
+  font-weight: bold !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* Game Cards (ServerCard, BackupItem, etc.) */
+.game-card,
+.game-container .bg-white.mb-2, 
+.game-container .bg-slate-50.mb-3 {
+  background: #FFFFFF !important;
+  border: 2px solid #D2B48C !important;
+  border-radius: 12px !important;
+  padding: 12px !important;
+  margin-bottom: 12px !important;
+  color: #5D4037 !important;
+}
+
+/* List Items (Audit Logs, Tool Policy) */
+.game-list-item {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid #D2B48C !important;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  margin-bottom: 8px !important;
+}
+
+/* Message/Alert Boxes */
+.game-alert {
+  padding: 10px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  margin-top: 10px !important;
+  border: 2px solid transparent !important;
+}
+
+.game-alert-success {
+  background-color: #DCFCE7 !important;
+  border-color: #86EFAC !important;
+  color: #166534 !important;
+}
+
+.game-alert-error {
+  background-color: #FEE2E2 !important;
+  border-color: #FCA5A5 !important;
+  color: #991B1B !important;
+}
+
+/* Log Panel (Scheduler Test) */
+.game-log-panel {
+  background-color: #3E2723 !important;
+  color: #FFECB3 !important;
+  border: 2px solid #5D4037 !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  font-family: monospace !important;
+  max-height: 300px !important;
+  overflow-y: auto !important;
+}
+
+.game-log-entry {
+  border-bottom: 1px solid #5D4037 !important;
+  padding: 4px 0 !important;
 }
 
 /* MCP & Advanced Settings */
@@ -547,8 +656,6 @@
   border: 1px solid #5D4037 !important;
 }
 
-/* Hints */
-.game-container .settings-hint-row,
 /* Hints */
 .game-container .settings-hint-row,
 .game-container .text-slate-400 {
@@ -822,7 +929,8 @@
 .game-pet-bubble,
 #oml2d-tips {
   position: absolute;
-  /* top/left managed by JS for oml2d, but we override appearance */
+  /* oml2d 气泡位置通过 margin 向上偏移，减小偏移量以避免顶部溢出 */
+  margin-top: -20px !important; 
   background-color: #FFF8DC !important; /* Parchment */
   background-image: repeating-linear-gradient(
     45deg,
@@ -834,14 +942,14 @@
   border: 3px solid #8B4513 !important; /* Wooden Border */
   border-radius: 12px !important;
   padding: 10px 16px !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
   color: #5D4037 !important;
   font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif !important;
   font-size: 14px !important;
   line-height: 1.5 !important;
   text-shadow: none !important;
-  z-index: var(--z-floating) !important;
-  min-height: auto !important; /* Reset any default min-height */
+  z-index: 99999 !important; /* 确保在最上层 */
+  min-height: auto !important;
   width: auto !important;
   max-width: 250px !important;
 }
@@ -856,7 +964,7 @@
 
 /* Specifics for the custom bubble (placeholder pet) */
 .game-pet-bubble {
-  top: 10px;
+  top: 30px; /* 往下挪动一点，在 100px 的 padding-top 内 */
   left: 50%;
   transform: translateX(-50%);
   max-height: 160px;
@@ -864,6 +972,7 @@
   white-space: pre-wrap;
   word-break: break-word;
   animation: gameBubbleFadeIn 0.3s ease-out;
+  margin-top: 0 !important; /* 占位气泡不需要额外的 margin */
 }
 
 /* Arrow for Custom Bubble */

@@ -133,58 +133,52 @@ export function SchedulerTestPanel() {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px' }}>
-      <h2>Scheduler Test Panel</h2>
+    <div className="settings-section">
+      <div className="settings-section-title">Scheduler Test Panel</div>
 
-      <div style={{ marginBottom: '20px' }}>
-        <Button onClick={createTestTask} disabled={isCreating} className="bg-blue-600 hover:bg-blue-700">
-          {isCreating ? 'Creating...' : 'Create Test Task'}
-        </Button>
-        <Button onClick={loadTasks} variant="outline" className="ml-2 bg-emerald-600 text-white hover:bg-emerald-700 border-0">
-          Refresh
-        </Button>
+      <div className="settings-row">
+        <span className="settings-label">Actions</span>
+        <div className="flex gap-2">
+          <Button onClick={createTestTask} disabled={isCreating} className="bg-blue-600">
+            {isCreating ? 'Creating...' : 'Create Test Task'}
+          </Button>
+          <Button onClick={loadTasks} variant="outline" className="bg-emerald-600 text-white border-0">
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+      <div className="grid grid-cols-2 gap-4 mb-4">
         {/* Tasks List */}
         <div>
-          <h3>Tasks ({tasks.length})</h3>
-          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+          <h3 className="text-sm font-bold text-amber-900 mb-2">Tasks ({tasks.length})</h3>
+          <div className="max-h-[300px] overflow-y-auto pr-1">
             {tasks.length === 0 ? (
-              <p style={{ color: '#666' }}>No tasks yet. Create one to test!</p>
+              <p className="text-xs text-amber-900/60 italic">No tasks yet. Create one to test!</p>
             ) : (
               tasks.map((task) => (
-                <div
-                  key={task.id}
-                  style={{
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    padding: '10px',
-                    marginBottom: '10px',
-                    backgroundColor: task.enabled ? '#f8f9fa' : '#e9ecef',
-                  }}
-                >
-                  <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
+                <div key={task.id} className="game-card mb-2 !p-3">
+                  <div className="font-bold text-xs mb-1 text-amber-900">
                     {task.name}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>
+                  <div className="text-[10px] text-amber-900/60 mb-1">
                     Type: {task.trigger.type} | Action: {task.action.type}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#999', marginBottom: '8px' }}>
+                  <div className="text-[10px] text-amber-900/40 mb-2 italic">
                     {task.description || 'No description'}
                   </div>
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    <Button onClick={() => executeTask(task.id)} size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  <div className="flex gap-1 flex-wrap">
+                    <Button onClick={() => executeTask(task.id)} size="sm" className="h-6 text-[10px] px-2 bg-blue-600">
                       Run Now
                     </Button>
                     <Button
                       onClick={() => toggleTask(task.id, task.enabled)}
                       size="sm"
-                      className={task.enabled ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-600 hover:bg-emerald-700'}
+                      className={`h-6 text-[10px] px-2 ${task.enabled ? 'bg-amber-500' : 'bg-emerald-600'}`}
                     >
                       {task.enabled ? 'Disable' : 'Enable'}
                     </Button>
-                    <Button onClick={() => deleteTask(task.id)} size="sm" className="bg-red-600 hover:bg-red-700">
+                    <Button onClick={() => deleteTask(task.id)} size="sm" className="h-6 text-[10px] px-2 bg-red-600">
                       Delete
                     </Button>
                   </div>
@@ -196,30 +190,13 @@ export function SchedulerTestPanel() {
 
         {/* Event Logs */}
         <div>
-          <h3>Event Log</h3>
-          <div
-            style={{
-              maxHeight: '400px',
-              overflowY: 'auto',
-              backgroundColor: '#1e1e1e',
-              color: '#d4d4d4',
-              padding: '10px',
-              borderRadius: '4px',
-              fontFamily: 'monospace',
-              fontSize: '12px',
-            }}
-          >
+          <h3 className="text-sm font-bold text-amber-900 mb-2">Event Log</h3>
+          <div className="game-log-panel h-[300px]">
             {logs.length === 0 ? (
-              <div style={{ color: '#666' }}>No events yet...</div>
+              <div className="text-amber-100/50 italic">No events yet...</div>
             ) : (
               logs.map((log, index) => (
-                <div
-                  key={index}
-                  style={{
-                    padding: '2px 0',
-                    borderBottom: '1px solid #333',
-                  }}
-                >
+                <div key={index} className="game-log-entry text-[10px]">
                   {log}
                 </div>
               ))
@@ -228,9 +205,9 @@ export function SchedulerTestPanel() {
         </div>
       </div>
 
-      <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
-        <h4>Quick Test Instructions:</h4>
-        <ol style={{ fontSize: '14px', lineHeight: '1.6' }}>
+      <div className="text-xs text-amber-900/70 bg-amber-500/10 p-3 rounded-lg border border-amber-900/10">
+        <h4 className="font-bold mb-1">Quick Test Instructions:</h4>
+        <ol className="list-decimal list-inside space-y-0.5">
           <li>Click "Create Test Task" to create a task that runs every 2 minutes</li>
           <li>Click "Run Now" to execute the task immediately</li>
           <li>Watch the Event Log for task execution events</li>

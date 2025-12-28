@@ -40,7 +40,7 @@ function ServerCard({
   const statusColorClass = STATUS_COLORS[status] || 'bg-slate-400';
 
   return (
-    <div className="p-3 border border-slate-200 rounded-lg bg-white mb-2">
+    <div className="game-card">
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
@@ -196,7 +196,7 @@ function AddServerForm({
   }, [name, description, transport, command, args, url, validate, onAdd]);
 
   return (
-    <div className="p-4 border border-slate-200 rounded-lg bg-slate-50 mb-3">
+    <div className="game-card">
       <h4 className="m-0 mb-3 text-sm font-semibold text-slate-700">Add MCP Server</h4>
 
       <div className="mb-3">
