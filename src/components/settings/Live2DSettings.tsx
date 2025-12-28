@@ -101,20 +101,20 @@ export function Live2DSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium mb-4">Live2D 设置</h3>
-        <p className="text-sm text-gray-500 mb-4">
+        <h3 className="mb-4 text-lg font-medium">Live2D 设置</h3>
+        <p className="mb-4 text-sm text-gray-500">
           使用 Live2D 模型作为宠物形象，提供更生动的动画效果
         </p>
       </div>
 
       <div className="space-y-4">
         {/* 启用开关 */}
-        <div className="flex items-center justify-between p-4 bg-white rounded-lg border">
+        <div className="flex justify-between items-center p-4 bg-white rounded-lg border">
           <div>
             <Label htmlFor="live2d-enabled" className="text-sm font-medium">
               启用 Live2D
             </Label>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="mt-1 text-xs text-gray-500">
               启用后需要重启应用才能生效
             </p>
           </div>
@@ -128,13 +128,13 @@ export function Live2DSettings() {
 
         {/* 当前状态 */}
         <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-start gap-2">
-            <span className="text-blue-600 text-sm">ℹ️</span>
+          <div className="flex gap-2 items-start">
+            <span className="text-sm text-blue-600">ℹ️</span>
             <div className="flex-1">
               <p className="text-sm font-medium text-blue-900">
                 当前状态
               </p>
-              <p className="text-xs text-blue-700 mt-1">
+              <p className="mt-1 text-xs text-blue-700">
                 {config.live2d.useLive2D 
                   ? '✓ Live2D 已启用' 
                   : '○ Live2D 未启用（使用传统 Canvas 渲染）'}
@@ -150,14 +150,14 @@ export function Live2DSettings() {
             <button
               onClick={runDiagnostics}
               disabled={isLoading}
-              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm bg-gray-100 rounded-md transition-colors hover:bg-gray-200 disabled:opacity-50"
             >
               运行诊断
             </button>
             <button
               onClick={testModelLoad}
               disabled={isLoading || !config.live2d.useLive2D}
-              className="px-4 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm text-blue-700 bg-blue-100 rounded-md transition-colors hover:bg-blue-200 disabled:opacity-50"
             >
               测试模型加载
             </button>
@@ -167,7 +167,7 @@ export function Live2DSettings() {
         {/* 诊断信息显示 */}
         {diagnosticInfo && (
           <div className="p-4 bg-gray-50 rounded-lg border">
-            <pre className="text-xs font-mono whitespace-pre-wrap text-gray-700">
+            <pre className="font-mono text-xs text-gray-700 whitespace-pre-wrap">
               {diagnosticInfo}
             </pre>
           </div>
@@ -175,13 +175,13 @@ export function Live2DSettings() {
 
         {/* 帮助信息 */}
         <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-          <div className="flex items-start gap-2">
-            <span className="text-amber-600 text-sm">⚠️</span>
+          <div className="flex gap-2 items-start">
+            <span className="text-sm text-amber-600">⚠️</span>
             <div className="flex-1">
               <p className="text-sm font-medium text-amber-900">
                 注意事项
               </p>
-              <ul className="text-xs text-amber-700 mt-2 space-y-1 list-disc list-inside">
+              <ul className="mt-2 space-y-1 text-xs list-disc list-inside text-amber-700">
                 <li>启用 Live2D 后需要重启应用</li>
                 <li>Live2D 模型加载可能需要几秒钟</li>
                 <li>如果加载失败，请使用诊断工具检查问题</li>

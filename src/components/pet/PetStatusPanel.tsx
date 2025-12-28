@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useCareStore } from '../../stores';
+import '../settings/game-ui.css';
 
 interface StatConfig {
   key: 'satiety' | 'energy' | 'hygiene' | 'mood' | 'boredom';
@@ -33,7 +34,7 @@ export function PetStatusPanel() {
   }, [satiety, hygiene, energy, boredom]);
 
   return (
-    <div className="pet-status-panel no-drag">
+    <div className="game-status-panel no-drag">
       {STAT_CONFIG.map((item) => {
         const value =
           item.key === 'satiety'
@@ -47,23 +48,23 @@ export function PetStatusPanel() {
                   : boredom;
         const displayValue = item.reverse ? 100 - value : value;
         return (
-          <div key={item.key} className="pet-status-row">
-            <span className="pet-status-label">{item.label}</span>
-            <div className="pet-status-bar">
+          <div key={item.key} className="game-status-row">
+            <span className="game-status-label">{item.label}</span>
+            <div className="game-status-bar-container">
               <div
-                className="pet-status-bar-fill"
+                className="game-status-bar-fill"
                 style={{
                   width: `${Math.round(displayValue)}%`,
                   background: item.color,
                 }}
               />
             </div>
-            <span className="pet-status-value">{Math.round(value)}</span>
+            <span className="game-status-value">{Math.round(value)}</span>
           </div>
         );
       })}
       {warnings.length > 0 && (
-        <div className="pet-status-warning">
+        <div className="game-status-warning">
           需要关注：{warnings.join(' / ')}
         </div>
       )}

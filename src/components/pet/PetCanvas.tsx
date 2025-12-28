@@ -3,6 +3,7 @@ import { Application, Graphics } from 'pixi.js';
 import { usePetStore } from '../../stores';
 import type { EmotionType } from '../../types';
 import '../../styles/global.css';
+import '../../components/settings/game-ui.css';
 
 // Placeholder pet rendering until Live2D is integrated
 function drawPlaceholderPet(
@@ -195,7 +196,7 @@ export function PetCanvas({
       style={{ width, height }}
     >
       {bubbleText && (
-        <div className="chat-bubble">
+        <div className="game-pet-bubble">
           {bubbleText}
         </div>
       )}

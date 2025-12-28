@@ -1,0 +1,912 @@
+/* Game UI Styles */
+
+.game-container {
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  user-select: none;
+}
+
+.game-wood-board {
+  background-color: #DEB887; /* Fallback color */
+  background-image: linear-gradient(to bottom right, #DEB887, #CD853F);
+  border: 6px solid #8B4513;
+  box-shadow: 
+    inset 0 0 15px rgba(0,0,0,0.5),
+    0 10px 20px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+/* Simulate Wood Texture with CSS if image missing */
+.wood-texture {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(139, 69, 19, 0.1) 0px,
+    rgba(139, 69, 19, 0.1) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+}
+
+.game-title-board {
+  background-color: #8B4513;
+  border: 4px solid #5D4037;
+  color: #FFD700;
+  text-shadow: 2px 2px 0px #3E2723;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.game-parchment {
+  background-color: #FFF8DC;
+  border: 2px solid #D2B48C;
+  box-shadow: inset 0 0 10px rgba(139, 69, 19, 0.1);
+  color: #5D4037;
+}
+
+/* Glossy Button Styles */
+.game-btn {
+  position: relative;
+  border: none;
+  border-radius: 16px;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  box-shadow: 
+    0 4px 0 rgba(0,0,0,0.2), /* 3D bottom */
+    0 6px 6px rgba(0,0,0,0.2); /* Drop shadow */
+  transition: transform 0.1s, box-shadow 0.1s;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 16px;
+  gap: 12px;
+}
+
+.game-btn:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 0 0 rgba(0,0,0,0.2),
+    0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Shine effect */
+.game-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+  border-radius: 16px 16px 100% 100% / 16px 16px 20% 20%;
+  pointer-events: none;
+}
+
+.game-btn-blue {
+  background: linear-gradient(to bottom, #4FC3F7, #0288D1);
+  border-bottom: 4px solid #01579B;
+}
+
+.game-btn-orange {
+  background: linear-gradient(to bottom, #FFB74D, #F57C00);
+  border-bottom: 4px solid #E65100;
+}
+
+.game-btn-green {
+  background: linear-gradient(to bottom, #AED581, #689F38);
+  border-bottom: 4px solid #33691E;
+}
+
+.game-btn-pink {
+  background: linear-gradient(to bottom, #F48FB1, #D81B60);
+  border-bottom: 4px solid #880E4F;
+}
+
+.game-btn-purple {
+  background: linear-gradient(to bottom, #CE93D8, #8E24AA);
+  border-bottom: 4px solid #4A148C;
+}
+
+.game-btn-brown {
+  background: linear-gradient(to bottom, #D7CCC8, #8D6E63);
+  border-bottom: 4px solid #5D4037;
+}
+
+.game-progress-bar {
+  background: #E0E0E0;
+  border-radius: 8px;
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid #BDBDBD;
+}
+
+.game-progress-fill {
+  background: linear-gradient(to right, #42A5F5, #2196F3);
+  height: 100%;
+}
+
+/* Custom Scrollbar for Settings Content */
+.game-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.game-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+  border-radius: 4px;
+}
+.game-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 69, 19, 0.3);
+  border-radius: 4px;
+}
+.game-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 69, 19, 0.5);
+}
+
+/* ============================================
+   Game Context Menu Styles
+   ============================================ */
+
+.game-context-menu {
+  position: fixed;
+  background-color: #FFF8DC; /* Parchment background */
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(139, 69, 19, 0.05) 0px,
+    rgba(139, 69, 19, 0.05) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  border: 4px solid #8B4513;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 8px 0;
+  min-width: 220px;
+  max-width: 320px;
+  max-height: min(600px, calc(100vh - 32px));
+  overflow-y: auto;
+  z-index: var(--z-modal);
+  color: #5D4037;
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  user-select: none;
+}
+
+/* Custom Scrollbar for Context Menu */
+.game-context-menu::-webkit-scrollbar {
+  width: 6px;
+}
+.game-context-menu::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+.game-context-menu::-webkit-scrollbar-thumb {
+  background: #8B4513;
+  border-radius: 3px;
+}
+
+/* Search Box */
+.game-context-menu-search {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #FFF8DC;
+  border-bottom: 2px solid #D2B48C;
+  margin-bottom: 4px;
+}
+
+.game-context-menu-search-icon {
+  width: 16px;
+  height: 16px;
+  color: #8B4513;
+}
+
+.game-context-menu-search-input {
+  flex: 1;
+  height: 32px;
+  padding: 4px 8px;
+  border: 2px solid #D2B48C;
+  border-radius: 8px;
+  background: #FFFFFF;
+  font-size: 13px;
+  color: #5D4037;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.game-context-menu-search-input:focus {
+  border-color: #8B4513;
+}
+
+/* Section Title */
+.game-context-menu-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #8B4513;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.game-context-menu-title-button {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+}
+
+.game-context-menu-title-button:hover {
+  color: #D2691E;
+}
+
+.game-context-menu-title-actions {
+  display: flex;
+  align-items: center;
+}
+
+.game-context-menu-title-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8B4513;
+  opacity: 0.6;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.game-context-menu-title-action-btn:hover {
+  opacity: 1;
+  background: rgba(139, 69, 19, 0.1);
+}
+
+
+/* Menu Item */
+.game-context-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.1s;
+  margin: 2px 6px;
+  border-radius: 8px;
+}
+
+.game-context-menu-item:hover, .game-context-menu-item.active {
+  background: #FFE4B5; /* Moccasin */
+  color: #8B4513;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transform: translateX(2px);
+}
+
+.game-context-menu-item.danger {
+  color: #C0392B;
+}
+
+.game-context-menu-item.danger:hover {
+  background: #FFCDD2;
+}
+
+.game-context-menu-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.game-context-menu-item-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Fav Button */
+.game-context-menu-fav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #D2B48C;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  opacity: 0; /* Hidden by default */
+}
+
+.game-context-menu-item:hover .game-context-menu-fav-btn,
+.game-context-menu-fav-btn.active {
+  opacity: 1;
+}
+
+.game-context-menu-fav-btn:hover {
+  transform: scale(1.2);
+  color: #FFD700;
+}
+
+.game-context-menu-fav-btn.active {
+  color: #FFD700;
+}
+
+/* Divider */
+.game-context-menu-divider {
+  height: 2px;
+  background: #D2B48C;
+  margin: 6px 12px;
+  border-radius: 1px;
+}
+
+.game-context-menu-empty {
+  padding: 16px;
+  text-align: center;
+  color: #8B4513;
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* ============================================
+   Game Tab Content Styles
+   ============================================ */
+
+/* Overriding default settings- classes when inside game-container or using new ones */
+
+.game-container .settings-section {
+  background-color: #FFF8DC; /* Parchment */
+  border: 2px solid #D2B48C;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: inset 0 0 10px rgba(139, 69, 19, 0.05);
+  color: #5D4037;
+}
+
+.game-container .settings-section-title {
+  color: #8B4513;
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #D2B48C;
+  padding-bottom: 4px;
+}
+
+.game-container .settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed #D2B48C;
+}
+
+.game-container .settings-row:last-child, 
+.game-container .settings-row-no-border {
+  border-bottom: none;
+}
+
+.game-container .settings-label {
+  font-weight: 600;
+  color: #5D4037;
+  font-size: 14px;
+}
+
+/* Custom Input Styles for Game UI */
+.game-container input[type="text"],
+.game-container input[type="number"],
+.game-container textarea {
+  background: #FFFFFF;
+  border: 2px solid #D2B48C;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #5D4037;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.game-container input:focus,
+.game-container textarea:focus {
+  border-color: #8B4513;
+}
+
+/* Select overrides (Radix UI / Shadcn based) */
+.game-container [role="combobox"] {
+  background: #FFFFFF !important;
+  border: 2px solid #D2B48C !important;
+  border-radius: 8px !important;
+  color: #5D4037 !important;
+}
+
+/* Button overrides for tabs */
+.game-container .preset-btn {
+  background: linear-gradient(to bottom, #FFF8DC, #F5DEB3);
+  border: 2px solid #D2B48C;
+  border-radius: 12px;
+  color: #8B4513;
+  transition: all 0.2s;
+}
+
+.game-container .preset-btn:hover {
+  background: #F5DEB3;
+  border-color: #8B4513;
+  transform: translateY(-2px);
+}
+
+.game-container .preset-icon {
+  color: #8B4513;
+}
+
+.game-container .preset-label {
+  color: #8B4513;
+  font-weight: bold;
+}
+
+/* Range Slider */
+.game-container .slider-container {
+  background: rgba(210, 180, 140, 0.2);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid #D2B48C;
+}
+
+.game-container .slider {
+  accent-color: #8B4513;
+}
+
+.game-container .slider-value {
+  color: #8B4513;
+  font-weight: bold;
+}
+
+/* Specific Component Overrides */
+
+/* Skin Settings */
+.game-container .grid-cols-3 > div {
+  background: #FFFFFF !important;
+  border: 2px solid #D2B48C !important;
+  color: #5D4037 !important;
+}
+
+.game-container .grid-cols-3 > div.border-indigo-500 {
+  border-color: #8B4513 !important;
+  background-color: #FFE4B5 !important;
+  box-shadow: 0 0 0 2px #8B4513;
+}
+
+.game-container .grid-cols-3 div.font-bold.text-indigo-500 {
+  color: #8B4513 !important;
+}
+
+/* Stats & Interaction Cards */
+.game-container .bg-white.rounded-lg.p-4.border.border-gray-200,
+.game-container .bg-gradient-to-br.from-blue-50.to-purple-50 {
+  background: #FFF8DC !important;
+  border: 2px solid #D2B48C !important;
+  color: #5D4037 !important;
+  box-shadow: none !important;
+}
+
+.game-container .text-2xl.font-bold.text-gray-800,
+.game-container .text-2xl.font-bold.text-blue-600 {
+  color: #8B4513 !important;
+}
+
+.game-container h3.text-lg.font-semibold {
+  color: #8B4513 !important;
+  border-bottom: 2px solid #D2B48C;
+  padding-bottom: 4px;
+}
+
+/* Achievement Cards */
+.game-container .bg-white.border-gray-200,
+.game-container .bg-gray-50.border-gray-300 {
+  background: #FFFFFF !important;
+  border: 2px solid #D2B48C !important;
+}
+
+.game-container .bg-blue-100,
+.game-container .bg-green-100,
+.game-container .bg-pink-100,
+.game-container .bg-purple-100 {
+  background-color: #F5DEB3 !important;
+  color: #8B4513 !important;
+  border: 1px solid #D2B48C !important;
+}
+
+/* Progress Bars */
+.game-container .bg-gray-200.rounded-full {
+  background-color: #D2B48C !important;
+}
+
+.game-container .bg-gradient-to-r.from-blue-500.to-purple-500 {
+  background: linear-gradient(to right, #4FC3F7, #0288D1) !important;
+}
+
+/* Buttons inside Tabs */
+.game-container button.bg-blue-500 {
+  background: linear-gradient(to bottom, #4FC3F7, #0288D1) !important;
+  border-bottom: 4px solid #01579B !important;
+  color: white !important;
+}
+
+/* MCP & Advanced Settings */
+.game-container .bg-gray-50,
+.game-container .bg-slate-50 {
+  background-color: #FFF8DC !important;
+  border: 1px solid #D2B48C !important;
+}
+
+.game-container code,
+.game-container pre {
+  background-color: #3E2723 !important;
+  color: #AED581 !important;
+  border: 1px solid #5D4037 !important;
+}
+
+/* Hints */
+.game-container .settings-hint-row,
+/* Hints */
+.game-container .settings-hint-row,
+.game-container .text-slate-400 {
+  color: #8B4513 !important;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+/* ============================================
+   Game Chat Window Styles
+   ============================================ */
+
+.game-chat-window {
+  width: 100%;
+  height: 100%;
+  background-color: #FFF8DC; /* Parchment */
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(139, 69, 19, 0.05) 0px,
+    rgba(139, 69, 19, 0.05) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  border: 4px solid #8B4513; /* Outer Wood Border */
+}
+
+/* Chat Header */
+.game-chat-header {
+  padding: 12px 16px;
+  background: #DEB887; /* Light Wood */
+  border-bottom: 2px solid #8B4513;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.game-chat-header-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #5D4037;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+}
+
+.game-chat-header-status {
+  font-size: 11px;
+  color: #8B4513;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.game-status-dot {
+  width: 8px;
+  height: 8px;
+  background: #4CAF50;
+  border-radius: 50%;
+  border: 1px solid #33691E;
+}
+
+/* Chat Messages Area */
+.game-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: rgba(255, 248, 220, 0.5); /* Slight tint */
+}
+
+/* Chat Scrollbar */
+.game-chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+.game-chat-messages::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+}
+.game-chat-messages::-webkit-scrollbar-thumb {
+  background: #8B4513;
+  border-radius: 3px;
+}
+
+/* Message Bubbles */
+.game-chat-message {
+  display: flex;
+  gap: 8px;
+  max-width: 85%;
+}
+
+.game-chat-message.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.game-chat-message.assistant {
+  align-self: flex-start;
+}
+
+.game-message-bubble {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.game-chat-message.user .game-message-bubble {
+  background: #87CEEB; /* Sky Blue */
+  color: #01579B;
+  border: 1px solid #0288D1;
+  border-bottom-right-radius: 2px;
+}
+
+.game-chat-message.assistant .game-message-bubble {
+  background: #FFFFFF;
+  color: #5D4037;
+  border: 1px solid #D2B48C;
+  border-bottom-left-radius: 2px;
+}
+
+/* Chat Input Area */
+.game-chat-input-container {
+  padding: 12px;
+  background: #DEB887; /* Light Wood */
+  border-top: 2px solid #8B4513;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.game-chat-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #8B4513;
+  border-radius: 20px;
+  background: #FFF8DC;
+  font-size: 14px;
+  color: #5D4037;
+  outline: none;
+}
+
+.game-chat-input:focus {
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.2);
+}
+
+.game-chat-send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #87CEEB, #4FC3F7);
+  border: 2px solid #0288D1;
+  color: #01579B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.game-chat-send-btn:hover {
+  transform: scale(1.1);
+  background: #B3E5FC;
+}
+
+.game-chat-send-btn:active {
+  transform: scale(0.95);
+}
+
+/* Empty State */
+.game-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #8B4513;
+  text-align: center;
+}
+
+.game-question-chip {
+  background: #FFFFFF;
+  border: 1px solid #D2B48C;
+  padding: 8px 12px;
+  border-radius: 16px;
+  margin: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #5D4037;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.game-question-chip:hover {
+  background: #FFE4B5;
+  border-color: #8B4513;
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   Game Status Panel Styles
+   ============================================ */
+
+.game-status-panel {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #FFF8DC; /* Parchment */
+  border: 3px solid #8B4513; /* Wood Border */
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+  min-width: 200px;
+  color: #5D4037;
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  user-select: none;
+}
+
+.game-status-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 30px;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.game-status-bar-container {
+  height: 8px;
+  background: #D7CCC8;
+  border: 1px solid #8D6E63;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.game-status-bar-fill {
+  height: 100%;
+  border-right: 1px solid rgba(0,0,0,0.2);
+  transition: width 0.3s ease;
+}
+
+.game-status-value {
+  text-align: right;
+  font-family: monospace;
+}
+
+.game-status-warning {
+  margin-top: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed #D2B48C;
+  color: #C62828;
+  font-size: 11px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* ============================================
+   Game Pet Speech Bubble Styles
+   ============================================ */
+
+/* Common Bubble Styles Mixin */
+.game-pet-bubble,
+#oml2d-tips {
+  position: absolute;
+  /* top/left managed by JS for oml2d, but we override appearance */
+  background-color: #FFF8DC !important; /* Parchment */
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(139, 69, 19, 0.05) 0px,
+    rgba(139, 69, 19, 0.05) 2px,
+    transparent 2px,
+    transparent 8px
+  ) !important;
+  border: 3px solid #8B4513 !important; /* Wooden Border */
+  border-radius: 12px !important;
+  padding: 10px 16px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+  color: #5D4037 !important;
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  text-shadow: none !important;
+  z-index: var(--z-floating) !important;
+  min-height: auto !important; /* Reset any default min-height */
+  width: auto !important;
+  max-width: 250px !important;
+}
+
+/* Ensure content is visible and styled */
+#oml2d-tips-content {
+  color: #5D4037 !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+/* Specifics for the custom bubble (placeholder pet) */
+.game-pet-bubble {
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-height: 160px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  animation: gameBubbleFadeIn 0.3s ease-out;
+}
+
+/* Arrow for Custom Bubble */
+.game-pet-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 10px solid transparent;
+  border-top-color: #8B4513;
+  border-bottom: 0;
+}
+
+.game-pet-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: #FFF8DC;
+  border-bottom: 0;
+  z-index: 1;
+}
+
+/* Arrow for oh-my-live2d (if possible to target) */
+/* oml2d might not use pseudo-elements easily for arrow positioning relative to the moving tip */
+/* We can try to add a basic arrow if the library structure allows, but often it floats independently */
+/* For now, just styling the box is a huge improvement */
+
+@keyframes gameBubbleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+
+
+
+

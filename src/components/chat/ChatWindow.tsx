@@ -1,13 +1,11 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { isTauri } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { X, Heart, Sparkles, Settings } from 'lucide-react';
+import { X, Heart, Sparkles, Settings, Send, RotateCcw } from 'lucide-react';
 import { useChatStore } from '../../stores';
-import { ChatMessage } from './ChatMessage';
-import { ChatInput } from './ChatInput';
 import { ChatSettings } from './ChatSettings';
-import { Button } from '@/components/ui/button';
 import { useChat } from '../../hooks';
+import '../../components/settings/game-ui.css';
 
 interface ChatWindowProps {
   onClose: () => void;
@@ -24,19 +22,31 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, isLoading, isStreaming } = useChatStore();
   const [showSettings, setShowSettings] = useState(false);
+  const [input, setInput] = useState('');
   const dragCandidateRef = useRef<{ x: number; y: number } | null>(null);
   const isWindowDragTriggeredRef = useRef(false);
-  const { sendMessage } = useChat({
+  
+  const { sendMessage, abort } = useChat({
     onError: (error) => {
       console.error('Chat error:', error);
     },
   });
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+  };
+
+  const handleSendMessage = async (content: string) => {
+    if (!content.trim()) return;
+    setInput(''); // Clear input immediately
+    await sendMessage(content);
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Header drag handlers - allow dragging window by header
+  // ... (Header drag handlers remain same)
   const handleHeaderMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return;
     if (!isTauri()) return;
@@ -78,95 +88,100 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
   }, [messages]);
 
   const handleSuggestedQuestion = async (question: string) => {
-    await sendMessage(question);
+    await handleSendMessage(question);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (input.trim() && !isLoading) {
+        handleSendMessage(input);
+      }
+    }
   };
 
   return (
-    <div className="chat-window no-drag">
+    <div className="game-chat-window no-drag">
       {/* Header - draggable */}
       <div
-        className="chat-header chat-header-draggable"
+        className="game-chat-header chat-header-draggable"
         onMouseDown={handleHeaderMouseDown}
         onMouseMove={handleHeaderMouseMove}
         onMouseUp={handleHeaderMouseUp}
       >
-        <div className="chat-header-left">
-          <div className="pet-avatar">
-            <Sparkles className="w-4 h-4" />
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-white/50 rounded-full flex items-center justify-center border border-[#8B4513]">
+            <Sparkles className="w-4 h-4 text-[#8B4513]" />
           </div>
-          <div className="chat-header-info">
-            <div className="chat-header-title">我的小可爱</div>
-            <div className="chat-header-status">
-              <span className="status-dot"></span>
+          <div className="flex flex-col">
+            <div className="game-chat-header-title">我的小可爱</div>
+            <div className="game-chat-header-status">
+              <span className="game-status-dot"></span>
               <span className="status-text">在线等你</span>
             </div>
           </div>
         </div>
-        <div className="chat-header-actions">
-          <Button
+        <div className="flex gap-1">
+          <button
             onClick={() => setShowSettings(true)}
-            variant="ghost"
-            size="sm"
-            className="chat-action-btn"
+            className="game-btn game-btn-orange p-1 w-8 h-8 justify-center rounded-lg"
             title="聊天设置"
           >
             <Settings className="h-4 w-4" />
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={onClose}
-            variant="ghost"
-            size="sm"
-            className="chat-action-btn"
+            className="game-btn game-btn-brown p-1 w-8 h-8 justify-center rounded-lg"
             title="关闭"
           >
             <X className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="chat-messages">
+      <div className="game-chat-messages">
         {messages.length === 0 ? (
-          <div className="chat-empty-state">
-            <div className="empty-icon">
-              <Heart className="w-12 h-12" />
+          <div className="game-empty-state">
+            <div className="mb-4 text-[#FFB74D]">
+              <Heart className="w-12 h-12 fill-current" />
             </div>
-            <div className="empty-title">嗨，小主人！</div>
-            <div className="empty-subtitle">我是你的桌面宠物，有什么想聊的吗？</div>
+            <div className="font-bold text-lg mb-2">嗨，小主人！</div>
+            <div className="text-sm opacity-80 mb-6">我是你的桌面宠物，有什么想聊的吗？</div>
 
-            <div className="suggested-questions">
+            <div className="flex flex-wrap justify-center max-w-[80%]">
               {SUGGESTED_QUESTIONS.map((q, idx) => (
                 <button
                   key={idx}
-                  className="question-chip"
+                  className="game-question-chip"
                   onClick={() => handleSuggestedQuestion(q.text)}
                 >
-                  <span className="question-icon">{q.icon}</span>
-                  <span className="question-text">{q.text}</span>
+                  <span>{q.icon}</span>
+                  <span>{q.text}</span>
                 </button>
               ))}
             </div>
           </div>
         ) : (
-          messages.map((message, index) => {
-            const isLastMessage = index === messages.length - 1;
+          messages.map((message) => {
             return (
-              <ChatMessage
-                key={message.id}
-                message={message}
-                isStreaming={isStreaming}
-                isLastMessage={isLastMessage}
-              />
+              <div key={message.id} className={`game-chat-message ${message.role}`}>
+                 <div className="game-message-bubble">
+                    {message.content}
+                 </div>
+              </div>
             );
           })
         )}
 
         {isLoading && !isStreaming && (
-          <div className="chat-message assistant">
-            <div className="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
+          <div className="game-chat-message assistant">
+            <div className="game-message-bubble">
+              <div className="flex gap-1">
+                <span className="w-2 h-2 bg-[#8B4513] rounded-full animate-bounce"></span>
+                <span className="w-2 h-2 bg-[#8B4513] rounded-full animate-bounce delay-75"></span>
+                <span className="w-2 h-2 bg-[#8B4513] rounded-full animate-bounce delay-150"></span>
+              </div>
             </div>
           </div>
         )}
@@ -175,7 +190,32 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
       </div>
 
       {/* Input */}
-      <ChatInput disabled={isLoading} />
+      <div className="game-chat-input-container">
+        <input 
+            className="game-chat-input"
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="输入消息..."
+            disabled={isLoading && !isStreaming}
+        />
+        {isLoading && isStreaming ? (
+            <button 
+                className="game-chat-send-btn bg-red-100 border-red-300" 
+                onClick={abort}
+            >
+                <RotateCcw className="w-4 h-4 text-red-500" />
+            </button>
+        ) : (
+            <button 
+                className="game-chat-send-btn" 
+                onClick={() => handleSendMessage(input)}
+                disabled={!input.trim() || isLoading}
+            >
+                <Send className="w-4 h-4" />
+            </button>
+        )}
+      </div>
 
       {/* Settings Panel */}
       {showSettings && <ChatSettings onClose={() => setShowSettings(false)} />}

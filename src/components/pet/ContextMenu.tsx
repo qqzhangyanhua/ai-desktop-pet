@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import type { AssistantSkill, PetActionType } from '../../types';
 import { useCareStore, useConfigStore, useContextMenuStore } from '@/stores';
-import { Input } from '@/components/ui/input';
+import '../settings/game-ui.css';
 
 interface ContextMenuProps {
   x: number;
@@ -470,18 +470,18 @@ export function ContextMenu({
         <div
           key={item.id}
           data-menu-id={item.id}
-          className={`context-menu-item${item.danger ? ' danger' : ''}${active ? ' active' : ''}`}
+          className={`game-context-menu-item${item.danger ? ' danger' : ''}${active ? ' active' : ''}`}
           onMouseEnter={() => setActiveId(item.id)}
           onClick={() => selectItem(item)}
         >
-          <span className="context-menu-item-left">
+          <span className="game-context-menu-item-left">
             {item.icon}
-            <span className="context-menu-item-label">{item.label}</span>
+            <span>{item.label}</span>
           </span>
-          <span className="context-menu-item-right">
+          <span className="game-context-menu-item-right">
             <button
               type="button"
-              className={`context-menu-fav-btn${fav ? ' active' : ''}`}
+              className={`game-context-menu-fav-btn${fav ? ' active' : ''}`}
               aria-label={fav ? '取消收藏' : '收藏'}
               title={fav ? '取消收藏' : '收藏'}
               onClick={(e) => {
@@ -556,26 +556,26 @@ export function ContextMenu({
   const renderTitle = (label: string, section?: MenuSection, right?: React.ReactNode) => {
     if (!section) {
       return (
-        <div className="context-menu-title-row">
-          <div className="context-menu-title">{label}</div>
-          {right ? <div className="context-menu-title-actions">{right}</div> : null}
+        <div className="game-context-menu-title-row">
+          <div className="game-context-menu-title">{label}</div>
+          {right ? <div className="game-context-menu-title-actions">{right}</div> : null}
         </div>
       );
     }
     const collapsed = isCollapsed(section);
     const Icon = collapsed ? ChevronRight : ChevronDown;
     return (
-      <div className="context-menu-title-row">
+      <div className="game-context-menu-title-row">
         <button
           type="button"
-          className="context-menu-title-button"
+          className="game-context-menu-title-button"
           onClick={() => toggleCollapsed(section)}
           title={collapsed ? '展开' : '收起'}
         >
           <Icon className="w-4 h-4" />
-          <span className="context-menu-title">{label}</span>
+          <span className="game-context-menu-title">{label}</span>
         </button>
-        {right ? <div className="context-menu-title-actions">{right}</div> : null}
+        {right ? <div className="game-context-menu-title-actions">{right}</div> : null}
       </div>
     );
   };
@@ -583,21 +583,21 @@ export function ContextMenu({
   return (
     <div
       ref={menuRef}
-      className="context-menu no-drag"
+      className="game-context-menu no-drag"
       style={{
         left: position?.left ?? 0,
         top: position?.top ?? 0,
         visibility: position ? 'visible' : 'hidden',
       }}
     >
-      <div className="context-menu-search" onClick={(e) => e.stopPropagation()}>
-        <Search className="context-menu-search-icon" />
-        <Input
+      <div className="game-context-menu-search" onClick={(e) => e.stopPropagation()}>
+        <Search className="game-context-menu-search-icon" />
+        <input
           ref={searchInputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="搜索…（喂食/睡觉/天气/设置）"
-          className="context-menu-search-input"
+          className="game-context-menu-search-input"
         />
       </div>
 
@@ -605,7 +605,7 @@ export function ContextMenu({
         <>
           {renderTitle('收藏')}
           {renderItems(favoriteItems)}
-          <div className="context-menu-divider" />
+          <div className="game-context-menu-divider" />
         </>
       )}
 
@@ -616,7 +616,7 @@ export function ContextMenu({
             undefined,
             <button
               type="button"
-              className="context-menu-title-action-btn"
+              className="game-context-menu-title-action-btn"
               onClick={() => clearRecent()}
               title="清空最近"
             >
@@ -624,7 +624,7 @@ export function ContextMenu({
             </button>
           )}
           {renderItems(recentItems)}
-          <div className="context-menu-divider" />
+          <div className="game-context-menu-divider" />
         </>
       )}
 
@@ -632,12 +632,12 @@ export function ContextMenu({
         <>
           {renderTitle('推荐/快捷')}
           {renderItems(recommendedItems)}
-          <div className="context-menu-divider" />
+          <div className="game-context-menu-divider" />
         </>
       )}
 
       {normalizedQuery && filteredItems.length === 0 ? (
-        <div className="context-menu-empty">没有匹配项</div>
+        <div className="game-context-menu-empty">没有匹配项</div>
       ) : (
         <>
           {petFunItems.length > 0 && !normalizedQuery && (
@@ -646,10 +646,10 @@ export function ContextMenu({
               {!isCollapsed('pet_fun') ? (
                 <>
                   {renderItems(petFunItems)}
-                  <div className="context-menu-divider" />
+                  <div className="game-context-menu-divider" />
                 </>
               ) : (
-                <div className="context-menu-divider" />
+                <div className="game-context-menu-divider" />
               )}
             </>
           )}
@@ -658,7 +658,7 @@ export function ContextMenu({
             <>
               {renderTitle('娱乐与表演')}
               {renderItems(petFunItems)}
-              <div className="context-menu-divider" />
+              <div className="game-context-menu-divider" />
             </>
           )}
 
@@ -668,10 +668,10 @@ export function ContextMenu({
               {!isCollapsed('pet_care') ? (
                 <>
                   {renderItems(petCareItems)}
-                  <div className="context-menu-divider" />
+                  <div className="game-context-menu-divider" />
                 </>
               ) : (
-                <div className="context-menu-divider" />
+                <div className="game-context-menu-divider" />
               )}
             </>
           )}
@@ -680,7 +680,7 @@ export function ContextMenu({
             <>
               {renderTitle('休息与护理')}
               {renderItems(petCareItems)}
-              <div className="context-menu-divider" />
+              <div className="game-context-menu-divider" />
             </>
           )}
 
@@ -690,10 +690,10 @@ export function ContextMenu({
               {!isCollapsed('assistant') ? (
                 <>
                   {renderItems(assistantItems)}
-                  <div className="context-menu-divider" />
+                  <div className="game-context-menu-divider" />
                 </>
               ) : (
-                <div className="context-menu-divider" />
+                <div className="game-context-menu-divider" />
               )}
             </>
           )}
@@ -702,7 +702,7 @@ export function ContextMenu({
             <>
               {renderTitle('智能助手')}
               {renderItems(assistantItems)}
-              <div className="context-menu-divider" />
+              <div className="game-context-menu-divider" />
             </>
           )}
 
