@@ -6,16 +6,22 @@ import {
   type ExpressionContext,
   type PetExpressionPack,
 } from './expression-packs/default';
+import { QQ_EXPRESSION_PACK } from './expression-packs/qq';
 
 export type { ExpressionContext, PetExpressionPack, ActionExpression };
 
 const pick = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)]!;
 
+const PACKS: PetExpressionPack[] = [DEFAULT_EXPRESSION_PACK, QQ_EXPRESSION_PACK];
+
+export function getAvailableExpressionPacks(): Array<Pick<PetExpressionPack, 'id' | 'name'>> {
+  return PACKS.map((p) => ({ id: p.id, name: p.name }));
+}
+
 export function getActiveExpressionPack(): PetExpressionPack {
   const id = useConfigStore.getState().config.behavior.expressionPackId ?? 'default';
   // 目前仅内置 default，后续可在这里扩展加载逻辑（本地文件/云端/用户自定义）
-  if (id === 'default') return DEFAULT_EXPRESSION_PACK;
-  return DEFAULT_EXPRESSION_PACK;
+  return PACKS.find((p) => p.id === id) ?? DEFAULT_EXPRESSION_PACK;
 }
 
 export function resolveExpressionContext(stats: PetCareStats, report: CareStatusReport): ExpressionContext {
@@ -75,4 +81,3 @@ export function resolveActionExpression(
     bubbleDurationMs: fallback.bubbleDurationMs,
   };
 }
-

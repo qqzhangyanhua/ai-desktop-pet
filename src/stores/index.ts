@@ -8,3 +8,4 @@ export { useToastStore, toast } from './toastStore';
 export { useCareStore } from './careStore';
 export { useAssistantStore } from './assistantStore';
 export { useSkinStore } from './skinStore';
+export { useContextMenuStore } from './contextMenuStore';

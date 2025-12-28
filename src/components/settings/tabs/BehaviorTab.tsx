@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getAvailableExpressionPacks } from '@/services/pet/expression-pack';
 
 interface BehaviorTabProps {
   config: AppConfig;
@@ -17,6 +18,8 @@ interface BehaviorTabProps {
 }
 
 export function BehaviorTab({ config, onConfigChange, onFeedback }: BehaviorTabProps) {
+  const packs = getAvailableExpressionPacks();
+
   return (
     <>
       <div className="settings-section">
@@ -90,6 +93,35 @@ export function BehaviorTab({ config, onConfigChange, onFeedback }: BehaviorTabP
               <SelectItem value="low">低</SelectItem>
               <SelectItem value="standard">标准</SelectItem>
               <SelectItem value="high">高</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="settings-row">
+          <span className="settings-label flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            台词风格
+          </span>
+          <Select
+            value={config.behavior.expressionPackId}
+            onValueChange={(id: string) => {
+              onConfigChange((prev) => ({
+                ...prev,
+                behavior: { ...prev.behavior, expressionPackId: id },
+              }));
+              const name = packs.find((p) => p.id === id)?.name ?? id;
+              onFeedback?.(`已切换：${name}`, 'success');
+            }}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {packs.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

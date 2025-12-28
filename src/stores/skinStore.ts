@@ -6,6 +6,14 @@ import type { SkinMeta } from '../types';
 // Default built-in skins
 const DEFAULT_SKINS: SkinMeta[] = [
   {
+    id: 'white-cat',
+    name: 'White Cat',
+    path: '/whitecatfree_vts/white-cat.model3.json',
+    previewImage: '/whitecatfree_vts/white-cat.2048/texture_00.png',
+    isBuiltin: true,
+    createdAt: Date.now(),
+  },
+  {
     id: 'shizuku',
     name: 'Shizuku',
     path: '/models/shizuku/shizuku.model.json',
@@ -43,7 +51,8 @@ interface SkinStore extends SkinState {
 }
 
 export const useSkinStore = create<SkinStore>((set, get) => ({
-  currentSkinId: 'shizuku',
+  // 默认使用本地白猫模型（与 test.html 保持一致）
+  currentSkinId: 'white-cat',
   skins: DEFAULT_SKINS,
   isLoading: false,
   error: null,

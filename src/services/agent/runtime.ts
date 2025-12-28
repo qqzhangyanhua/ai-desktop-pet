@@ -7,6 +7,7 @@ import type { Tool, AgentEvent, ToolCallEvent, ToolResultEvent, TextEvent, Statu
 import { createBuiltInTools } from './tools';
 import { z } from 'zod';
 import { confirmAction } from '@/lib/confirm';
+import { finalizeAgentToolAuditLog, insertAgentToolAuditLog } from '@/services/database/agent-audit';
 
 export interface AgentRuntimeConfig {
   llmConfig: LLMProviderConfig;
@@ -14,6 +15,10 @@ export interface AgentRuntimeConfig {
   tools?: Tool[];
   maxSteps?: number;
   onEvent?: (event: AgentEvent) => void;
+  /** 工具审计日志来源标记（便于排查） */
+  source?: 'chat' | 'scheduler' | 'workflow' | 'other';
+  /** 全局允许的工具白名单（即使调用方传了 enabledTools，也会与此取交集） */
+  allowedTools?: string[];
 }
 
 export interface AgentRunResult {
@@ -119,6 +124,61 @@ function formatArgsForConfirmation(args: Record<string, unknown>): string {
   }
 }
 
+function sanitizeForAudit(value: unknown): unknown {
+  const redactKeys = new Set(['apiKey', 'api_key', 'token', 'password', 'secret', 'authorization']);
+
+  if (typeof value === 'string') {
+    if (value.length <= 500) return value;
+    return `${value.slice(0, 500)}…(共${value.length}字)`;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean' || value === null || value === undefined) {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.slice(0, 50).map(sanitizeForAudit);
+  }
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj).slice(0, 50)) {
+      out[k] = redactKeys.has(k) ? '[已脱敏]' : sanitizeForAudit(v);
+    }
+    return out;
+  }
+  return String(value);
+}
+
+function jsonForAudit(value: unknown): string | null {
+  try {
+    return JSON.stringify(sanitizeForAudit(value));
+  } catch {
+    return null;
+  }
+}
+
+function classifyToolResult(resultValue: unknown): { status: 'succeeded' | 'failed' | 'rejected'; error: string | null } {
+  if (resultValue && typeof resultValue === 'object') {
+    const obj = resultValue as Record<string, unknown>;
+    const success = obj.success;
+    const err = typeof obj.error === 'string' ? obj.error : null;
+    if (success === false) {
+      if (err?.includes('用户拒绝')) return { status: 'rejected', error: err };
+      return { status: 'failed', error: err };
+    }
+    if (typeof obj.error === 'string' && obj.error) {
+      return { status: 'failed', error: obj.error };
+    }
+    return { status: 'succeeded', error: null };
+  }
+  return { status: 'succeeded', error: null };
+}
+
+function shouldForceConfirmation(toolName: string): boolean {
+  // 兜底安全策略：即使工具实现方忘记标记 requiresConfirmation，也尽量不让高风险工具静默执行
+  const highRisk = new Set(['file_write', 'open_url', 'open_app', 'clipboard_write']);
+  return highRisk.has(toolName);
+}
+
 async function confirmToolExecution(tool: Tool, args: Record<string, unknown>): Promise<boolean> {
   const preview = formatArgsForConfirmation(args);
   const message =
@@ -175,14 +235,23 @@ export class AgentRuntime {
     enabledTools?: string[]
   ): Promise<AgentRunResult> {
     const { llmConfig, systemPrompt, onEvent } = this.config;
+    const source = this.config.source ?? 'chat';
+    const runId = crypto.randomUUID();
+    const toolCallStartedAt = new Map<string, number>();
 
     // Create model
     const model = createModel(llmConfig);
 
     // Filter and convert tools
-    const toolsToUse = enabledTools
-      ? Array.from(this.tools.values()).filter((t) => enabledTools.includes(t.name))
-      : Array.from(this.tools.values());
+    const allowedTools = this.config.allowedTools;
+    const enabledSet = enabledTools ? new Set(enabledTools) : null;
+    const allowedSet = allowedTools ? new Set(allowedTools) : null;
+
+    const toolsToUse = Array.from(this.tools.values()).filter((t) => {
+      if (allowedSet && !allowedSet.has(t.name)) return false;
+      if (enabledSet && !enabledSet.has(t.name)) return false;
+      return true;
+    });
 
     // AI SDK tool type definition
     interface SDKTool {
@@ -197,12 +266,13 @@ export class AgentRuntime {
       const properties = t.schema.parameters.properties;
       const required = t.schema.parameters.required ?? [];
       const inputSchema = buildZodSchema(properties, required);
+      const requiresConfirmation = !!t.requiresConfirmation || shouldForceConfirmation(t.name);
 
       sdkTools[t.name] = {
         description: t.description,
         inputSchema: inputSchema,
         execute: async (args: Record<string, unknown>) => {
-          if (t.requiresConfirmation) {
+          if (requiresConfirmation) {
             const allowed = await confirmToolExecution(t, args);
             if (!allowed) {
               return {
@@ -254,10 +324,25 @@ export class AgentRuntime {
           // Emit tool call/result events
           if (toolCalls) {
             for (const tc of toolCalls) {
+              const startedAt = Date.now();
+              toolCallStartedAt.set(tc.toolCallId, startedAt);
+              const args = 'args' in tc ? (tc.args as Record<string, unknown>) : {};
+              const tool = this.getTool(tc.toolName);
+              void insertAgentToolAuditLog({
+                id: crypto.randomUUID(),
+                runId,
+                toolCallId: tc.toolCallId,
+                toolName: tc.toolName,
+                source,
+                argsJson: jsonForAudit(args),
+                requiresConfirmation: !!tool?.requiresConfirmation,
+                startedAt,
+              }).catch(() => undefined);
+
               const callEvent = createToolCallEvent(
                 tc.toolName,
                 tc.toolCallId,
-                'args' in tc ? (tc.args as Record<string, unknown>) : {}
+                args
               );
               emitEvent(callEvent, onEvent);
               events.push(callEvent);
@@ -267,6 +352,19 @@ export class AgentRuntime {
           if (toolResults) {
             for (const tr of toolResults) {
               const resultValue = 'result' in tr ? tr.result : tr;
+              const completedAt = Date.now();
+              const startedAt = toolCallStartedAt.get(tr.toolCallId) ?? null;
+              const durationMs = startedAt ? completedAt - startedAt : null;
+              const classified = classifyToolResult(resultValue);
+              void finalizeAgentToolAuditLog({
+                toolCallId: tr.toolCallId,
+                status: classified.status,
+                resultJson: jsonForAudit(resultValue),
+                error: classified.error,
+                completedAt,
+                durationMs,
+              }).catch(() => undefined);
+
               const resultEvent = createToolResultEvent(tr.toolCallId, resultValue);
               emitEvent(resultEvent, onEvent);
               events.push(resultEvent);

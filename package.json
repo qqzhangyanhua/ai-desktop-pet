@@ -9,7 +9,10 @@
     "build": "tsc && vite build",
     "build:tauri": "tauri build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "check:live2d": "tsx scripts/check-live2d.ts",
+    "enable:live2d": "tsx scripts/enable-live2d.ts",
+    "reset:config": "sh scripts/reset-config.sh"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.56",

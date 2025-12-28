@@ -2,10 +2,10 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { isTauri } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { PetCanvas } from './PetCanvas';
-import { Live2DPet } from './Live2DPet';
 import { ContextMenu } from './ContextMenu';
 import { StatusBar } from './StatusBar';
 import { InteractionFeedback } from './InteractionFeedback';
+import { Live2DPet } from './Live2DPet';
 // import { PetStatusPanel } from './PetStatusPanel';
 import { useConfigStore } from '../../stores';
 import {
@@ -44,9 +44,20 @@ export function PetContainer({ onOpenChat }: PetContainerProps) {
 
   // Get config to determine if Live2D is enabled
   const { config } = useConfigStore();
-  const useLive2D = config?.useLive2D ?? false;
+  const useLive2D = config?.live2d?.useLive2D ?? false;
   const appearance = config.appearance;
   const performance = config.performance;
+
+  // Debug: Log Live2D state
+  useEffect(() => {
+    console.log('[PetContainer] Live2D状态:', {
+      useLive2D,
+      'config.live2d.useLive2D': config.live2d?.useLive2D,
+      live2dReady,
+      live2dError,
+      '是否显示占位符': !useLive2D || !live2dReady || !!live2dError,
+    });
+  }, [useLive2D, config.live2d, live2dReady, live2dError]);
 
   const backgroundStyle = (() => {
     const { mode, value } = appearance.background;
@@ -232,6 +243,11 @@ export function PetContainer({ onOpenChat }: PetContainerProps) {
   useEffect(() => {
     if (useLive2D && live2dReady) {
       const handleGlobalContextMenu = (e: MouseEvent) => {
+        const target = e.target as HTMLElement | null;
+        if (!target) return;
+        // 仅拦截 Live2D 舞台/画布区域，避免影响其它 UI（例如状态栏、设置窗口等）
+        const isLive2DArea = !!target.closest('#oml2d-stage, #oml2d-canvas, .oml2d-wrapper');
+        if (!isLive2DArea) return;
         e.preventDefault();
         setContextMenu({ x: e.clientX, y: e.clientY });
       };
@@ -245,7 +261,65 @@ export function PetContainer({ onOpenChat }: PetContainerProps) {
     return undefined;
   }, [useLive2D, live2dReady]);
 
+  // Live2D 舞台在 body 顶层渲染，React 的容器事件捕获不到它的鼠标事件
+  // 这里补一层全局监听：在 Live2D 区域也能触发 Tauri 窗口拖动
+  useEffect(() => {
+    if (!isTauri()) return;
+    if (!useLive2D || !live2dReady) return;
+    if (config.interaction.clickThrough) return;
+
+    const isLive2DArea = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      if (!el) return false;
+      return !!el.closest('#oml2d-stage, #oml2d-canvas, .oml2d-wrapper');
+    };
+
+    const handleGlobalMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      if (!isLive2DArea(e.target)) return;
+      dragCandidateRef.current = { x: e.screenX, y: e.screenY };
+      isWindowDragTriggeredRef.current = false;
+    };
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!dragCandidateRef.current) return;
+      if (isWindowDragTriggeredRef.current) return;
+      if ((e.buttons & 1) !== 1) return;
+
+      const dx = e.screenX - dragCandidateRef.current.x;
+      const dy = e.screenY - dragCandidateRef.current.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance <= 6) return;
+
+      isWindowDragTriggeredRef.current = true;
+      dragCandidateRef.current = null;
+      setClickStart(null);
+
+      try {
+        const appWindow = getCurrentWindow();
+        void appWindow.startDragging();
+      } catch (err) {
+        console.warn('[PetContainer] startDragging (Live2D) failed:', err);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      dragCandidateRef.current = null;
+    };
+
+    document.addEventListener('mousedown', handleGlobalMouseDown, true);
+    document.addEventListener('mousemove', handleGlobalMouseMove, true);
+    document.addEventListener('mouseup', handleGlobalMouseUp, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleGlobalMouseDown, true);
+      document.removeEventListener('mousemove', handleGlobalMouseMove, true);
+      document.removeEventListener('mouseup', handleGlobalMouseUp, true);
+    };
+  }, [config.interaction.clickThrough, live2dReady, useLive2D]);
+
   const handleLive2DReady = useCallback(() => {
+    console.log('[PetContainer] Live2D ready callback triggered! Setting live2dReady to true');
     setLive2dReady(true);
     console.log('Live2D model loaded successfully');
   }, []);

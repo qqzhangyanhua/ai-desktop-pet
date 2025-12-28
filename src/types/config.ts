@@ -69,6 +69,11 @@ export interface AssistantConfig {
     /** 是否保存对话历史到本地数据库 */
     saveChatHistory: boolean;
   };
+  /** 智能体与工具权限（安全策略） */
+  agent: {
+    /** 全局允许的工具白名单（chat/scheduler/workflow 均会强制执行） */
+    enabledTools: string[];
+  };
 }
 
 export type PerformanceMode = 'balanced' | 'battery' | 'performance';
@@ -148,12 +153,12 @@ export const DEFAULT_CONFIG: AppConfig = {
     pushToTalkKey: 'Space',
   },
   live2d: {
-    useLive2D: false,
-    currentModel: 'shizuku',
+    useLive2D: true,  // 默认启用 Live2D
+    currentModel: 'white-cat',
     modelScale: 1.0,
   },
   appearance: {
-    skinId: 'shizuku',
+    skinId: 'white-cat',
     background: { mode: 'none' },
     opacity: 1.0,
     size: { width: 300, height: 400 },
@@ -176,6 +181,10 @@ export const DEFAULT_CONFIG: AppConfig = {
     },
     privacy: {
       saveChatHistory: true,
+    },
+    agent: {
+      // 默认偏"安全模式"：只开启低风险工具
+      enabledTools: ['web_search', 'weather', 'clipboard_read', 'file_read', 'file_exists'],
     },
   },
   performance: {
@@ -201,5 +210,5 @@ export const DEFAULT_CONFIG: AppConfig = {
   startMinimized: false,
   systemPrompt:
     '你是智能桌面宠物助手，擅长陪伴、喂食、娱乐、清洁护理，支持天气/时间播报、闹钟提醒、灯光与简单电脑操作提示，并记住用户偏好提供个性化建议。',
-  useLive2D: false,
+  useLive2D: true,  // 默认启用 Live2D
 };

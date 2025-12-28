@@ -211,9 +211,15 @@ function App() {
             },
             systemPrompt: config.systemPrompt,
             maxSteps: payload.maxSteps ?? 5,
+            source: 'scheduler',
+            allowedTools: config.assistant.agent.enabledTools,
           });
 
-          const result = await runtime.run([{ role: 'user', content: prompt }], payload.toolsAllowed);
+          const enabledTools = payload.toolsAllowed?.length
+            ? payload.toolsAllowed.filter((t) => config.assistant.agent.enabledTools.includes(t))
+            : config.assistant.agent.enabledTools;
+
+          const result = await runtime.run([{ role: 'user', content: prompt }], enabledTools);
           usePetStore.getState().setEmotion('happy');
           usePetStore.getState().showBubble(result.content.slice(0, 120) || '任务已完成', 6500);
           toast.success('定时任务已完成');

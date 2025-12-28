@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live2D Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #333;
+      margin: 0 0 20px 0;
+      font-size: 24px;
+    }
+    .info {
+      padding: 12px;
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .status {
+      padding: 12px;
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .status.success {
+      background: #e8f5e9;
+      border-left-color: #4caf50;
+    }
+    .status.error {
+      background: #ffebee;
+      border-left-color: #f44336;
+    }
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 20px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .log {
+      margin-top: 20px;
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    .log-entry {
+      padding: 4px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+    .log-time {
+      color: #999;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐱 Live2D 测试页面</h1>
+    
+    <div class="info">
+      <strong>测试目的：</strong>验证 Live2D 模型能否正常加载和渲染
+    </div>
+    
+    <div id="status" class="status">
+      <strong>状态：</strong>等待初始化...
+    </div>
+    
+    <div class="controls">
+      <button onclick="loadLive2D()">加载 Live2D</button>
+      <button onclick="testMotion()">测试动作</button>
+      <button onclick="testMessage()">测试消息</button>
+      <button onclick="clearLogs()">清空日志</button>
+    </div>
+    
+    <div class="log" id="log"></div>
+  </div>
+
+  <script type="module">
+    let oml2d = null;
+    let isLoaded = false;
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+      entry.innerHTML = `<span class="log-time">[${time}]</span>${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+      console.log(message);
+    }
+
+    function updateStatus(message, type = 'info') {
+      const statusDiv = document.getElementById('status');
+      statusDiv.className = `status ${type}`;
+      statusDiv.innerHTML = `<strong>状态：</strong>${message}`;
+    }
+
+    window.loadLive2D = async function() {
+      log('开始加载 oh-my-live2d 库...');
+      updateStatus('正在加载...', 'info');
+
+      try {
+        // 动态导入 oh-my-live2d
+        const { loadOml2d } = await import('https://unpkg.com/oh-my-live2d@0.19.3/dist/index.js');
+        log('✓ oh-my-live2d 库加载成功');
+
+        const config = {
+          models: [
+            {
+              name: 'white-cat',
+              path: '/whitecatfree_vts/white-cat.model3.json',
+              scale: 0.15,
+              position: [0, 60],
+              stageStyle: {
+                height: 400,
+                width: 300,
+              },
+            }
+          ],
+          dockedPosition: 'right',
+          primaryColor: '#58b0fc',
+          sayHello: false,
+          tips: {
+            idleTips: {
+              wordTheDay: false,
+            },
+          },
+          statusBar: {
+            disable: true,
+          },
+          menus: {
+            disable: true,
+          },
+        };
+
+        log('配置信息：' + JSON.stringify(config, null, 2));
+        log('开始创建 Live2D 实例...');
+
+        oml2d = loadOml2d(config);
+
+        // 设置事件监听
+        oml2d.onLoad((status) => {
+          if (status === 'success') {
+            log('✓ Live2D 模型加载成功！');
+            updateStatus('Live2D 模型加载成功！', 'success');
+            isLoaded = true;
+          } else {
+            log('✗ Live2D 模型加载失败：' + status, 'error');
+            updateStatus('Live2D 模型加载失败', 'error');
+          }
+        });
+
+        oml2d.onLoadError?.((error) => {
+          log('✗ 加载错误：' + JSON.stringify(error), 'error');
+          updateStatus('加载错误：' + error.message, 'error');
+        });
+
+        log('开始加载模型索引 0...');
+        setTimeout(() => {
+          oml2d.loadModelByIndex(0)
+            .then(() => {
+              log('✓ loadModelByIndex(0) 调用成功');
+            })
+            .catch((err) => {
+              log('✗ loadModelByIndex(0) 失败：' + err.message, 'error');
+              updateStatus('模型加载失败', 'error');
+            });
+        }, 100);
+
+      } catch (error) {
+        log('✗ 初始化失败：' + error.message, 'error');
+        updateStatus('初始化失败：' + error.message, 'error');
+        console.error(error);
+      }
+    };
+
+    window.testMotion = function() {
+      if (!isLoaded) {
+        log('⚠ 请先加载 Live2D 模型', 'warning');
+        return;
+      }
+      log('测试动作：显示消息');
+      oml2d?.tipsMessage('测试动作消息！', 3000, 5);
+    };
+
+    window.testMessage = function() {
+      if (!isLoaded) {
+        log('⚠ 请先加载 Live2D 模型', 'warning');
+        return;
+      }
+      const messages = [
+        '你好呀~ 🐱',
+        '我是 Live2D 模型',
+        '点击我试试吧！',
+        '喵~ ฅ(＾・ω・＾ฅ)',
+      ];
+      const message = messages[Math.floor(Math.random() * messages.length)];
+      log('显示消息：' + message);
+      oml2d?.tipsMessage(message, 3000, 5);
+    };
+
+    window.clearLogs = function() {
+      document.getElementById('log').innerHTML = '';
+      log('日志已清空');
+    };
+
+    // 页面加载完成后自动初始化
+    log('页面已加载，准备就绪');
+    log('模型路径：/whitecatfree_vts/white-cat.model3.json');
+    log('点击"加载 Live2D"按钮开始');
+  </script>
+</body>
+</html>

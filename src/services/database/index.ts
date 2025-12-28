@@ -63,6 +63,23 @@ CREATE TABLE IF NOT EXISTS workflows (
     created_at INTEGER NOT NULL
 );
 
+-- Agent tool audit logs (for safety/observability)
+CREATE TABLE IF NOT EXISTS agent_tool_audit_logs (
+    id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    tool_call_id TEXT NOT NULL UNIQUE,
+    tool_name TEXT NOT NULL,
+    source TEXT NOT NULL,
+    args_json TEXT,
+    result_json TEXT,
+    status TEXT NOT NULL,
+    error TEXT,
+    requires_confirmation INTEGER DEFAULT 0,
+    started_at INTEGER NOT NULL,
+    completed_at INTEGER,
+    duration_ms INTEGER
+);
+
 -- Skins table
 CREATE TABLE IF NOT EXISTS skins (
     id TEXT PRIMARY KEY,
@@ -147,6 +164,8 @@ CREATE TABLE IF NOT EXISTS achievements (
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_agent_tool_logs_created ON agent_tool_audit_logs(started_at);
+CREATE INDEX IF NOT EXISTS idx_agent_tool_logs_tool ON agent_tool_audit_logs(tool_name);
 CREATE INDEX IF NOT EXISTS idx_tasks_next_run ON tasks(next_run, enabled);
 CREATE INDEX IF NOT EXISTS idx_tasks_enabled ON tasks(enabled);
 CREATE INDEX IF NOT EXISTS idx_executions_task ON task_executions(task_id);

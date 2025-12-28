@@ -6,6 +6,7 @@ import type { LLMProviderConfig } from '../../../llm/types';
 import type { WorkflowNode, WorkflowState, AgentMessage } from '../types';
 import { generateId } from '../types';
 import { AgentRuntime } from '../../runtime';
+import { useConfigStore } from '@/stores';
 
 const RESEARCHER_SYSTEM_PROMPT = `You are a research specialist. Your role is to:
 1. Search for relevant information
@@ -82,6 +83,8 @@ export function createResearcherNode(config: ResearcherConfig): WorkflowNode {
         llmConfig,
         systemPrompt: RESEARCHER_SYSTEM_PROMPT,
         maxSteps: 3,
+        source: 'workflow',
+        allowedTools: useConfigStore.getState().config.assistant.agent.enabledTools,
       });
 
       const taskDescriptions = myTasks.map((t) => t.description).join('\n');

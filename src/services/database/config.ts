@@ -75,6 +75,10 @@ export async function loadAppConfig(): Promise<AppConfig> {
           ...DEFAULT_CONFIG.assistant.privacy,
           ...saved.assistant?.privacy,
         },
+        agent: {
+          ...DEFAULT_CONFIG.assistant.agent,
+          ...saved.assistant?.agent,
+        },
       },
       performance: {
         ...DEFAULT_CONFIG.performance,

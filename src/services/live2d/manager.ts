@@ -1,6 +1,5 @@
 // Live2D Manager - Wrapper around OhMyLive2D
 
-import { loadOml2d } from 'oh-my-live2d';
 import type { Live2DModelConfig, Live2DState, Live2DEmotionMapping, PetActionType } from '../../types';
 import type { EmotionType } from '../../types';
 import type { Oml2dMethods, Oml2dProperties, Oml2dEvents } from 'oh-my-live2d';
@@ -37,6 +36,7 @@ export class Live2DManager {
   private speakingTimer: number | null = null;
   private baseScale = 0.1;
   private basePosition: { x: number; y: number } = { x: 0, y: 50 };
+  private isInitializing = false; // Prevent concurrent init calls
 
   constructor() {
     // Manager is initialized but not loaded until init() is called
@@ -47,16 +47,42 @@ export class Live2DManager {
     primaryColor?: string;
     onStateChange?: (state: Live2DState) => void;
   }): Promise<void> {
-    if (this.instance) {
-      console.warn('Live2DManager already initialized');
+    // 强力单例保护：如果实例存在且已加载，直接返回
+    if (this.instance && this.state.isLoaded) {
+      console.log('[Live2DManager] Already initialized and loaded, reusing existing instance');
+      if (options?.onStateChange) {
+        this.onStateChange = options.onStateChange;
+        this.emitStateChange();
+      }
       return;
     }
+
+    if (this.isInitializing) {
+      console.warn('[Live2DManager] Initialization already in progress, skipping concurrent call');
+      // 等待当前初始化完成
+      return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (!this.isInitializing) {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 100);
+      });
+    }
+
+    this.isInitializing = true;
+    console.log('[Live2DManager] Starting initialization with models:', models.map(m => ({ name: m.name, path: m.path })));
 
     this.onStateChange = options?.onStateChange;
     this.models = models;
 
     try {
-      this.instance = loadOml2d({
+      // 懒加载 Live2D 运行时，避免在未启用 Live2D 时被预加载（显著减少首屏体积）
+      console.log('[Live2DManager] Loading oh-my-live2d...');
+      const { loadOml2d } = await import('oh-my-live2d');
+      console.log('[Live2DManager] oh-my-live2d loaded successfully');
+
+      const oml2dConfig = {
         models: models.map(m => ({
           name: m.name,
           path: m.path,
@@ -81,11 +107,44 @@ export class Live2DManager {
         menus: {
           disable: true,
         },
-      }) as Oml2dInstance;
+      };
 
-      // Set up event handlers
-      this.instance.onLoad((status) => {
+      console.log('[Live2DManager] Creating oh-my-live2d instance with config:', JSON.stringify(oml2dConfig, null, 2));
+
+      // Ensure DOM is ready before creating instance
+      if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+          console.log('[Live2DManager] Waiting for DOM to be ready, current readyState:', document.readyState);
+          await new Promise<void>((resolve) => {
+            const handler = () => {
+              console.log('[Live2DManager] DOMContentLoaded fired');
+              resolve();
+            };
+            document.addEventListener('DOMContentLoaded', handler, { once: true });
+          });
+        } else {
+          console.log('[Live2DManager] DOM already ready, readyState:', document.readyState);
+        }
+      }
+
+      // Check if model files exist
+      const firstModel = models[0];
+      if (firstModel) {
+        console.log('[Live2DManager] 将要加载的模型：', firstModel);
+        console.log('[Live2DManager] 请确保以下文件存在：');
+        console.log('[Live2DManager]   - ', firstModel.path);
+      }
+      
+      this.instance = loadOml2d(oml2dConfig) as Oml2dInstance;
+      console.log('[Live2DManager] Instance created:', !!this.instance);
+      console.log('[Live2DManager] Instance type:', typeof this.instance);
+      console.log('[Live2DManager] Instance keys:', Object.keys(this.instance || {}).slice(0, 10));
+
+      // Set up event handlers with immediate callback check
+      const loadHandler = (status: string) => {
+        console.log('[Live2DManager] ⚡ onLoad callback triggered with status:', status);
         if (status === 'success') {
+          console.log('[Live2DManager] ✓ Model loaded successfully! Updating state...');
           this.state.isLoaded = true;
           this.state.currentModelIndex = this.instance?.modelIndex ?? 0;
           this.state.currentModel = this.models[this.state.currentModelIndex]?.name ?? null;
@@ -93,10 +152,37 @@ export class Live2DManager {
           this.baseScale = base?.scale ?? 0.1;
           const pos = base?.position ?? [0, 50];
           this.basePosition = { x: pos[0] ?? 0, y: pos[1] ?? 50 };
-          this.resetModelTransform();
+          console.log('[Live2DManager] State updated:', this.state);
+          
+          // 延迟一小段时间再重置transform，确保模型完全准备好
+          setTimeout(() => {
+            this.resetModelTransform();
+          }, 100);
+          
           this.emitStateChange();
+          this.isInitializing = false;
+          console.log('[Live2DManager] State change emitted, isLoaded:', this.state.isLoaded);
+        } else {
+          console.warn('[Live2DManager] Load status is not success:', status);
         }
-      });
+      };
+      
+      this.instance.onLoad(loadHandler);
+      console.log('[Live2DManager] onLoad handler registered');
+
+      // Add error handler (if available)
+      if ('onLoadError' in this.instance && typeof this.instance.onLoadError === 'function') {
+        this.instance.onLoadError((error: unknown) => {
+          console.error('[Live2DManager] Load error:', error);
+          console.error('[Live2DManager] 可能的原因：');
+          console.error('[Live2DManager]   1. 模型文件路径不正确');
+          console.error('[Live2DManager]   2. 模型文件不存在或无法访问');
+          console.error('[Live2DManager]   3. 模型文件格式不正确');
+          console.error('[Live2DManager]   4. CORS 问题（如果从远程加载）');
+          this.isInitializing = false;
+          this.emitStateChange();
+        });
+      }
 
       this.instance.onStageSlideIn(() => {
         this.state.isPlaying = true;
@@ -108,8 +194,84 @@ export class Live2DManager {
         this.emitStateChange();
       });
 
+      // Wait for DOM to be ready, then trigger initial load
+      // This is necessary because oh-my-live2d doesn't auto-load models
+      if (typeof window !== 'undefined') {
+        console.log('[Live2DManager] Scheduling initial model load...');
+        
+        // Use requestAnimationFrame to ensure DOM is fully rendered
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            if (!this.instance) {
+              console.error('[Live2DManager] Instance was destroyed before model could load');
+              this.isInitializing = false;
+              return;
+            }
+
+            if (this.state.isLoaded) {
+              console.log('[Live2DManager] Model already loaded, skipping');
+              this.isInitializing = false;
+              return;
+            }
+
+            const firstModel = this.models[0];
+            if (!firstModel) {
+              console.error('[Live2DManager] No models configured');
+              this.isInitializing = false;
+              return;
+            }
+            console.log('[Live2DManager] 开始加载模型:', firstModel);
+            console.log('[Live2DManager] 模型路径:', firstModel.path);
+            console.log('[Live2DManager] 完整 URL:', window.location.origin + firstModel.path);
+
+            this.instance.loadModelByIndex(0)
+              .then(() => {
+                console.log('[Live2DManager] ✓ loadModelByIndex(0) promise resolved');
+                // 注意：promise resolved 不代表模型真正加载完成
+                // 需要等待 onLoad 回调触发
+                
+                // 添加超时检测：如果 3 秒后还没加载完成，可能出问题了
+                setTimeout(() => {
+                  if (!this.state.isLoaded) {
+                    console.warn('[Live2DManager] ⚠️ 模型加载超时（3秒后仍未完成）');
+                    console.warn('[Live2DManager] 这可能是 oh-my-live2d 的 onLoad 回调没有触发');
+                    console.warn('[Live2DManager] 尝试手动设置加载状态...');
+                    
+                    // 手动设置加载状态（作为后备方案）
+                    this.state.isLoaded = true;
+                    this.state.currentModelIndex = this.instance?.modelIndex ?? 0;
+                    this.state.currentModel = this.models[this.state.currentModelIndex]?.name ?? null;
+                    const base = this.models[this.state.currentModelIndex];
+                    if (base) {
+                      this.baseScale = base.scale ?? 0.1;
+                      const pos = base.position ?? [0, 50];
+                      this.basePosition = { x: pos[0] ?? 0, y: pos[1] ?? 50 };
+                    }
+                    this.isInitializing = false;
+                    // 不要调用 resetModelTransform()，因为模型可能还没真正准备好
+                    this.emitStateChange();
+                    console.log('[Live2DManager] 🔧 已手动设置为加载完成状态');
+                  }
+                }, 3000);
+              })
+              .catch((err: Error) => {
+                console.error('[Live2DManager] ✗ 加载模型失败:', err.message);
+                console.error('[Live2DManager] 错误详情:', err);
+                console.error('[Live2DManager] 请检查：');
+                console.error('[Live2DManager]   1. 模型路径是否正确:', this.models[0]?.path);
+                console.error('[Live2DManager]   2. 打开浏览器 Network 标签查看请求');
+                console.error('[Live2DManager]   3. 检查控制台是否有 404 或 CORS 错误');
+                this.isInitializing = false;
+              });
+          }, 200);
+        });
+      } else {
+        this.isInitializing = false;
+      }
+
     } catch (error) {
-      console.error('Failed to initialize Live2D:', error);
+      console.error('[Live2DManager] Failed to initialize Live2D:', error);
+      this.isInitializing = false;
       throw error;
     }
   }
@@ -298,6 +460,7 @@ export class Live2DManager {
   setSpeaking(isSpeaking: boolean): void {
     if (typeof window === 'undefined') return;
     if (!this.instance) return;
+    if (!this.state.isLoaded) return; // 模型未加载时跳过
 
     if (!isSpeaking) {
       if (this.speakingTimer) {
@@ -308,8 +471,8 @@ export class Live2DManager {
       try {
         this.instance.setModelRotation(0);
         this.instance.setModelScale(this.baseScale);
-      } catch {
-        // ignore
+      } catch (err) {
+        console.warn('[Live2DManager] Failed to reset speaking state:', err);
       }
       return;
     }
@@ -318,15 +481,15 @@ export class Live2DManager {
 
     let phase = 0;
     this.speakingTimer = window.setInterval(() => {
-      if (!this.instance) return;
+      if (!this.instance || !this.state.isLoaded) return;
       phase += 1;
       const rot = (phase % 4) * 1.2 - 1.8; // [-1.8, 1.8] 的小摆动
       const scale = this.baseScale * (phase % 2 === 0 ? 1.01 : 0.99);
       try {
         this.instance.setModelRotation(rot);
         this.instance.setModelScale(scale);
-      } catch {
-        // ignore
+      } catch (err) {
+        console.warn('[Live2DManager] Failed to animate speaking:', err);
       }
     }, 180);
   }
@@ -398,13 +561,25 @@ export class Live2DManager {
   }
 
   private resetModelTransform(): void {
-    if (!this.instance) return;
+    if (!this.instance) {
+      console.log('[Live2DManager] Skipping transform reset - no instance');
+      return;
+    }
+    if (!this.state.isLoaded) {
+      console.log('[Live2DManager] Skipping transform reset - model not loaded yet');
+      return;
+    }
+    
+    // 检查模型对象是否真的存在
     try {
+      // 尝试调用操作方法，如果失败说明模型还没准备好
       this.instance.setModelRotation(0);
       this.instance.setModelPosition(this.basePosition);
       this.instance.setModelScale(this.baseScale);
-    } catch {
-      // ignore
+      console.log('[Live2DManager] ✓ Transform reset successful');
+    } catch (err) {
+      // 模型还没真正准备好，静默忽略
+      console.log('[Live2DManager] Transform reset skipped - model not ready yet');
     }
   }
 

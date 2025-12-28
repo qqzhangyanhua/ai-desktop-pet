@@ -1,6 +1,8 @@
 import { MCPSettings } from '../MCPSettings';
 import { SchedulerTestPanel } from '../SchedulerTestPanel';
 import { DataSettings } from '../DataSettings';
+import { AgentAuditPanel } from '../AgentAuditPanel';
+import { AgentToolPolicyPanel } from '../AgentToolPolicyPanel';
 import type { MCPServerConfig, MCPClientState } from '../../../services/mcp/types';
 
 interface AdvancedTabProps {
@@ -30,6 +32,8 @@ export function AdvancedTab({
         onConnect={onConnect}
         onDisconnect={onDisconnect}
       />
+      <AgentToolPolicyPanel />
+      <AgentAuditPanel />
       <SchedulerTestPanel />
       <DataSettings />
     </>

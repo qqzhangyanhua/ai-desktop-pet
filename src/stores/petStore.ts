@@ -36,7 +36,8 @@ export const usePetStore = create<PetStore>((set) => {
     scale: 1.0,
     emotion: 'neutral',
     isVisible: true,
-    currentSkinId: 'shizuku',
+    // 默认与配置保持一致：优先展示本地 Live2D 白猫
+    currentSkinId: 'white-cat',
     isListening: false,
     isSpeaking: false,
     bubbleText: null,

@@ -1,4 +1,6 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
+import { isTauri } from '@tauri-apps/api/core';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { X, Heart, Sparkles, Settings } from 'lucide-react';
 import { useChatStore } from '../../stores';
 import { ChatMessage } from './ChatMessage';
@@ -22,6 +24,8 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, isLoading, isStreaming } = useChatStore();
   const [showSettings, setShowSettings] = useState(false);
+  const dragCandidateRef = useRef<{ x: number; y: number } | null>(null);
+  const isWindowDragTriggeredRef = useRef(false);
   const { sendMessage } = useChat({
     onError: (error) => {
       console.error('Chat error:', error);
@@ -31,6 +35,43 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Header drag handlers - allow dragging window by header
+  const handleHeaderMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    if (!isTauri()) return;
+
+    const target = e.target as HTMLElement;
+    if (target.closest('button')) return;
+
+    dragCandidateRef.current = { x: e.screenX, y: e.screenY };
+    isWindowDragTriggeredRef.current = false;
+  }, []);
+
+  const handleHeaderMouseMove = useCallback(async (e: React.MouseEvent) => {
+    if (!dragCandidateRef.current) return;
+    if (isWindowDragTriggeredRef.current) return;
+    if (e.buttons !== 1) return;
+
+    const dx = e.screenX - dragCandidateRef.current.x;
+    const dy = e.screenY - dragCandidateRef.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance <= 6) return;
+
+    isWindowDragTriggeredRef.current = true;
+    dragCandidateRef.current = null;
+
+    try {
+      const appWindow = getCurrentWindow();
+      await appWindow.startDragging();
+    } catch (err) {
+      console.warn('[ChatWindow] startDragging failed:', err);
+    }
+  }, []);
+
+  const handleHeaderMouseUp = useCallback(() => {
+    dragCandidateRef.current = null;
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -42,8 +83,13 @@ export function ChatWindow({ onClose }: ChatWindowProps) {
 
   return (
     <div className="chat-window no-drag">
-      {/* Header */}
-      <div className="chat-header">
+      {/* Header - draggable */}
+      <div
+        className="chat-header chat-header-draggable"
+        onMouseDown={handleHeaderMouseDown}
+        onMouseMove={handleHeaderMouseMove}
+        onMouseUp={handleHeaderMouseUp}
+      >
         <div className="chat-header-left">
           <div className="pet-avatar">
             <Sparkles className="w-4 h-4" />

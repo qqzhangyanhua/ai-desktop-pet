@@ -1,6 +1,14 @@
 // useLive2D hook - React hook for Live2D integration
+// 使用全局初始化器，避免 React 生命周期问题
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { 
+  getLive2DState, 
+  subscribeToLoadState, 
+  getGlobalInstance,
+  initGlobalLive2D,
+  isLive2DLoaded 
+} from '../services/live2d/global-init';
 import { getLive2DManager, destroyLive2DManager } from '../services/live2d';
 import type { Live2DModelConfig, Live2DState } from '../types';
 import type { EmotionType } from '../types';
@@ -26,55 +34,110 @@ interface UseLive2DReturn {
 }
 
 export function useLive2D(options: UseLive2DOptions): UseLive2DReturn {
-  const { models, dockedPosition, primaryColor, autoInit = true } = options;
+  const { autoInit = true } = options;
 
-  const [state, setState] = useState<Live2DState>({
-    isLoaded: false,
-    currentModel: null,
-    currentModelIndex: 0,
-    isPlaying: false,
+  const [state, setState] = useState<Live2DState>(() => {
+    // 初始状态从全局获取
+    const globalState = getLive2DState();
+    return {
+      isLoaded: globalState.isLoaded,
+      currentModel: globalState.isLoaded ? 'white-cat' : null,
+      currentModelIndex: 0,
+      isPlaying: true,
+    };
   });
-  const [isReady, setIsReady] = useState(false);
+  
+  const [isReady, setIsReady] = useState(() => {
+    // 如果全局实例已存在，直接标记为 ready
+    return !!getGlobalInstance();
+  });
+  
   const [error, setError] = useState<Error | null>(null);
-  const initRef = useRef(false);
+  const mountedRef = useRef(true);
 
-  const init = useCallback(async () => {
-    if (initRef.current) return;
-    initRef.current = true;
-
-    try {
-      const manager = getLive2DManager();
-
-      if (manager.isInitialized()) {
-        setState(manager.getState());
-        setIsReady(true);
-        return;
-      }
-
-      await manager.init(models, {
-        dockedPosition,
-        primaryColor,
-        onStateChange: (newState) => {
-          setState(newState);
-        },
-      });
-
-      setIsReady(true);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to initialize Live2D'));
-      initRef.current = false;
-    }
-  }, [models, dockedPosition, primaryColor]);
-
+  // 如果需要，确保全局初始化已启动（避免在某些入口未提前调用 initGlobalLive2D 时卡住）
   useEffect(() => {
-    if (autoInit && models.length > 0) {
-      init();
+    if (!autoInit) return;
+    if (getGlobalInstance()) return;
+    initGlobalLive2D().catch(() => {});
+  }, [autoInit]);
+
+  // 订阅全局状态变化
+  useEffect(() => {
+    console.log('[useLive2D] Setting up global state subscription');
+    mountedRef.current = true;
+
+    // 检查当前状态
+    const currentState = getLive2DState();
+    if (currentState.instance) {
+      setIsReady(true);
+      if (currentState.isLoaded) {
+        setState(prev => ({
+          ...prev,
+          isLoaded: true,
+          currentModel: 'white-cat',
+        }));
+      }
     }
+
+    // 订阅加载完成事件
+    const unsubscribe = subscribeToLoadState(() => {
+      console.log('[useLive2D] Received load state change notification');
+      if (mountedRef.current) {
+        const newState = getLive2DState();
+        console.log('[useLive2D] New state:', newState);
+        setIsReady(!!newState.instance);
+        setState(prev => ({
+          ...prev,
+          isLoaded: newState.isLoaded,
+          currentModel: newState.isLoaded ? 'white-cat' : null,
+        }));
+      }
+    });
 
     return () => {
-      // Don't destroy on unmount - let it persist
+      console.log('[useLive2D] Component unmounting, cleaning up subscription');
+      mountedRef.current = false;
+      unsubscribe();
     };
-  }, [autoInit, models.length, init]);
+  }, []);
+
+  // 轮询检查状态（兜底机制）
+  useEffect(() => {
+    if (state.isLoaded) return;
+
+    const checkInterval = setInterval(() => {
+      if (isLive2DLoaded() && mountedRef.current) {
+        console.log('[useLive2D] Polling detected loaded state');
+        setState(prev => ({
+          ...prev,
+          isLoaded: true,
+          currentModel: 'white-cat',
+        }));
+        clearInterval(checkInterval);
+      }
+    }, 500);
+
+    return () => clearInterval(checkInterval);
+  }, [state.isLoaded]);
+
+  // init 现在是空操作，因为初始化在 main.tsx 中完成
+  const init = useCallback(async () => {
+    console.log('[useLive2D] init() called - using global initializer');
+    // 全局初始化已经在 main.tsx 中启动
+    // 这里只需要等待它完成
+    const currentState = getLive2DState();
+    if (currentState.instance) {
+      setIsReady(true);
+      if (currentState.isLoaded) {
+        setState(prev => ({
+          ...prev,
+          isLoaded: true,
+          currentModel: 'white-cat',
+        }));
+      }
+    }
+  }, []);
 
   const loadModel = useCallback(async (indexOrName: number | string) => {
     try {
@@ -95,23 +158,57 @@ export function useLive2D(options: UseLive2DOptions): UseLive2DReturn {
   }, []);
 
   const show = useCallback(async () => {
-    const manager = getLive2DManager();
-    await manager.show();
+    const instance = getGlobalInstance();
+    if (instance?.stageSlideIn) {
+      await instance.stageSlideIn();
+    }
   }, []);
 
   const hide = useCallback(async () => {
-    const manager = getLive2DManager();
-    await manager.hide();
+    const instance = getGlobalInstance();
+    if (instance?.stageSlideOut) {
+      await instance.stageSlideOut();
+    }
   }, []);
 
   const showMessage = useCallback((message: string, duration: number = 3000) => {
-    const manager = getLive2DManager();
-    manager.showMessage(message, duration);
+    const instance = getGlobalInstance();
+    if (instance?.tipsMessage) {
+      // oh-my-live2d 内部用 innerHTML 渲染消息，这里做一次最小安全处理：
+      // 1) 转义 HTML，避免注入
+      // 2) 将换行转成 <br/>，避免“看起来显示不全”
+      const escaped = message
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/\n/g, '<br/>');
+      instance.tipsMessage(escaped, duration, 5);
+    }
   }, []);
 
   const triggerEmotion = useCallback((emotion: EmotionType) => {
-    const manager = getLive2DManager();
-    manager.triggerEmotion(emotion);
+    console.log('[useLive2D] Triggering emotion:', emotion);
+    // 情绪触发可以通过全局实例完成
+    const instance = getGlobalInstance();
+    if (instance?.tipsMessage) {
+      // 简单实现：显示情绪消息
+      const emotionMessages: Record<string, string> = {
+        happy: '😊',
+        sad: '😢',
+        angry: '😠',
+        surprised: '😲',
+        thinking: '🤔',
+        neutral: '',
+        excited: '🎉',
+        confused: '😕',
+      };
+      const msg = emotionMessages[emotion];
+      if (msg) {
+        instance.tipsMessage(msg, 2000, 5);
+      }
+    }
   }, []);
 
   return {

@@ -5,23 +5,13 @@ import { useLive2D } from '../../hooks';
 import { usePetStore } from '../../stores';
 import type { Live2DModelConfig } from '../../types';
 
-// Default model configuration using free online models
+// Default model configuration - local models for better performance
 const DEFAULT_MODELS: Live2DModelConfig[] = [
   {
-    name: 'shizuku',
-    path: 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/shizuku/shizuku.model.json',
-    scale: 0.25,
-    position: [0, 50],
-    stageStyle: {
-      height: 400,
-      width: 300,
-    },
-  },
-  {
-    name: 'haru',
-    path: 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json',
-    scale: 0.08,
-    position: [0, 80],
+    name: 'white-cat',
+    path: '/whitecatfree_vts/white-cat.model3.json',
+    scale: 0.15,
+    position: [0, 60],
     stageStyle: {
       height: 400,
       width: 300,
@@ -40,6 +30,8 @@ export function Live2DPet({
   onReady,
   onError,
 }: Live2DPetProps) {
+  console.log('[Live2DPet] Component mounted/updated with models:', models.map(m => m.name));
+
   const { emotion, bubbleText } = usePetStore();
 
   const {
@@ -54,9 +46,13 @@ export function Live2DPet({
     autoInit: true,
   });
 
+  console.log('[Live2DPet] Hook state - isReady:', isReady, 'state.isLoaded:', state.isLoaded, 'error:', error);
+
   // Notify parent when ready
   useEffect(() => {
+    console.log('[Live2DPet] Ready check - isReady:', isReady, 'state.isLoaded:', state.isLoaded, 'will call onReady:', isReady && state.isLoaded);
     if (isReady && state.isLoaded) {
+      console.log('[Live2DPet] Calling onReady callback!');
       onReady?.();
     }
   }, [isReady, state.isLoaded, onReady]);

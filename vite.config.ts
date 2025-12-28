@@ -13,6 +13,8 @@ export default defineConfig(async () => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // 解决 @langchain/langgraph 在浏览器下 import "node:async_hooks" 的兼容警告
+      'node:async_hooks': path.resolve(__dirname, './src/shims/async_hooks.ts'),
     },
   },
 
@@ -62,7 +64,8 @@ export default defineConfig(async () => ({
           // React core
           'react-vendor': ['react', 'react-dom'],
           // Live2D and rendering
-          'live2d-vendor': ['pixi.js', 'oh-my-live2d'],
+          'pixi-vendor': ['pixi.js'],
+          'live2d-vendor': ['oh-my-live2d'],
           // AI SDK (Vercel AI)
           'ai-sdk': ['ai', '@ai-sdk/openai', '@ai-sdk/anthropic', 'ollama-ai-provider'],
           // LangChain

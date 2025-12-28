@@ -4,6 +4,7 @@ import type { LLMProviderConfig } from '../../../llm/types';
 import type { WorkflowNode, WorkflowState, AgentMessage } from '../types';
 import { generateId } from '../types';
 import { AgentRuntime } from '../../runtime';
+import { useConfigStore } from '@/stores';
 
 const EXECUTOR_SYSTEM_PROMPT = `You are an execution specialist. Your role is to:
 1. Execute tools and commands to accomplish tasks
@@ -60,6 +61,8 @@ export function createExecutorNode(config: ExecutorConfig): WorkflowNode {
         llmConfig,
         systemPrompt: EXECUTOR_SYSTEM_PROMPT,
         maxSteps: 5,
+        source: 'workflow',
+        allowedTools: useConfigStore.getState().config.assistant.agent.enabledTools,
       });
 
       const taskDescriptions = myTasks.map((t) => t.description).join('\n');
