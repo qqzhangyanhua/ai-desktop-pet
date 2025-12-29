@@ -1,12 +1,13 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { isTauri } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { Heart, Sparkles, Settings, Send, RotateCcw } from 'lucide-react';
+import { Heart, Sparkles, Settings, Send, RotateCcw, Sun, Gamepad2, Apple, MessageCircle, Trash2 } from 'lucide-react';
 import { useChatStore } from '../../stores';
 import { ChatSettings } from './ChatSettings';
 import { ToastProvider } from './Toast';
 import { useToast } from './useToast';
 import { useChat } from '../../hooks';
+import { MessageItem } from './MessageItem';
 import '../../components/settings/game-ui.css';
 
 interface ChatWindowProps {
@@ -14,30 +15,33 @@ interface ChatWindowProps {
 }
 
 const SUGGESTED_QUESTIONS = [
-  { icon: '☀️', text: '今天天气怎么样？' },
-  { icon: '🎮', text: '陪我玩个游戏吧' },
-  { icon: '🍎', text: '我想吃苹果了' },
-  { icon: '💭', text: '你现在的心情如何？' },
+  { Icon: Sun, text: '今天天气怎么样？' },
+  { Icon: Gamepad2, text: '陪我玩个游戏吧' },
+  { Icon: Apple, text: '我想吃苹果了' },
+  { Icon: MessageCircle, text: '你现在的心情如何？' },
 ];
 
 export function ChatWindow(_props: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { messages, isLoading, isStreaming } = useChatStore();
   const [showSettings, setShowSettings] = useState(false);
   const [input, setInput] = useState('');
+  const [autoScroll, setAutoScroll] = useState(true);
   const dragCandidateRef = useRef<{ x: number; y: number } | null>(null);
   const isWindowDragTriggeredRef = useRef(false);
 
   // Local toast for chat window
   const toast = useToast();
   
-  const { sendMessage, abort } = useChat({
+  const { sendMessage, abort, clearChat } = useChat({
     onError: (error) => {
       console.error('Chat error:', error);
+      toast.error('发送消息失败', error.message || '请稍后重试');
     },
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
   };
 
@@ -88,9 +92,18 @@ export function ChatWindow(_props: ChatWindowProps) {
     dragCandidateRef.current = null;
   }, []);
 
+  const handleScroll = useCallback(() => {
+    if (!messagesContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    setAutoScroll(isAtBottom);
+  }, []);
+
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (autoScroll) {
+      scrollToBottom();
+    }
+  }, [messages.length, autoScroll]);
 
   const handleSuggestedQuestion = async (question: string) => {
     await handleSendMessage(question);
@@ -104,6 +117,33 @@ export function ChatWindow(_props: ChatWindowProps) {
       }
     }
   };
+
+  const handleClearChat = () => {
+    if (messages.length === 0) return;
+    if (confirm('确定要清空对话吗？此操作不可恢复。')) {
+      clearChat();
+      toast.success('已清空对话');
+    }
+  };
+
+  const handleRegenerateMessage = useCallback((messageId: string) => {
+    const { removeMessagesAfter } = useChatStore.getState();
+    const messageIndex = messages.findIndex((m) => m.id === messageId);
+    if (messageIndex === -1 || messageIndex === 0) return;
+
+    // Find the previous user message
+    const userMessage = messages[messageIndex - 1];
+    if (!userMessage || userMessage.role !== 'user') return;
+
+    // Remove current assistant message and regenerate
+    removeMessagesAfter(messageId);
+    sendMessage(userMessage.content);
+  }, [messages, sendMessage]);
+
+  const handleDeleteMessage = useCallback((messageId: string) => {
+    const { deleteMessage } = useChatStore.getState();
+    deleteMessage(messageId);
+  }, []);
 
   return (
     <ToastProvider toasts={toast.toasts} onRemove={toast.removeToast}>
@@ -129,6 +169,14 @@ export function ChatWindow(_props: ChatWindowProps) {
         </div>
         <div className="flex gap-1">
           <button
+            onClick={handleClearChat}
+            className="game-btn game-btn-orange p-1 w-8 h-8 justify-center rounded-lg"
+            title="清空对话"
+            disabled={messages.length === 0}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+          <button
             onClick={() => setShowSettings(true)}
             className="game-btn game-btn-orange p-1 w-8 h-8 justify-center rounded-lg"
             title="聊天设置"
@@ -139,7 +187,11 @@ export function ChatWindow(_props: ChatWindowProps) {
       </div>
 
       {/* Messages */}
-      <div className="game-chat-messages">
+      <div
+        ref={messagesContainerRef}
+        className="game-chat-messages"
+        onScroll={handleScroll}
+      >
         {messages.length === 0 ? (
           <div className="game-empty-state">
             <div className="mb-4 text-[#FFB74D]">
@@ -155,22 +207,22 @@ export function ChatWindow(_props: ChatWindowProps) {
                   className="game-question-chip"
                   onClick={() => handleSuggestedQuestion(q.text)}
                 >
-                  <span>{q.icon}</span>
+                  <q.Icon className="w-4 h-4" />
                   <span>{q.text}</span>
                 </button>
               ))}
             </div>
           </div>
         ) : (
-          messages.map((message) => {
-            return (
-              <div key={message.id} className={`game-chat-message ${message.role}`}>
-                 <div className="game-message-bubble">
-                    {message.content}
-                 </div>
-              </div>
-            );
-          })
+          messages.map((message, idx) => (
+            <MessageItem
+              key={message.id}
+              message={message}
+              isStreaming={isStreaming && idx === messages.length - 1}
+              onRegenerate={() => handleRegenerateMessage(message.id)}
+              onDelete={() => handleDeleteMessage(message.id)}
+            />
+          ))
         )}
 
         {isLoading && !isStreaming && (
@@ -190,24 +242,30 @@ export function ChatWindow(_props: ChatWindowProps) {
 
       {/* Input */}
       <div className="game-chat-input-container">
-        <input 
-            className="game-chat-input"
+        <textarea
+            className="game-chat-input resize-none"
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="输入消息..."
             disabled={isLoading && !isStreaming}
+            rows={1}
+            style={{
+              minHeight: '40px',
+              maxHeight: '120px',
+              overflowY: 'auto',
+            }}
         />
         {isLoading && isStreaming ? (
-            <button 
-                className="game-chat-send-btn bg-red-100 border-red-300" 
+            <button
+                className="game-chat-send-btn bg-red-100 border-red-300"
                 onClick={abort}
             >
                 <RotateCcw className="w-4 h-4 text-red-500" />
             </button>
         ) : (
-            <button 
-                className="game-chat-send-btn" 
+            <button
+                className="game-chat-send-btn"
                 onClick={() => handleSendMessage(input)}
                 disabled={!input.trim() || isLoading}
             >

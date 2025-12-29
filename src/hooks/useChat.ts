@@ -11,6 +11,8 @@ import {
   updateConversation,
 } from '../services/database/conversations';
 import { recordInteractionAndCheck } from './useAchievementListener';
+import { collectPetContext, enrichSystemPrompt } from '../services/proactive';
+import { detectEmotion, getPetEmotion, getEmotionResponse } from '../services/memory';
 import type { Message } from '../types';
 
 interface UseChatOptions {
@@ -34,7 +36,7 @@ export function useChat(options: UseChatOptions = {}) {
     setCurrentConversation,
   } = useChatStore();
 
-  const { setEmotion } = usePetStore();
+  const { setEmotion: setPetEmotion, showBubble: petShowBubble } = usePetStore();
   const { config: appConfig } = useConfigStore();
   const saveChatHistory = appConfig.assistant.privacy.saveChatHistory;
 
@@ -91,10 +93,21 @@ export function useChat(options: UseChatOptions = {}) {
       addMessage(userMessage);
       setLoading(true);
       setStreaming(true);
-      setEmotion('thinking');
+      setPetEmotion('thinking');
 
       // Record chat interaction for achievement tracking
       void recordInteractionAndCheck('chat');
+
+      // Detect user emotion
+      const emotionResult = detectEmotion(content);
+      if (emotionResult.detected) {
+        const petEmotion = getPetEmotion(emotionResult.emotion);
+        setPetEmotion(petEmotion);
+
+        // Show emotion response bubble
+        const responseText = getEmotionResponse(emotionResult.emotion);
+        petShowBubble(responseText, 4000);
+      }
 
       // Save user message to database
       if (saveChatHistory && !conversationId.startsWith('local:')) {
@@ -136,15 +149,25 @@ export function useChat(options: UseChatOptions = {}) {
         // Get all messages except the empty assistant placeholder
         const historyMessages = [...messages, userMessage];
 
+        // Collect context and enrich system prompt
+        let enrichedSystemPrompt = appConfig.systemPrompt;
+        try {
+          const context = await collectPetContext();
+          enrichedSystemPrompt = enrichSystemPrompt(appConfig.systemPrompt, context);
+        } catch (error) {
+          console.warn('[useChat] Failed to collect context, using base prompt:', error);
+          // Fall back to base prompt
+        }
+
         const result = await sessionRef.current.sendMessage({
           messages: historyMessages,
-          systemPrompt: appConfig.systemPrompt,
+          systemPrompt: enrichedSystemPrompt,
           config: llmConfig,
           onToken: (token) => {
             appendToLastMessage(token);
           },
           onComplete: async (finalContent) => {
-            setEmotion('happy');
+            setPetEmotion('happy');
 
             // Save assistant message to database
             if (saveChatHistory && !conversationId.startsWith('local:')) {
@@ -167,7 +190,7 @@ export function useChat(options: UseChatOptions = {}) {
           },
           onError: (error) => {
             console.error('LLM error:', error);
-            setEmotion('confused');
+            setPetEmotion('confused');
             if (onError) {
               onError(error);
             }
@@ -180,7 +203,7 @@ export function useChat(options: UseChatOptions = {}) {
         }
       } catch (error) {
         console.error('Failed to get response:', error);
-        setEmotion('confused');
+        setPetEmotion('confused');
 
         const errorMessage =
           error instanceof Error
@@ -206,11 +229,12 @@ export function useChat(options: UseChatOptions = {}) {
       addMessage,
       setLoading,
       setStreaming,
-      setEmotion,
+      setPetEmotion,
       appendToLastMessage,
       updateMessage,
       onError,
       saveChatHistory,
+      petShowBubble,
     ]
   );
 
@@ -219,9 +243,9 @@ export function useChat(options: UseChatOptions = {}) {
       sessionRef.current.abort();
       setLoading(false);
       setStreaming(false);
-      setEmotion('neutral');
+      setPetEmotion('neutral');
     }
-  }, [setLoading, setStreaming, setEmotion]);
+  }, [setLoading, setStreaming, setPetEmotion]);
 
   const isGenerating = useCallback(() => {
     return sessionRef.current?.isActive() ?? false;

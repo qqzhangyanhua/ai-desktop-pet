@@ -51,12 +51,17 @@
     ],
     "security": {
       "csp": null,
-      "capabilities": ["default"]
+      "capabilities": [
+        "default"
+      ]
     }
   },
   "plugins": {
     "sql": {
       "preload": ["sqlite:pet.db"]
+    },
+    "autostart": {
+      "modes": ["LoginItem", "LaunchAtStartup"]
     }
   }
 }

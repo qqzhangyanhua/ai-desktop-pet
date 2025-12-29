@@ -178,6 +178,36 @@ CREATE TABLE IF NOT EXISTS auto_work_history (
     created_at INTEGER NOT NULL
 );
 
+-- User profiles table (for Phase 1.1 memory system)
+CREATE TABLE IF NOT EXISTS user_profiles (
+    id INTEGER PRIMARY KEY,
+    nickname TEXT NOT NULL DEFAULT '主人',
+    wake_up_hour INTEGER DEFAULT 7,
+    sleep_hour INTEGER DEFAULT 23,
+    preferred_topics TEXT,
+    work_schedule TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+-- Long term memory table (for Phase 1.1 memory system)
+CREATE TABLE IF NOT EXISTS long_term_memory (
+    id TEXT PRIMARY KEY,
+    category TEXT NOT NULL,
+    content TEXT NOT NULL,
+    importance INTEGER DEFAULT 5,
+    last_accessed INTEGER,
+    access_count INTEGER DEFAULT 1,
+    created_at INTEGER NOT NULL
+);
+
+-- Care history table (for Phase 1.1 memory system)
+CREATE TABLE IF NOT EXISTS care_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    action_type TEXT NOT NULL,
+    timestamp INTEGER NOT NULL
+);
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
@@ -193,6 +223,9 @@ CREATE INDEX IF NOT EXISTS idx_achievements_unlocked ON achievements(is_unlocked
 CREATE INDEX IF NOT EXISTS idx_achievements_type ON achievements(type);
 CREATE INDEX IF NOT EXISTS idx_auto_work_created ON auto_work_history(created_at);
 CREATE INDEX IF NOT EXISTS idx_auto_work_type ON auto_work_history(work_type);
+CREATE INDEX IF NOT EXISTS idx_memory_category ON long_term_memory(category);
+CREATE INDEX IF NOT EXISTS idx_memory_importance ON long_term_memory(importance DESC);
+CREATE INDEX IF NOT EXISTS idx_care_timestamp ON care_history(timestamp);
 `;
 
 /**
@@ -233,6 +266,31 @@ async function migratePetStatus(db: Database): Promise<void> {
   }
 }
 
+/**
+ * 迁移user_profiles表：首次启动时插入默认记录
+ * @param db Database instance
+ */
+async function migrateUserProfile(db: Database): Promise<void> {
+  try {
+    const existing = await db.select<Array<{ count: number }>>(
+      'SELECT COUNT(*) as count FROM user_profiles'
+    );
+
+    if (existing[0]?.count === 0) {
+      const now = Date.now();
+      await db.execute(
+        `INSERT INTO user_profiles (id, nickname, wake_up_hour, sleep_hour, preferred_topics, work_schedule, created_at, updated_at)
+         VALUES (1, '主人', 7, 23, NULL, NULL, ?, ?)`,
+        [now, now]
+      );
+      console.log('[Database] User profile default record inserted');
+    }
+  } catch (error) {
+    console.error('[Database] Failed to migrate user_profile:', error);
+    throw error;
+  }
+}
+
 export async function initDatabase(): Promise<Database> {
   if (db) return db;
 
@@ -261,6 +319,9 @@ export async function initDatabase(): Promise<Database> {
 
   // Migrate pet_status: insert default record if not exist
   await migratePetStatus(db);
+
+  // Migrate user_profiles: insert default record if not exist
+  await migrateUserProfile(db);
 
   console.log('Database initialized');
   return db;

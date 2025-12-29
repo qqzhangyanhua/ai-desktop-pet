@@ -16,3 +16,6 @@ export * from './assistant';
 export * from './economy';
 export * from './keyboard';
 export * from './system';
+export * from './memory';
+export * from './proactive';
+export * from './message-ui';

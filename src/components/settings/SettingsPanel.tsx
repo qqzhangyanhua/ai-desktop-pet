@@ -6,13 +6,14 @@ import { BehaviorTab } from './tabs/BehaviorTab';
 import { AssistantTab } from './tabs/AssistantTab';
 import { PerformanceTab } from './tabs/PerformanceTab';
 import { AdvancedTab } from './tabs/AdvancedTab';
+import { MemoryTab } from './tabs/MemoryTab';
 import { StatsPanel } from './StatsPanel';
 import { getMCPManager } from '../../services/mcp';
 import { getSkinManager } from '../../services/skin';
 import type { MCPServerConfig, MCPClientState } from '../../services/mcp/types';
 import { Button } from '@/components/ui/button';
 
-type SettingsTab = 'appearance' | 'behavior' | 'assistant' | 'statistics' | 'performance' | 'advanced';
+type SettingsTab = 'appearance' | 'behavior' | 'assistant' | 'statistics' | 'performance' | 'advanced' | 'memory';
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -181,6 +182,14 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
           >
             高级
           </Button>
+          <Button
+            className={`settings-tab ${activeTab === 'memory' ? 'active' : ''}`}
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveTab('memory')}
+          >
+            记忆管理
+          </Button>
         </div>
 
         <div className="settings-content">
@@ -225,6 +234,8 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
               onMCPDisconnect={handleMCPDisconnect}
             />
           )}
+
+          {activeTab === 'memory' && <MemoryTab />}
         </div>
 
         <div

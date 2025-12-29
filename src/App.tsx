@@ -16,18 +16,23 @@ import { getPushToTalkManager } from './services/voice';
 import { initializeStatsService } from './services/statistics';
 import { initializeAchievements } from './services/achievements';
 import { AgentRuntime } from './services/agent';
-import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, toast } from './stores';
+import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, useUserProfileStore, toast } from './stores';
 import { getSkinManager } from './services/skin';
 import { useAchievementListener } from './hooks';
+import { useProactiveBehavior } from './hooks/useProactiveBehavior';
 import './styles/global.css';
 
 function App() {
   const [dbReady, setDbReady] = useState(false);
   const { showBubble } = usePetStore();
   const { config, isLoaded: isConfigLoaded } = useConfigStore();
+  const { loadProfile: loadUserProfile } = useUserProfileStore();
 
   // 监听成就解锁事件
   useAchievementListener();
+
+  // Enable proactive behavior
+  useProactiveBehavior(true);
 
   // Initialize database, scheduler, and load config
   useEffect(() => {
@@ -88,6 +93,10 @@ function App() {
         const { loadStatus } = usePetStatusStore.getState();
         await loadStatus();
         console.log('[App] Pet status loaded');
+
+        // Load user profile
+        await loadUserProfile();
+        console.log('[App] User profile loaded');
 
         // Initialize statistics service
         await initializeStatsService();

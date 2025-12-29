@@ -69,31 +69,37 @@ export function ChatSettings({ toast, onClose }: ChatSettingsProps) {
 
   // 保存 LLM 配置
   const handleSaveLLM = async () => {
-    setConfig({ llm: llmConfig, systemPrompt });
     try {
+      console.log('[ChatSettings] Saving LLM config:', { llmConfig, systemPrompt });
+      setConfig({ llm: llmConfig, systemPrompt });
       await saveConfig();
+      console.log('[ChatSettings] LLM config saved successfully');
       toast.success('LLM 配置已保存');
     } catch (error) {
-      console.error('Failed to save LLM config:', error);
-      toast.error('保存失败');
+      console.error('[ChatSettings] Failed to save LLM config:', error);
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      toast.error('保存失败', errorMessage);
     }
   };
 
   // 保存对话设置
   const handleSaveChatConfig = async () => {
-    setConfig({
-      chat: {
-        ...config.chat,
-        streaming: chatStreaming,
-        maxTokens: chatMaxTokens
-      }
-    });
     try {
+      console.log('[ChatSettings] Saving chat config:', { chatStreaming, chatMaxTokens });
+      setConfig({
+        chat: {
+          ...config.chat,
+          streaming: chatStreaming,
+          maxTokens: chatMaxTokens
+        }
+      });
       await saveConfig();
+      console.log('[ChatSettings] Chat config saved successfully');
       toast.success('对话设置已保存');
     } catch (error) {
-      console.error('Failed to save chat config:', error);
-      toast.error('保存失败');
+      console.error('[ChatSettings] Failed to save chat config:', error);
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      toast.error('保存失败', errorMessage);
     }
   };
 
@@ -106,16 +112,19 @@ export function ChatSettings({ toast, onClose }: ChatSettingsProps) {
 
     setIsImporting(true);
     try {
+      console.log('[ChatSettings] Importing knowledge base');
       const newSystemPrompt = systemPrompt + '\n\n# 知识库\n' + knowledgeBase;
       setSystemPrompt(newSystemPrompt);
       setConfig({ systemPrompt: newSystemPrompt });
       await saveConfig();
 
       setKnowledgeBase('');
+      console.log('[ChatSettings] Knowledge base imported successfully');
       toast.success('知识库导入成功');
     } catch (error) {
-      console.error('Failed to import knowledge:', error);
-      toast.error('导入失败');
+      console.error('[ChatSettings] Failed to import knowledge:', error);
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      toast.error('导入失败', errorMessage);
     } finally {
       setIsImporting(false);
     }

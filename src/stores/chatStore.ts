@@ -10,6 +10,8 @@ interface ChatStore extends ChatState {
   setLoading: (isLoading: boolean) => void;
   setStreaming: (isStreaming: boolean) => void;
   appendToLastMessage: (content: string) => void;
+  removeMessagesAfter: (messageId: string) => void;
+  deleteMessage: (id: string) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -50,4 +52,16 @@ export const useChatStore = create<ChatStore>((set) => ({
       }
       return { messages };
     }),
+
+  removeMessagesAfter: (messageId) =>
+    set((state) => {
+      const index = state.messages.findIndex((m) => m.id === messageId);
+      if (index === -1) return state;
+      return { messages: state.messages.slice(0, index) };
+    }),
+
+  deleteMessage: (id) =>
+    set((state) => ({
+      messages: state.messages.filter((m) => m.id !== id),
+    })),
 }));
