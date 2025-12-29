@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useCareStore, useConfigStore, usePetStore, toast } from '../stores';
+import { useCareStore, useConfigStore, usePetStore } from '../stores';
 import { getLive2DManager } from '../services/live2d';
 import type { PetActionType } from '../types';
 import { getPetActionFeedback } from '@/services/pet/action-feedback';
@@ -61,9 +61,7 @@ export function usePetActions() {
     }
 
     const warning = report.warnings[0];
-    if (warning && config.behavior.notifications.toastEnabled) {
-      toast.info(warning);
-    }
+    // Warning is already shown in bubble via getPetActionFeedback
   }, []);
 
   return { runPetAction };

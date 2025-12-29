@@ -8,6 +8,9 @@
  * 包含宠物的核心属性值和时间戳信息
  */
 export interface PetStatus {
+  /** 宠物昵称 */
+  nickname: string;
+
   /** 心情值 (0-100) - 影响表情和互动反馈 */
   mood: number;
 
@@ -46,6 +49,7 @@ export interface PetStatus {
  * Linus 准则: "消除特殊情况 - 永远有值"
  */
 export const DEFAULT_PET_STATUS: PetStatus = {
+  nickname: '我的宠物',
   mood: 100,
   energy: 100,
   intimacy: 20,

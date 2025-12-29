@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS task_executions (
 -- Pet status table (for pet care system)
 CREATE TABLE IF NOT EXISTS pet_status (
     id INTEGER PRIMARY KEY,
+    nickname TEXT NOT NULL DEFAULT '我的宠物',
     mood REAL DEFAULT 80.0,
     energy REAL DEFAULT 100.0,
     intimacy REAL DEFAULT 0.0,
@@ -229,7 +230,7 @@ CREATE INDEX IF NOT EXISTS idx_care_timestamp ON care_history(timestamp);
 `;
 
 /**
- * 迁移pet_status表：首次启动时插入默认记录，已有数据添加金币/经验字段
+ * 迁移pet_status表：首次启动时插入默认记录，已有数据添加金币/经验/昵称字段
  * @param db Database instance
  */
 async function migratePetStatus(db: Database): Promise<void> {
@@ -243,8 +244,8 @@ async function migratePetStatus(db: Database): Promise<void> {
       // 首次启动，插入默认状态
       const now = Date.now();
       await db.execute(
-        `INSERT INTO pet_status (id, last_interaction, coins, experience, created_at, updated_at)
-         VALUES (1, ?, 0, 0, ?, ?)`,
+        `INSERT INTO pet_status (id, nickname, last_interaction, coins, experience, created_at, updated_at)
+         VALUES (1, '我的宠物', ?, 0, 0, ?, ?)`,
         [now, now, now]
       );
       console.log('[Database] Pet status default record inserted');
@@ -258,6 +259,14 @@ async function migratePetStatus(db: Database): Promise<void> {
         await db.execute('ALTER TABLE pet_status ADD COLUMN coins INTEGER DEFAULT 0');
         await db.execute('ALTER TABLE pet_status ADD COLUMN experience INTEGER DEFAULT 0');
         console.log('[Database] Added coins and experience columns to pet_status');
+      }
+
+      // 检查并添加 nickname 字段
+      try {
+        await db.select('SELECT nickname FROM pet_status LIMIT 1');
+      } catch {
+        await db.execute("ALTER TABLE pet_status ADD COLUMN nickname TEXT NOT NULL DEFAULT '我的宠物'");
+        console.log('[Database] Added nickname column to pet_status');
       }
     }
   } catch (error) {

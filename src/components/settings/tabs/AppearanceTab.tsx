@@ -151,31 +151,34 @@ export function AppearanceTab({ localConfig, setLocalConfig }: AppearanceTabProp
 
         <div className="settings-row">
           <span className="settings-label">透明度</span>
-          <input
-            type="range"
-            min="0.2"
-            max="1"
-            step="0.05"
-            value={localConfig.appearance.opacity}
-            onChange={(e) =>
-              setLocalConfig((prev) => ({
-                ...prev,
-                appearance: { ...prev.appearance, opacity: parseFloat(e.target.value) },
-              }))
-            }
-            style={{ width: '150px' }}
-          />
-          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
-            {Math.round(localConfig.appearance.opacity * 100)}%
-          </span>
+          <div className="slider-container">
+            <input
+              type="range"
+              min="0.2"
+              max="1"
+              step="0.05"
+              value={localConfig.appearance.opacity}
+              onChange={(e) =>
+                setLocalConfig((prev) => ({
+                  ...prev,
+                  appearance: { ...prev.appearance, opacity: parseFloat(e.target.value) },
+                }))
+              }
+              className="game-slider"
+              style={{ width: '150px' }}
+            />
+            <span className="slider-value">
+              {Math.round(localConfig.appearance.opacity * 100)}%
+            </span>
+          </div>
         </div>
 
         <div className="settings-row">
           <span className="settings-label">显示尺寸</span>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div className="game-flex-row">
             <Input
               type="number"
-              className="settings-input"
+              className="game-input-sm"
               value={localConfig.appearance.size.width}
               onChange={(e) =>
                 setLocalConfig((prev) => ({
@@ -189,12 +192,11 @@ export function AppearanceTab({ localConfig, setLocalConfig }: AppearanceTabProp
                   },
                 }))
               }
-              style={{ width: '92px' }}
             />
-            <span style={{ fontSize: '12px', color: '#666' }}>×</span>
+            <span style={{ fontSize: '12px', color: '#5D4037' }}>×</span>
             <Input
               type="number"
-              className="settings-input"
+              className="game-input-sm"
               value={localConfig.appearance.size.height}
               onChange={(e) =>
                 setLocalConfig((prev) => ({
@@ -208,14 +210,13 @@ export function AppearanceTab({ localConfig, setLocalConfig }: AppearanceTabProp
                   },
                 }))
               }
-              style={{ width: '92px' }}
             />
           </div>
         </div>
 
-        <div className="settings-row" style={{ borderBottom: 'none', gap: '8px' }}>
+        <div className="settings-row settings-row-no-border">
           <span className="settings-label">快速预设</span>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="game-flex-row">
             <Button
               onClick={() =>
                 setLocalConfig((prev) => ({
@@ -223,7 +224,7 @@ export function AppearanceTab({ localConfig, setLocalConfig }: AppearanceTabProp
                   appearance: { ...prev.appearance, size: { width: 260, height: 360 } },
                 }))
               }
-              variant="outline"
+              className="preset-btn"
               size="sm"
             >
               小
@@ -235,7 +236,7 @@ export function AppearanceTab({ localConfig, setLocalConfig }: AppearanceTabProp
                   appearance: { ...prev.appearance, size: { width: 300, height: 400 } },
                 }))
               }
-              variant="outline"
+              className="preset-btn"
               size="sm"
             >
               标准
@@ -247,7 +248,7 @@ export function AppearanceTab({ localConfig, setLocalConfig }: AppearanceTabProp
                   appearance: { ...prev.appearance, size: { width: 360, height: 480 } },
                 }))
               }
-              variant="outline"
+              className="preset-btn"
               size="sm"
             >
               大

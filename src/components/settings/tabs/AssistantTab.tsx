@@ -156,7 +156,6 @@ export function AssistantTab({
             <span className="settings-label">Base URL</span>
             <Input
               type="text"
-              className="settings-input"
               value={localConfig.llm.baseUrl ?? 'http://localhost:11434/api'}
               onChange={(e) => handleBaseUrlChange(e.target.value)}
               placeholder="http://localhost:11434/api"
@@ -164,20 +163,22 @@ export function AssistantTab({
           </div>
         )}
 
-        <div className="settings-row" style={{ borderBottom: 'none' }}>
+        <div className="settings-row settings-row-no-border">
           <span className="settings-label">Temperature</span>
-          <input
-            type="range"
-            min="0"
-            max="2"
-            step="0.1"
-            value={localConfig.llm.temperature ?? 0.7}
-            onChange={(e) => handleTemperatureChange(parseFloat(e.target.value))}
-            style={{ width: '150px' }}
-          />
-          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
-            {localConfig.llm.temperature?.toFixed(1) ?? '0.7'}
-          </span>
+          <div className="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="2"
+              step="0.1"
+              value={localConfig.llm.temperature ?? 0.7}
+              onChange={(e) => handleTemperatureChange(parseFloat(e.target.value))}
+              style={{ width: '150px' }}
+            />
+            <span className="slider-value">
+              {localConfig.llm.temperature?.toFixed(1) ?? '0.7'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -188,7 +189,6 @@ export function AssistantTab({
           <span className="settings-label">打开聊天</span>
           <Input
             type="text"
-            className="settings-input"
             value={localConfig.assistant.shortcuts.openChat}
             onChange={(e) =>
               setLocalConfig((prev) => ({
@@ -203,11 +203,10 @@ export function AssistantTab({
           />
         </div>
 
-        <div className="settings-row" style={{ borderBottom: 'none' }}>
+        <div className="settings-row settings-row-no-border">
           <span className="settings-label">打开设置</span>
           <Input
             type="text"
-            className="settings-input"
             value={localConfig.assistant.shortcuts.openSettings}
             onChange={(e) =>
               setLocalConfig((prev) => ({
@@ -244,15 +243,7 @@ export function AssistantTab({
           />
         </div>
 
-        <div
-          className="settings-row"
-          style={{
-            fontSize: '11px',
-            color: '#888',
-            borderBottom: 'none',
-            paddingTop: '4px',
-          }}
-        >
+        <div className="settings-row settings-row-no-border settings-hint-row">
           关闭后：新的对话不会写入本地数据库，但当前会话仍会在窗口内显示
         </div>
       </div>
@@ -266,12 +257,11 @@ export function AssistantTab({
 
       <div className="settings-section">
         <div className="settings-section-title">性格与角色</div>
-        <div className="settings-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-          <span className="settings-label" style={{ marginBottom: '8px' }}>
+        <div className="settings-row settings-row-col">
+          <span className="settings-label">
             系统提示词
           </span>
           <Textarea
-            className="settings-input"
             value={localConfig.systemPrompt}
             onChange={(e) => handleSystemPromptChange(e.target.value)}
             placeholder="请输入系统提示词..."

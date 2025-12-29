@@ -32,15 +32,15 @@ function SkinCard({
     <div
       onClick={onSelect}
       className={`
-        p-2 border rounded-lg cursor-pointer relative transition-all duration-200 ease-out
+        p-2 border-2 rounded-lg cursor-pointer relative transition-all duration-200 ease-out
         ${isSelected 
-          ? 'border-indigo-500 bg-indigo-50' 
-          : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm'
+          ? 'border-amber-600 bg-amber-50 shadow-md transform scale-[1.02]' 
+          : 'border-amber-200 bg-[#FFF8DC] hover:border-amber-400 hover:shadow-sm'
         }
       `}
     >
       {/* Preview image */}
-      <div className="w-full aspect-square bg-slate-100 rounded mb-2 flex items-center justify-center overflow-hidden">
+      <div className="w-full aspect-square bg-amber-100/50 rounded mb-2 flex items-center justify-center overflow-hidden border border-amber-100">
         {skin.previewImage ? (
           <img
             src={skin.previewImage}
@@ -48,7 +48,7 @@ function SkinCard({
             className="w-full h-full object-cover"
           />
         ) : (
-          <span className="text-2xl text-slate-400">?</span>
+          <span className="text-2xl text-amber-300">?</span>
         )}
       </div>
 
@@ -56,7 +56,7 @@ function SkinCard({
       <div
         className={`
           text-xs text-center whitespace-nowrap overflow-hidden text-ellipsis
-          ${isSelected ? 'font-bold text-indigo-500' : 'font-normal text-slate-700'}
+          ${isSelected ? 'font-bold text-amber-800' : 'font-normal text-amber-700'}
         `}
       >
         {skin.name}
@@ -64,8 +64,8 @@ function SkinCard({
 
       {/* Builtin badge */}
       {skin.isBuiltin && (
-        <span className="absolute top-1 right-1 text-[9px] px-1 py-0.5 bg-blue-100 text-blue-600 rounded">
-          Built-in
+        <span className="absolute top-1 right-1 text-[9px] px-1 py-0.5 bg-amber-200/80 text-amber-800 rounded font-bold backdrop-blur-sm">
+          官方
         </span>
       )}
 
@@ -76,7 +76,7 @@ function SkinCard({
             e.stopPropagation();
             onDelete();
           }}
-          className="absolute top-1 right-1 w-5 h-5 p-0 border-none rounded-full bg-red-50 text-red-500 hover:bg-red-100 cursor-pointer text-xs flex items-center justify-center transition-colors"
+          className="absolute top-1 right-1 w-5 h-5 p-0 border-none rounded-full bg-red-100 text-red-600 hover:bg-red-200 cursor-pointer text-xs flex items-center justify-center transition-colors shadow-sm"
         >
           x
         </button>
@@ -151,7 +151,7 @@ export function SkinSettings({
       )}
 
       {/* Skin grid */}
-      <div className="grid grid-cols-3 gap-2 mb-3">
+      <div className="grid grid-cols-3 gap-3 mb-4">
         {skins.map((skin) => (
           <SkinCard
             key={skin.id}
@@ -171,8 +171,8 @@ export function SkinSettings({
       <Button
         onClick={handleImport}
         disabled={isImporting}
-        variant="outline"
-        className="w-full p-2 mb-3 text-xs border-dashed"
+        className="w-full mb-4 preset-btn h-9 text-xs"
+        variant="ghost"
       >
         {isImporting ? '导入中...' : '+ 导入自定义形象'}
       </Button>
@@ -184,23 +184,26 @@ export function SkinSettings({
       )}
 
       {/* Scale slider */}
-      <div className="settings-row">
+      <div className="settings-row border-none">
         <span className="settings-label">模型缩放</span>
-        <input
-          type="range"
-          min="0.5"
-          max="2"
-          step="0.1"
-          value={scale}
-          onChange={(e) => onScaleChange(parseFloat(e.target.value))}
-          className="w-[120px] accent-indigo-500"
-        />
-        <span className="ml-2 text-xs text-slate-600 font-medium">
-          {scale.toFixed(1)}x
-        </span>
+        <div className="slider-container">
+          <input
+            type="range"
+            min="0.5"
+            max="2"
+            step="0.1"
+            value={scale}
+            onChange={(e) => onScaleChange(parseFloat(e.target.value))}
+            className="game-slider"
+            style={{ width: '120px' }}
+          />
+          <span className="slider-value">
+            {scale.toFixed(1)}x
+          </span>
+        </div>
       </div>
 
-      <div className="settings-row border-none pt-1 text-[11px] text-slate-400">
+      <div className="settings-row border-none pt-0 text-[11px] text-slate-400 italic">
         支持导入 Live2D 模型（.model.json / .model3.json）来自定义宠物形象
       </div>
     </div>

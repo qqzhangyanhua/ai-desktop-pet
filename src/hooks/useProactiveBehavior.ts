@@ -4,10 +4,12 @@
  */
 
 import { useEffect, useCallback } from 'react';
-import { usePetStore } from '../stores';
+import { usePetStore, useConfigStore } from '../stores';
 import { getSchedulerManager } from '../services/scheduler';
 import { generateContextGreeting } from '../services/proactive';
+import { petSpeak } from '../services/pet/voice-link';
 import type { SchedulerManager } from '../services/scheduler/manager';
+import type { GreetingResult } from '../types';
 
 /**
  * Setup proactive greeting tasks
@@ -72,22 +74,41 @@ async function setupGreetingTasks(scheduler: SchedulerManager): Promise<void> {
 }
 
 /**
+ * Process greeting result: show bubble, set emotion, handle voice
+ * 统一处理问候结果：显示气泡、设置表情、处理语音/动画
+ */
+async function processGreetingResult(result: GreetingResult): Promise<void> {
+  const config = useConfigStore.getState().config;
+  const pet = usePetStore.getState();
+
+  // 设置表情
+  pet.setEmotion(result.emotion);
+
+  // 统一气泡样式与行为：检查配置、处理语音/动画
+  if (config.behavior.notifications.bubbleEnabled) {
+    const duration = 5200; // 与其它系统提醒保持一致
+    pet.showBubble(result.text, duration);
+    
+    if (config.voice.ttsEnabled) {
+      void petSpeak(result.text, { priority: 'normal', interrupt: true });
+    } else {
+      pet.setSpeakingTemporary(duration);
+    }
+  }
+}
+
+/**
  * Handle proactive greeting event
  */
 async function handleGreetingEvent(): Promise<void> {
   const result = await generateContextGreeting();
-
-  // Show bubble and set emotion
-  usePetStore.getState().showBubble(result.text, 5000);
-  usePetStore.getState().setEmotion(result.emotion);
+  await processGreetingResult(result);
 }
 
 /**
  * Hook for proactive behavior
  */
 export function useProactiveBehavior(enabled: boolean = true) {
-  const { setEmotion, showBubble } = usePetStore();
-
   useEffect(() => {
     if (!enabled) return;
 
@@ -131,12 +152,11 @@ export function useProactiveBehavior(enabled: boolean = true) {
   const triggerGreeting = useCallback(async () => {
     try {
       const result = await generateContextGreeting();
-      showBubble(result.text, 5000);
-      setEmotion(result.emotion);
+      await processGreetingResult(result);
     } catch (error) {
       console.error('[useProactiveBehavior] Failed to trigger greeting:', error);
     }
-  }, [setEmotion, showBubble]);
+  }, []);
 
   return {
     triggerGreeting,

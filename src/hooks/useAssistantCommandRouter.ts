@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useAssistantSkills } from './useAssistantSkills';
 import { usePetActions } from './usePetActions';
-import { usePetStore, toast } from '../stores';
+import { usePetStore } from '../stores';
 import { fetchWeather } from '../services/weather';
 
 interface CommandRouterResult {
@@ -36,12 +36,10 @@ export function useAssistantCommandRouter() {
             `${data.location} | ${data.temperature} · 体感${data.feelsLike} · ${data.condition} · 湿度${data.humidity}`,
             7200
           );
-          toast.success('已获取最新天气');
+          // toast.success('已获取最新天气');
         } catch (err) {
-          toast.error(
-            err instanceof Error ? `天气查询失败：${err.message}` : '天气查询失败'
-          );
-          pet.showBubble('天气接口暂不可用，请稍后再试', 5200);
+          const msg = err instanceof Error ? `天气查询失败：${err.message}` : '天气查询失败';
+          pet.showBubble(msg, 5200);
         }
         return { handled: true };
       }
@@ -49,12 +47,12 @@ export function useAssistantCommandRouter() {
       // 灯光控制
       if (LIGHT_ON_PATTERNS.some((p) => lower.includes(p))) {
         performSkill('lights', { light: 'on' });
-        toast.success('已开启灯光/设备（模拟）');
+        // toast handled in performSkill
         return { handled: true };
       }
       if (LIGHT_OFF_PATTERNS.some((p) => lower.includes(p))) {
         performSkill('lights', { light: 'off' });
-        toast.success('已关闭灯光/设备（模拟）');
+        // toast handled in performSkill
         return { handled: true };
       }
 

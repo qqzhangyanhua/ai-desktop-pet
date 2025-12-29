@@ -37,6 +37,7 @@ export interface SkinMeta {
   previewImage: string | null;
   isBuiltin: boolean;
   createdAt: number;
+  avatarImage?: string | null;
 }
 
 // 养成与互动动作

@@ -48,27 +48,30 @@ export function PerformanceTab({ localConfig, setLocalConfig }: PerformanceTabPr
 
         <div className="settings-row">
           <span className="settings-label">吸附阈值</span>
-          <input
-            type="range"
-            min="8"
-            max="48"
-            step="2"
-            value={localConfig.interaction.snapThreshold}
-            onChange={(e) =>
-              setLocalConfig((prev) => ({
-                ...prev,
-                interaction: { ...prev.interaction, snapThreshold: parseInt(e.target.value, 10) },
-              }))
-            }
-            style={{ width: '150px' }}
-            disabled={!localConfig.interaction.snapEnabled}
-          />
-          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
-            {localConfig.interaction.snapThreshold}px
-          </span>
+          <div className="slider-container">
+            <input
+              type="range"
+              min="8"
+              max="48"
+              step="2"
+              value={localConfig.interaction.snapThreshold}
+              onChange={(e) =>
+                setLocalConfig((prev) => ({
+                  ...prev,
+                  interaction: { ...prev.interaction, snapThreshold: parseInt(e.target.value, 10) },
+                }))
+              }
+              className="game-slider"
+              style={{ width: '150px' }}
+              disabled={!localConfig.interaction.snapEnabled}
+            />
+            <span className="slider-value">
+              {localConfig.interaction.snapThreshold}px
+            </span>
+          </div>
         </div>
 
-        <div className="settings-row" style={{ borderBottom: 'none' }}>
+        <div className="settings-row settings-row-no-border">
           <span className="settings-label">记忆窗口位置</span>
           <Checkbox
             checked={localConfig.interaction.rememberPosition}
@@ -96,35 +99,30 @@ export function PerformanceTab({ localConfig, setLocalConfig }: PerformanceTabPr
 
         <div className="settings-row">
           <span className="settings-label">隐藏露出</span>
-          <input
-            type="range"
-            min="30"
-            max="120"
-            step="5"
-            value={localConfig.interaction.autoHideOffset}
-            onChange={(e) =>
-              setLocalConfig((prev) => ({
-                ...prev,
-                interaction: { ...prev.interaction, autoHideOffset: parseInt(e.target.value, 10) },
-              }))
-            }
-            style={{ width: '150px' }}
-            disabled={!localConfig.interaction.autoHideEnabled}
-          />
-          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
-            {localConfig.interaction.autoHideOffset}px
-          </span>
+          <div className="slider-container">
+            <input
+              type="range"
+              min="30"
+              max="120"
+              step="5"
+              value={localConfig.interaction.autoHideOffset}
+              onChange={(e) =>
+                setLocalConfig((prev) => ({
+                  ...prev,
+                  interaction: { ...prev.interaction, autoHideOffset: parseInt(e.target.value, 10) },
+                }))
+              }
+              className="game-slider"
+              style={{ width: '150px' }}
+              disabled={!localConfig.interaction.autoHideEnabled}
+            />
+            <span className="slider-value">
+              {localConfig.interaction.autoHideOffset}px
+            </span>
+          </div>
         </div>
 
-        <div
-          className="settings-row"
-          style={{
-            fontSize: '11px',
-            color: '#888',
-            borderBottom: 'none',
-            paddingTop: '4px',
-          }}
-        >
+        <div className="settings-row settings-row-no-border settings-hint-row">
           开启"鼠标穿透"后无法点击宠物与设置窗口，请通过菜单栏托盘关闭穿透。
         </div>
       </div>
@@ -169,26 +167,29 @@ export function PerformanceTab({ localConfig, setLocalConfig }: PerformanceTabPr
 
         <div className="settings-row">
           <span className="settings-label">动画帧率</span>
-          <input
-            type="range"
-            min="15"
-            max="60"
-            step="5"
-            value={localConfig.performance.animationFps}
-            onChange={(e) =>
-              setLocalConfig((prev) => ({
-                ...prev,
-                performance: { ...prev.performance, animationFps: parseInt(e.target.value, 10) },
-              }))
-            }
-            style={{ width: '150px' }}
-          />
-          <span style={{ marginLeft: '8px', fontSize: '12px' }}>
-            {localConfig.performance.animationFps} FPS
-          </span>
+          <div className="slider-container">
+            <input
+              type="range"
+              min="15"
+              max="60"
+              step="5"
+              value={localConfig.performance.animationFps}
+              onChange={(e) =>
+                setLocalConfig((prev) => ({
+                  ...prev,
+                  performance: { ...prev.performance, animationFps: parseInt(e.target.value, 10) },
+                }))
+              }
+              className="game-slider"
+              style={{ width: '150px' }}
+            />
+            <span className="slider-value">
+              {localConfig.performance.animationFps} FPS
+            </span>
+          </div>
         </div>
 
-        <div className="settings-row" style={{ borderBottom: 'none' }}>
+        <div className="settings-row settings-row-no-border">
           <span className="settings-label">资源占用限制</span>
           <Select
             value={localConfig.performance.resourceLimit}
@@ -211,39 +212,7 @@ export function PerformanceTab({ localConfig, setLocalConfig }: PerformanceTabPr
         </div>
       </div>
 
-      <div className="settings-section">
-        <div className="settings-section-title">窗口行为</div>
-        <div className="settings-row">
-          <span className="settings-label">窗口置顶</span>
-          <Checkbox
-            checked={localConfig.alwaysOnTop}
-            onCheckedChange={(checked) =>
-              setLocalConfig((prev) => ({
-                ...prev,
-                alwaysOnTop: !!checked,
-              }))
-            }
-          />
-        </div>
-
-        <div className="settings-row" style={{ borderBottom: 'none' }}>
-          <span className="settings-label">启动最小化</span>
-          <Checkbox
-            checked={localConfig.startMinimized}
-            onCheckedChange={(checked) =>
-              setLocalConfig((prev) => ({
-                ...prev,
-                startMinimized: !!checked,
-              }))
-            }
-          />
-        </div>
-      </div>
-
-      <div
-        className="settings-section"
-        style={{ marginBottom: 0, color: '#888', fontSize: '11px' }}
-      >
+      <div className="settings-section settings-hint-row" style={{ marginBottom: 0 }}>
         部分性能项当前仅保存配置，后续可接入原生插件实现真正的开机自启/后台策略。
       </div>
     </>

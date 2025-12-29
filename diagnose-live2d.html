@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live2D 诊断工具</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .section {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 28px;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+      padding-bottom: 10px;
+    }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      margin: 10px 0;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+    .status.ok { border-left: 4px solid #10b981; }
+    .status.error { border-left: 4px solid #ef4444; }
+    .status.warn { border-left: 4px solid #f59e0b; }
+    button {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    #log {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Live2D 诊断工具</h1>
+
+    <div class="section">
+      <h2>系统检查</h2>
+      <div id="system-check"></div>
+    </div>
+
+    <div class="section">
+      <h2>Live2D 舞台检查</h2>
+      <div id="stage-check"></div>
+      <button onclick="checkLive2DStage()">重新检查</button>
+    </div>
+
+    <div class="section">
+      <h2>诊断日志</h2>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <script>
+    const log = (msg, type = 'info') => {
+      const logEl = document.getElementById('log');
+      const timestamp = new Date().toLocaleTimeString();
+      const color = type === 'error' ? '#ef4444' : type === 'warn' ? '#f59e0b' : '#10b981';
+      logEl.innerHTML += `<span style="color: ${color}">[${timestamp}] ${msg}</span>\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    };
+
+    const addStatus = (containerId, label, value, status) => {
+      const container = document.getElementById(containerId);
+      const div = document.createElement('div');
+      div.className = `status ${status}`;
+      div.innerHTML = `<span>${label}</span><span>${value}</span>`;
+      container.appendChild(div);
+    };
+
+    // 系统检查
+    function checkSystem() {
+      const systemCheck = document.getElementById('system-check');
+      systemCheck.innerHTML = '';
+
+      // Node.js 版本（如果可访问）
+      addStatus('system-check', 'User Agent', navigator.userAgent, 'ok');
+      addStatus('system-check', 'Window Size', `${window.innerWidth}x${window.innerHeight}`, 'ok');
+      addStatus('system-check', 'Device Pixel Ratio', window.devicePixelRatio, 'ok');
+
+      log('系统检查完成');
+    }
+
+    // Live2D 舞台检查
+    function checkLive2DStage() {
+      const stageCheck = document.getElementById('stage-check');
+      stageCheck.innerHTML = '';
+
+      const stage = document.getElementById('oml2d-stage');
+      const canvas = document.getElementById('oml2d-canvas');
+      const wrapper = document.querySelector('.oml2d-wrapper');
+
+      if (stage) {
+        const rect = stage.getBoundingClientRect();
+        const computed = window.getComputedStyle(stage);
+        addStatus('stage-check', '#oml2d-stage 存在', '✓', 'ok');
+        addStatus('stage-check', '  位置', `${rect.x}, ${rect.y}`, rect.x >= 0 && rect.y >= 0 ? 'ok' : 'warn');
+        addStatus('stage-check', '  尺寸', `${rect.width}x${rect.height}`, rect.width > 0 && rect.height > 0 ? 'ok' : 'error');
+        addStatus('stage-check', '  z-index', computed.zIndex, 'ok');
+        addStatus('stage-check', '  visibility', computed.visibility, computed.visibility === 'visible' ? 'ok' : 'error');
+        addStatus('stage-check', '  opacity', computed.opacity, parseFloat(computed.opacity) > 0 ? 'ok' : 'error');
+        addStatus('stage-check', '  display', computed.display, computed.display !== 'none' ? 'ok' : 'error');
+        log('找到 #oml2d-stage 元素');
+      } else {
+        addStatus('stage-check', '#oml2d-stage', '✗ 不存在', 'error');
+        log('未找到 #oml2d-stage 元素', 'error');
+      }
+
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const computed = window.getComputedStyle(canvas);
+        addStatus('stage-check', '#oml2d-canvas 存在', '✓', 'ok');
+        addStatus('stage-check', '  Canvas 尺寸', `${canvas.width}x${canvas.height}`, canvas.width > 0 && canvas.height > 0 ? 'ok' : 'error');
+        addStatus('stage-check', '  显示尺寸', `${rect.width}x${rect.height}`, rect.width > 0 && rect.height > 0 ? 'ok' : 'error');
+        addStatus('stage-check', '  visibility', computed.visibility, computed.visibility === 'visible' ? 'ok' : 'error');
+        addStatus('stage-check', '  opacity', computed.opacity, parseFloat(computed.opacity) > 0 ? 'ok' : 'error');
+        log('找到 #oml2d-canvas 元素');
+      } else {
+        addStatus('stage-check', '#oml2d-canvas', '✗ 不存在', 'error');
+        log('未找到 #oml2d-canvas 元素', 'error');
+      }
+
+      if (wrapper) {
+        addStatus('stage-check', '.oml2d-wrapper 存在', '✓', 'ok');
+        log('找到 .oml2d-wrapper 元素');
+      } else {
+        addStatus('stage-check', '.oml2d-wrapper', '✗ 不存在', 'warn');
+        log('未找到 .oml2d-wrapper 元素', 'warn');
+      }
+
+      if (!stage && !canvas && !wrapper) {
+        log('Live2D 尚未初始化，请稍后重试', 'warn');
+      }
+    }
+
+    // 初始化
+    log('诊断工具已启动');
+    checkSystem();
+
+    // 定期检查 Live2D 舞台
+    let checkCount = 0;
+    const interval = setInterval(() => {
+      checkCount++;
+      log(`自动检查 Live2D 舞台 (${checkCount}/10)...`);
+      checkLive2DStage();
+
+      const stage = document.getElementById('oml2d-stage');
+      if (stage || checkCount >= 10) {
+        clearInterval(interval);
+        if (stage) {
+          log('✓ Live2D 舞台已检测到，停止自动检查', 'info');
+        } else {
+          log('✗ 10 次检查后仍未发现 Live2D 舞台', 'error');
+        }
+      }
+    }, 2000);
+  </script>
+</body>
+</html>

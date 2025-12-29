@@ -201,8 +201,19 @@ export function ContextMenu({
   );
 
   const itemById = new Map(allItems.map((i) => [i.id, i]));
+  
+  // 1. 获取所有收藏项
   const favoriteItems = favorites.map((id) => itemById.get(id)).filter(Boolean) as MenuItem[];
-  const recentItems = recent.map((id) => itemById.get(id)).filter(Boolean) as MenuItem[];
+  const favoriteIds = new Set(favoriteItems.map(i => i.id));
+
+  // 2. 获取最近使用项，并过滤掉已在收藏中的
+  const recentItems = recent
+    .map((id) => itemById.get(id))
+    .filter((item): item is MenuItem => !!item && !favoriteIds.has(item.id));
+  
+  // 3. 获取推荐项，并过滤掉已在收藏或最近使用中的
+  // 收集已展示在"收藏"和"最近使用"的ID
+  const topSectionIds = new Set([...favoriteIds, ...recentItems.map(i => i.id)]);
 
   const recommendedIds = (() => {
     const ids: string[] = [];
@@ -223,7 +234,10 @@ export function ContextMenu({
 
   const recommendedItems = recommendedIds
     .map((id) => itemById.get(id))
-    .filter(Boolean) as MenuItem[];
+    .filter((item): item is MenuItem => !!item && !topSectionIds.has(item.id));
+
+  // 更新所有顶部区域已展示的ID集合（用于过滤下方分类列表）
+  const allTopIds = new Set([...topSectionIds, ...recommendedItems.map(i => i.id)]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const filteredItems = normalizedQuery
@@ -277,13 +291,9 @@ export function ContextMenu({
 
   // Determine which items are already shown in top sections to avoid duplicates below
   const shownIds = useMemo(() => {
-    const ids = new Set<string>();
-    if (normalizedQuery) return ids;
-    favoriteItems.forEach((i) => ids.add(i.id));
-    recentItems.forEach((i) => ids.add(i.id));
-    recommendedItems.forEach((i) => ids.add(i.id));
-    return ids;
-  }, [favoriteItems, normalizedQuery, recentItems, recommendedItems]);
+    if (normalizedQuery) return new Set<string>();
+    return allTopIds;
+  }, [normalizedQuery, allTopIds]);
 
   const petFunItems = getSectionItems('pet_fun').filter((i) => !shownIds.has(i.id));
   const petCareItems = getSectionItems('pet_care').filter((i) => !shownIds.has(i.id));

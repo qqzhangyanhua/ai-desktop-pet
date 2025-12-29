@@ -50,7 +50,7 @@ export function usePetCareLoop() {
       // 病弱提示
       if (stats.isSick && Date.now() - lastWarnAtRef.current > warningCooldown) {
         if (behavior.notifications.bubbleEnabled) {
-          const msg = '有点不舒服，帮我清洁或喂点东西吧';
+          const msg = report.warnings[0] || '有点不舒服，帮我清洁或喂点东西吧';
           pet.showBubble(msg, 5200);
           pet.setEmotion('sad');
           if (voice.ttsEnabled) {
@@ -58,7 +58,7 @@ export function usePetCareLoop() {
           }
         }
         if (behavior.notifications.toastEnabled) {
-          toast.warning('宠物状态较弱，请优先喂食/清洁/休息');
+          // toast.warning(report.warnings[0] || '宠物状态较弱，请优先喂食/清洁/休息');
         }
         lastWarnAtRef.current = Date.now();
         return;

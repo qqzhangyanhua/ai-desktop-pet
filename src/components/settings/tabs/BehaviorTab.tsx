@@ -103,7 +103,7 @@ export function BehaviorTab({ localConfig, setLocalConfig }: BehaviorTabProps) {
           />
         </div>
 
-        <div className="settings-row" style={{ borderBottom: 'none' }}>
+        <div className="settings-row settings-row-no-border">
           <span className="settings-label">Toast 提醒</span>
           <Checkbox
             checked={localConfig.behavior.notifications.toastEnabled}

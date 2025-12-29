@@ -13,6 +13,140 @@ import {
 } from '@/services/achievements';
 import { Button } from '@/components/ui/button';
 
+interface StatCardProps {
+  icon: LucideIcon;
+  label: string;
+  value: number;
+  suffix?: string;
+}
+
+function StatCard({ icon: Icon, label, value, suffix }: StatCardProps) {
+  return (
+    <div className="bg-[#FFF8DC] rounded-lg p-4 border border-amber-200 shadow-sm hover:shadow-md transition-shadow">
+      <div className="mb-2">
+        <Icon className="w-6 h-6 text-amber-700" />
+      </div>
+      <div className="text-sm text-amber-800 mb-1 font-bold">{label}</div>
+      <div className="text-2xl font-bold text-amber-900">
+        {value}
+        {suffix && <span className="text-sm font-normal ml-1">{suffix}</span>}
+      </div>
+    </div>
+  );
+}
+
+interface InteractionCardProps {
+  icon: LucideIcon;
+  label: string;
+  count: number;
+}
+
+function InteractionCard({ icon: Icon, label, count }: InteractionCardProps) {
+  return (
+    <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200">
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className="w-5 h-5 text-amber-700" />
+        <span className="text-sm font-bold text-amber-800">{label}</span>
+      </div>
+      <div className="text-2xl font-bold text-amber-600">{count}</div>
+    </div>
+  );
+}
+
+interface AchievementTabProps {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+}
+
+function AchievementTab({ active, onClick, label, count }: AchievementTabProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all border-b-4 active:border-b-0 active:translate-y-1 ${
+        active
+          ? 'bg-amber-500 text-white border-amber-700 shadow-md'
+          : 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200'
+      }`}
+    >
+      {label} ({count})
+    </button>
+  );
+}
+
+interface AchievementCardProps {
+  achievement: Achievement;
+}
+
+function AchievementCard({ achievement }: AchievementCardProps) {
+  const typeColors = {
+    interaction: 'bg-blue-100 text-blue-700 border-blue-300',
+    duration: 'bg-green-100 text-green-700 border-green-300',
+    intimacy: 'bg-pink-100 text-pink-700 border-pink-300',
+    special: 'bg-purple-100 text-purple-700 border-purple-300',
+  };
+
+  const typeLabels = {
+    interaction: '互动',
+    duration: '陪伴',
+    intimacy: '亲密',
+    special: '特殊',
+  };
+
+  const colorClass = typeColors[achievement.type];
+
+  return (
+    <div
+      className={`rounded-lg p-4 border-2 transition-all ${
+        achievement.isUnlocked
+          ? 'bg-[#FFF8DC] border-amber-300 shadow-sm'
+          : 'bg-gray-100 border-gray-200 opacity-60 grayscale'
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className={`text-3xl ${
+            achievement.isUnlocked ? 'filter drop-shadow-sm' : ''
+          }`}
+        >
+          {achievement.icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h4
+              className={`font-bold text-sm ${
+                achievement.isUnlocked ? 'text-amber-900' : 'text-gray-500'
+              }`}
+            >
+              {achievement.name}
+            </h4>
+            <span
+              className={`px-2 py-0.5 rounded text-[10px] font-bold border ${colorClass}`}
+            >
+              {typeLabels[achievement.type]}
+            </span>
+          </div>
+          <p className="text-xs text-amber-800/80 mb-2 font-medium">
+            {achievement.description}
+          </p>
+          {achievement.isUnlocked && achievement.unlockedAt && (
+            <p className="text-[10px] text-amber-700/60 font-mono">
+              解锁于{' '}
+              {new Date(achievement.unlockedAt).toLocaleDateString('zh-CN')}
+            </p>
+          )}
+          {!achievement.isUnlocked && (
+            <p className="text-[10px] text-gray-500 italic">
+              {achievement.unlockCondition}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function StatsPanel() {
   const [stats, setStats] = useState<StatsSummary | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -58,25 +192,25 @@ export function StatsPanel() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-gray-500">加载中...</div>
+      <div className="flex items-center justify-center p-12 h-full">
+        <div className="text-amber-800 font-bold animate-pulse">正在读取记忆水晶...</div>
       </div>
     );
   }
 
   if (!stats) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-gray-500">无法加载统计数据</div>
+      <div className="flex items-center justify-center p-12 h-full">
+        <div className="text-amber-800 font-bold">记忆读取失败</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 p-2">
       {/* 统计摘要 */}
       <section>
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">统计概览</h3>
+        <h3 className="text-lg font-bold mb-4 text-amber-900 border-b-2 border-amber-200 pb-2 inline-block">统计概览</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
             icon={Calendar}
@@ -107,7 +241,7 @@ export function StatsPanel() {
 
       {/* 今日互动 */}
       <section>
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">今日互动</h3>
+        <h3 className="text-lg font-bold mb-4 text-amber-900 border-b-2 border-amber-200 pb-2 inline-block">今日互动</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <InteractionCard icon={Hand} label="抚摸" count={stats.today.pet} />
           <InteractionCard icon={Utensils} label="喂食" count={stats.today.feed} />
@@ -119,31 +253,28 @@ export function StatsPanel() {
       {/* 成就系统 */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">成就</h3>
-          <div className="text-sm text-gray-600">
-            <span className="font-semibold text-blue-600">
-              {achievementStats.unlocked}
-            </span>
-            <span className="mx-1">/</span>
-            <span>{achievementStats.total}</span>
-            <span className="ml-2 text-gray-500">
-              ({achievementStats.percentage.toFixed(0)}%)
-            </span>
+          <h3 className="text-lg font-bold text-amber-900 border-b-2 border-amber-200 pb-2 inline-block">成就系统</h3>
+          <div className="text-sm font-bold bg-amber-100 px-3 py-1 rounded-full border border-amber-200">
+            <span className="text-amber-700">解锁进度:</span>
+            <span className="ml-2 text-amber-900">{achievementStats.unlocked} / {achievementStats.total}</span>
+            <span className="ml-1 text-amber-600">({achievementStats.percentage.toFixed(0)}%)</span>
           </div>
         </div>
 
         {/* 成就进度条 */}
-        <div className="mb-4">
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="mb-6 px-1">
+          <div className="h-4 bg-amber-100/50 rounded-full overflow-hidden border border-amber-200 shadow-inner">
             <div
-              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
+              className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-500 relative"
               style={{ width: `${achievementStats.percentage}%` }}
-            />
+            >
+                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20"></div>
+            </div>
           </div>
         </div>
 
         {/* 成就过滤标签 */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-3 mb-4">
           <AchievementTab
             active={activeAchievementTab === 'all'}
             onClick={() => setActiveAchievementTab('all')}
@@ -165,7 +296,7 @@ export function StatsPanel() {
         </div>
 
         {/* 成就列表 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 game-scrollbar">
           {filteredAchievements.map((achievement) => (
             <AchievementCard
               key={achievement.id}
@@ -175,144 +306,13 @@ export function StatsPanel() {
         </div>
 
         {filteredAchievements.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-12 text-amber-800/50 italic border-2 border-dashed border-amber-200 rounded-lg bg-amber-50/30">
             {activeAchievementTab === 'unlocked'
-              ? '还没有解锁任何成就'
-              : '没有找到成就'}
+              ? '还没有解锁任何成就，继续探索吧！'
+              : '空空如也...'}
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-interface StatCardProps {
-  icon: LucideIcon;
-  label: string;
-  value: number;
-  suffix?: string;
-}
-
-function StatCard({ icon: Icon, label, value, suffix }: StatCardProps) {
-  return (
-    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-      <div className="mb-2">
-        <Icon className="w-6 h-6 text-gray-600" />
-      </div>
-      <div className="text-sm text-gray-600 mb-1">{label}</div>
-      <div className="text-2xl font-bold text-gray-800">
-        {value}
-        {suffix && <span className="text-sm font-normal ml-1">{suffix}</span>}
-      </div>
-    </div>
-  );
-}
-
-interface InteractionCardProps {
-  icon: LucideIcon;
-  label: string;
-  count: number;
-}
-
-function InteractionCard({ icon: Icon, label, count }: InteractionCardProps) {
-  return (
-    <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-5 h-5 text-gray-600" />
-        <span className="text-sm font-medium text-gray-700">{label}</span>
-      </div>
-      <div className="text-2xl font-bold text-blue-600">{count}</div>
-    </div>
-  );
-}
-
-interface AchievementTabProps {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  count: number;
-}
-
-function AchievementTab({ active, onClick, label, count }: AchievementTabProps) {
-  return (
-    <Button
-      onClick={onClick}
-      variant={active ? 'default' : 'outline'}
-      className={active ? 'bg-blue-500 hover:bg-blue-600' : ''}
-    >
-      {label} ({count})
-    </Button>
-  );
-}
-
-interface AchievementCardProps {
-  achievement: Achievement;
-}
-
-function AchievementCard({ achievement }: AchievementCardProps) {
-  const typeColors = {
-    interaction: 'bg-blue-100 text-blue-700 border-blue-300',
-    duration: 'bg-green-100 text-green-700 border-green-300',
-    intimacy: 'bg-pink-100 text-pink-700 border-pink-300',
-    special: 'bg-purple-100 text-purple-700 border-purple-300',
-  };
-
-  const typeLabels = {
-    interaction: '互动',
-    duration: '陪伴',
-    intimacy: '亲密',
-    special: '特殊',
-  };
-
-  const colorClass = typeColors[achievement.type];
-
-  return (
-    <div
-      className={`rounded-lg p-4 border ${
-        achievement.isUnlocked
-          ? 'bg-white border-gray-200'
-          : 'bg-gray-50 border-gray-300 opacity-60'
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className={`text-3xl ${
-            achievement.isUnlocked ? '' : 'grayscale opacity-50'
-          }`}
-        >
-          {achievement.icon}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h4
-              className={`font-semibold text-sm ${
-                achievement.isUnlocked ? 'text-gray-800' : 'text-gray-500'
-              }`}
-            >
-              {achievement.name}
-            </h4>
-            <span
-              className={`px-2 py-0.5 rounded text-xs font-medium ${colorClass}`}
-            >
-              {typeLabels[achievement.type]}
-            </span>
-          </div>
-          <p className="text-xs text-gray-600 mb-2">
-            {achievement.description}
-          </p>
-          {achievement.isUnlocked && achievement.unlockedAt && (
-            <p className="text-xs text-gray-500">
-              解锁于{' '}
-              {new Date(achievement.unlockedAt).toLocaleDateString('zh-CN')}
-            </p>
-          )}
-          {!achievement.isUnlocked && (
-            <p className="text-xs text-gray-500 italic">
-              {achievement.unlockCondition}
-            </p>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

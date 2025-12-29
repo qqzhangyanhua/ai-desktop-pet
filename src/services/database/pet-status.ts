@@ -11,6 +11,7 @@ import type { PetStatus, InteractionType } from '@/types';
  * 数据库列名映射 (snake_case <-> camelCase)
  */
 const TS_TO_DB_MAPPING: Record<keyof PetStatus, string> = {
+  nickname: 'nickname',
   mood: 'mood',
   energy: 'energy',
   intimacy: 'intimacy',
@@ -28,6 +29,7 @@ const TS_TO_DB_MAPPING: Record<keyof PetStatus, string> = {
  */
 interface PetStatusRow {
   id: number;
+  nickname: string;
   mood: number;
   energy: number;
   intimacy: number;
@@ -47,6 +49,7 @@ interface PetStatusRow {
  */
 function rowToPetStatus(row: PetStatusRow): PetStatus {
   return {
+    nickname: row.nickname,
     mood: row.mood,
     energy: row.energy,
     intimacy: row.intimacy,

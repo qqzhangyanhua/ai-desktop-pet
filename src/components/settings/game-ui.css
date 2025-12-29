@@ -414,27 +414,31 @@
   background-color: #FFF8DC; /* Parchment */
   border: 2px solid #D2B48C;
   border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
   box-shadow: inset 0 0 10px rgba(139, 69, 19, 0.05);
   color: #5D4037;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .game-container .settings-section-title {
   color: #8B4513;
   font-weight: bold;
-  font-size: 16px;
-  margin-bottom: 12px;
+  font-size: 18px;
+  margin-bottom: 8px;
   border-bottom: 2px solid #D2B48C;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
 }
 
 .game-container .settings-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 10px 0;
   border-bottom: 1px dashed #D2B48C;
+  gap: 16px;
 }
 
 .game-container .settings-row:last-child, 
@@ -442,29 +446,60 @@
   border-bottom: none;
 }
 
+.game-container .settings-row-col {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
 .game-container .settings-label {
   font-weight: 600;
   color: #5D4037;
   font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Common Layout Helpers */
+.game-flex-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.game-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Custom Input Styles for Game UI */
 .game-container input[type="text"],
 .game-container input[type="number"],
+.game-container input[type="password"],
 .game-container textarea {
   background: #FFFFFF;
   border: 2px solid #D2B48C;
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   color: #5D4037;
   font-family: inherit;
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
 }
 
 .game-container input:focus,
 .game-container textarea:focus {
   border-color: #8B4513;
+}
+
+/* Force specific width for inputs in rows if needed */
+.game-input-sm {
+  width: 120px !important;
+}
+
+.game-input-md {
+  width: 200px !important;
 }
 
 /* Select overrides (Radix UI / Shadcn based) */
@@ -473,6 +508,7 @@
   border: 2px solid #D2B48C !important;
   border-radius: 8px !important;
   color: #5D4037 !important;
+  height: 36px;
 }
 
 /* Button overrides for tabs */
@@ -500,20 +536,37 @@
 }
 
 /* Range Slider */
-.game-container .slider-container {
-  background: rgba(210, 180, 140, 0.2);
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 1px solid #D2B48C;
+.game-container input[type="range"] {
+  height: 6px;
+  background: rgba(210, 180, 140, 0.4);
+  border-radius: 3px;
+  appearance: none;
+  outline: none;
 }
 
-.game-container .slider {
-  accent-color: #8B4513;
+.game-container input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #8B4513;
+  border: 2px solid #FFF8DC;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.game-container .slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .game-container .slider-value {
   color: #8B4513;
   font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: right;
 }
 
 /* Specific Component Overrides */
@@ -985,7 +1038,7 @@
   position: absolute;
   /* oml2d 气泡位置通过 margin 向上偏移，减小偏移量以避免顶部溢出 */
   margin-top: -20px !important; 
-  background-color: #FFF8DC !important; /* Parchment */
+  background-color: #FFF8DC !important; /* Parchment background */
   background-image: repeating-linear-gradient(
     45deg,
     rgba(139, 69, 19, 0.05) 0px,
@@ -993,19 +1046,24 @@
     transparent 2px,
     transparent 8px
   ) !important;
-  border: 3px solid #8B4513 !important; /* Wooden Border */
-  border-radius: 12px !important;
-  padding: 10px 16px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-  color: #5D4037 !important;
+  border: 4px solid #8B4513 !important; /* Thick Wooden Border */
+  border-radius: 20px !important; /* More rounded as in the image */
+  padding: 12px 20px !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35) !important;
+  color: #5D4037 !important; /* Dark brown text */
   font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif !important;
-  font-size: 14px !important;
-  line-height: 1.5 !important;
+  font-size: 16px !important; /* Slightly larger text */
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  text-align: center !important; /* Centered text as in image */
   text-shadow: none !important;
-  z-index: 99999 !important; /* 确保在最上层 */
+  z-index: 99999 !important;
   min-height: auto !important;
   width: auto !important;
-  max-width: 250px !important;
+  max-width: 280px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* Ensure content is visible and styled */
@@ -1014,11 +1072,12 @@
   font-family: inherit !important;
   font-size: inherit !important;
   line-height: inherit !important;
+  text-align: center !important;
 }
 
 /* Specifics for the custom bubble (placeholder pet) */
 .game-pet-bubble {
-  top: 30px; /* 往下挪动一点，在 100px 的 padding-top 内 */
+  top: 40px; 
   left: 50%;
   transform: translateX(-50%);
   max-height: 160px;
@@ -1026,17 +1085,17 @@
   white-space: pre-wrap;
   word-break: break-word;
   animation: gameBubbleFadeIn 0.3s ease-out;
-  margin-top: 0 !important; /* 占位气泡不需要额外的 margin */
+  margin-top: 0 !important;
 }
 
-/* Arrow for Custom Bubble */
+/* Arrow for Custom Bubble - keeping it but making it match the new border */
 .game-pet-bubble::after {
   content: '';
   position: absolute;
-  bottom: -10px;
+  bottom: -12px;
   left: 50%;
   transform: translateX(-50%);
-  border: 10px solid transparent;
+  border: 12px solid transparent;
   border-top-color: #8B4513;
   border-bottom: 0;
 }
@@ -1044,10 +1103,10 @@
 .game-pet-bubble::before {
   content: '';
   position: absolute;
-  bottom: -6px;
+  bottom: -7px;
   left: 50%;
   transform: translateX(-50%);
-  border: 8px solid transparent;
+  border: 9px solid transparent;
   border-top-color: #FFF8DC;
   border-bottom: 0;
   z-index: 1;

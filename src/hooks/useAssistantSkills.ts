@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useAssistantStore, usePetStore, toast } from '../stores';
+import { useAssistantStore, usePetStore } from '../stores';
 import { useCareStore } from '../stores/careStore';
 import type { AssistantSkill } from '../types';
 import { ensurePetVoiceLinkInitialized, petSpeak } from '@/services/pet/voice-link';
@@ -34,7 +34,6 @@ export function useAssistantSkills() {
         pet.setEmotion('thinking');
         pet.showBubble(msg, 5200);
         if (ttsEnabled) void petSpeak(msg, { priority: 'normal', interrupt: true });
-        toast.success('已播报当前时间');
         break;
       }
       case 'weather': {
@@ -57,7 +56,6 @@ export function useAssistantSkills() {
         const msg = '好的，15 分钟后提醒你休息';
         pet.showBubble(msg, 5200);
         if (ttsEnabled) void petSpeak(msg, { priority: 'normal', interrupt: true });
-        toast.info(`已创建提醒：${label}`);
         // 计时器在订阅中处理
         assistant.addHabit('喜欢定时提醒');
         break;
@@ -121,7 +119,6 @@ export function useAssistantSkills() {
               ensurePetVoiceLinkInitialized();
               void petSpeak(msg, { priority: 'high', interrupt: true });
             }
-            toast.success(`闹钟触发：${alarm.label}`);
             assistant.markAlarmTriggered(alarm.id);
             timers.delete(alarm.id);
           }, delay);

@@ -237,69 +237,77 @@ export function VoiceSettings({ config, onChange }: VoiceSettingsProps) {
 
         <div className="settings-row">
           <span className="settings-label">语速</span>
-          <input
-            type="range"
-            min="0.5"
-            max="2"
-            step="0.1"
-            value={config.ttsRate}
-            onChange={(e) => handleChange('ttsRate', parseFloat(e.target.value))}
-            disabled={!config.ttsEnabled}
-            className="w-[120px] accent-indigo-500"
-          />
-          <span className="ml-2 text-xs text-slate-600 font-medium">
-            {config.ttsRate.toFixed(1)}x
-          </span>
+          <div className="slider-container">
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={config.ttsRate}
+              onChange={(e) => handleChange('ttsRate', parseFloat(e.target.value))}
+              disabled={!config.ttsEnabled}
+              className="game-slider"
+              style={{ width: '150px' }}
+            />
+            <span className="slider-value">
+              {config.ttsRate.toFixed(1)}x
+            </span>
+          </div>
         </div>
 
         <div className="settings-row">
           <span className="settings-label">音调</span>
-          <input
-            type="range"
-            min="0.5"
-            max="2"
-            step="0.1"
-            value={config.ttsPitch}
-            onChange={(e) => handleChange('ttsPitch', parseFloat(e.target.value))}
-            disabled={!config.ttsEnabled}
-            className="w-[120px] accent-indigo-500"
-          />
-          <span className="ml-2 text-xs text-slate-600 font-medium">
-            {config.ttsPitch.toFixed(1)}
-          </span>
+          <div className="slider-container">
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={config.ttsPitch}
+              onChange={(e) => handleChange('ttsPitch', parseFloat(e.target.value))}
+              disabled={!config.ttsEnabled}
+              className="game-slider"
+              style={{ width: '150px' }}
+            />
+            <span className="slider-value">
+              {config.ttsPitch.toFixed(1)}
+            </span>
+          </div>
         </div>
 
         <div className="settings-row">
           <span className="settings-label">音量</span>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={config.ttsVolume}
-            onChange={(e) => handleChange('ttsVolume', parseFloat(e.target.value))}
-            disabled={!config.ttsEnabled}
-            className="w-[120px] accent-indigo-500"
-          />
-          <span className="ml-2 text-xs text-slate-600 font-medium">
-            {Math.round(config.ttsVolume * 100)}%
-          </span>
+          <div className="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={config.ttsVolume}
+              onChange={(e) => handleChange('ttsVolume', parseFloat(e.target.value))}
+              disabled={!config.ttsEnabled}
+              className="game-slider"
+              style={{ width: '150px' }}
+            />
+            <span className="slider-value">
+              {Math.round(config.ttsVolume * 100)}%
+            </span>
+          </div>
         </div>
 
-        <div className="settings-row border-none">
+        <div className="settings-row settings-row-no-border">
           <span className="settings-label">测试</span>
           <Button
             onClick={handleTestTTS}
             disabled={!config.ttsEnabled}
-            variant="outline"
+            className="preset-btn"
             size="sm"
-            className="px-3 py-1.5 text-xs"
           >
             播放测试
           </Button>
         </div>
 
-        <div className="settings-row border-none pt-1 text-[11px] text-slate-400">
+        <div className="settings-row settings-row-no-border settings-hint-row">
           {config.ttsEnabled
             ? config.ttsEngine === 'edge-tts'
               ? '使用 Microsoft Edge TTS（需要 edge-tts CLI）'

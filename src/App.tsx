@@ -19,13 +19,14 @@ import { AgentRuntime } from './services/agent';
 import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, useUserProfileStore, toast } from './stores';
 import { getSkinManager } from './services/skin';
 import { getWindowManager } from './services/window';
+import { petSpeak } from './services/pet/voice-link';
 import { useAchievementListener } from './hooks';
 import { useProactiveBehavior } from './hooks/useProactiveBehavior';
 import './styles/global.css';
 
 function App() {
   const [dbReady, setDbReady] = useState(false);
-  const { showBubble } = usePetStore();
+  const { showBubble, setEmotion, setSpeakingTemporary } = usePetStore();
   const { config, isLoaded: isConfigLoaded } = useConfigStore();
   const { loadProfile: loadUserProfile } = useUserProfileStore();
 
@@ -135,7 +136,17 @@ function App() {
 
         // Show welcome bubble after initialization
         setTimeout(() => {
-          showBubble('你好!我是你的AI桌面宠物', 3000);
+          const welcomeMsg = '你好!我是你的AI桌面宠物';
+          const duration = 3000;
+          setEmotion('happy');
+          showBubble(welcomeMsg, duration);
+          
+          const config = useConfigStore.getState().config;
+          if (config.voice.ttsEnabled) {
+            void petSpeak(welcomeMsg, { priority: 'normal' });
+          } else {
+            setSpeakingTemporary(duration);
+          }
         }, 500);
       })
       .catch((err) => {
@@ -191,7 +202,11 @@ function App() {
       if (!payload) return;
       const title = payload.title?.trim() || '任务提醒';
       const body = payload.body?.trim() || '';
-      toast.info(body ? `${title}：${body}` : title, 6000);
+      
+      // Skip if it's a proactive greeting placeholder (handled by useProactiveBehavior)
+      if (body === '${greeting}') return;
+
+      // toast.info(body ? `${title}：${body}` : title, 6000);
       const bubble = body ? `${title}\n${body}` : title;
       usePetStore.getState().showBubble(bubble, 6000);
     };
@@ -207,11 +222,12 @@ function App() {
 
         const { config } = useConfigStore.getState();
         if (config.llm.provider !== 'ollama' && !config.llm.apiKey) {
-          toast.error('未配置 API Key，无法执行定时任务');
+          // toast.error('未配置 API Key，无法执行定时任务');
           usePetStore.getState().showBubble('未配置 API Key，无法执行定时任务', 5200);
           return;
         }
-        toast.info('正在执行定时任务…', 3000);
+        // toast.info('正在执行定时任务…', 3000);
+        usePetStore.getState().showBubble('正在执行定时任务…', 3000);
         usePetStore.getState().setEmotion('thinking');
 
         try {
@@ -237,10 +253,10 @@ function App() {
           const result = await runtime.run([{ role: 'user', content: prompt }], enabledTools);
           usePetStore.getState().setEmotion('happy');
           usePetStore.getState().showBubble(result.content.slice(0, 120) || '任务已完成', 6500);
-          toast.success('定时任务已完成');
+          // toast.success('定时任务已完成');
         } catch (err) {
           usePetStore.getState().setEmotion('confused');
-          toast.error(err instanceof Error ? `定时任务失败：${err.message}` : '定时任务失败');
+          // toast.error(err instanceof Error ? `定时任务失败：${err.message}` : '定时任务失败');
           usePetStore.getState().showBubble('定时任务执行失败', 5200);
         }
       })();
@@ -249,7 +265,8 @@ function App() {
     const onWorkflowExecute = (...args: unknown[]) => {
       const payload = args[0] as { workflowId?: string } | undefined;
       if (!payload?.workflowId) return;
-      toast.info(`收到工作流执行请求：${payload.workflowId}`, 5000);
+      // toast.info(`收到工作流执行请求：${payload.workflowId}`, 5000);
+      usePetStore.getState().showBubble(`收到工作流执行请求：${payload.workflowId}`, 5000);
     };
 
     scheduler.on('notification', onNotification);

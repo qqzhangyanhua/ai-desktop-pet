@@ -176,8 +176,8 @@ export function ChatSettings({ toast, onClose }: ChatSettingsProps) {
           toast.error('文件为空');
           return;
         }
-        // TODO: 解析并导入对话
-        toast.success('对话已导入');
+        // TODO: 实现真实的导入逻辑
+        toast.info('导入对话功能开发中，敬请期待');
       } catch (error) {
         console.error('Failed to import chat:', error);
         toast.error('导入失败');
