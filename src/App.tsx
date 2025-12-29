@@ -18,6 +18,7 @@ import { initializeAchievements } from './services/achievements';
 import { AgentRuntime } from './services/agent';
 import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, useUserProfileStore, toast } from './stores';
 import { getSkinManager } from './services/skin';
+import { getWindowManager } from './services/window';
 import { useAchievementListener } from './hooks';
 import { useProactiveBehavior } from './hooks/useProactiveBehavior';
 import './styles/global.css';
@@ -155,29 +156,9 @@ function App() {
   // Listen for tray menu events
   useEffect(() => {
     const unlistenSettings = listen('open-settings', async () => {
-      // Open settings in a new window
-      const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
-      const settingsWindow = await WebviewWindow.getByLabel('settings');
-
-      if (settingsWindow) {
-        await settingsWindow.setFocus();
-      } else {
-        // In dev mode, use dev server URL; in production, use settings.html
-        const isDev = window.location.hostname === 'localhost';
-        const url = isDev ? 'http://localhost:1420/settings.html' : 'settings.html';
-
-        new WebviewWindow('settings', {
-          url,
-          title: '设置中心',
-          width: 1000,
-          height: 600,
-          resizable: true,
-          center: true,
-          decorations: true,
-          alwaysOnTop: false,
-          skipTaskbar: false,
-        });
-      }
+      // Open settings window using WindowManager
+      const windowManager = getWindowManager();
+      await windowManager.openSettingsWindow();
     });
 
     const unlistenClickThrough = listen<{ enabled: boolean }>('click-through-changed', async (e) => {

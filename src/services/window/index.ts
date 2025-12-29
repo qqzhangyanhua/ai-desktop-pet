@@ -1,0 +1,1 @@
+export { getWindowManager } from './manager';

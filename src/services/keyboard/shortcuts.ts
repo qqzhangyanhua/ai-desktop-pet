@@ -8,6 +8,7 @@
 
 import { register, unregister, isRegistered } from '@tauri-apps/plugin-global-shortcut';
 import type { ShortcutAction, ShortcutConfig, ShortcutConflict } from '@/types';
+import { getWindowManager } from '@/services/window';
 
 /**
  * 系统保留键列表（不允许注册）
@@ -219,18 +220,16 @@ class ShortcutManager {
    * 打开聊天窗口
    */
   private async openChatWindow(): Promise<void> {
-    // TODO: 实现打开聊天窗口的逻辑
-    console.log('[ShortcutManager] Opening chat window...');
-    // 需要使用 Tauri 的窗口 API 来显示或聚焦聊天窗口
+    const windowManager = getWindowManager();
+    await windowManager.openChatWindow();
   }
 
   /**
    * 打开设置窗口
    */
   private async openSettingsWindow(): Promise<void> {
-    // TODO: 实现打开设置窗口的逻辑
-    console.log('[ShortcutManager] Opening settings window...');
-    // 需要使用 Tauri 的窗口 API 来显示或聚焦设置窗口
+    const windowManager = getWindowManager();
+    await windowManager.openSettingsWindow();
   }
 
   /**

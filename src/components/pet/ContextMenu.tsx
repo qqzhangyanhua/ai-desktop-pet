@@ -1,16 +1,17 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   Star,
   Search,
   ChevronDown,
   ChevronRight,
   Trash2,
+  X,
 } from 'lucide-react';
 import type { AssistantSkill, PetActionType } from '../../types';
 import { useCareStore, useConfigStore, useContextMenuStore } from '@/stores';
 import { createMenuItems, type MenuItem, type MenuSection } from './menu-items';
+import { getWindowManager } from '@/services/window';
 import '../settings/game-ui.css';
 
 interface ContextMenuProps {
@@ -178,52 +179,14 @@ export function ContextMenu({
 
   const handleOpenChat = async () => {
     onClose();
-    const chatWindow = await WebviewWindow.getByLabel('chat');
-
-    if (chatWindow) {
-      await chatWindow.setFocus();
-    } else {
-      // In dev mode, use dev server URL; in production, use chat.html
-      const isDev = window.location.hostname === 'localhost';
-      const url = isDev ? 'http://localhost:1420/chat.html' : 'chat.html';
-
-      new WebviewWindow('chat', {
-        url,
-        title: '聊天窗口',
-        width: 800,
-        height: 600,
-        resizable: true,
-        center: true,
-        decorations: true,
-        alwaysOnTop: false,
-        skipTaskbar: false,
-      });
-    }
+    const windowManager = getWindowManager();
+    await windowManager.openChatWindow();
   };
 
   const handleOpenSettings = async () => {
     onClose();
-    const settingsWindow = await WebviewWindow.getByLabel('settings');
-
-    if (settingsWindow) {
-      await settingsWindow.setFocus();
-    } else {
-      // In dev mode, use dev server URL; in production, use settings.html
-      const isDev = window.location.hostname === 'localhost';
-      const url = isDev ? 'http://localhost:1420/settings.html' : 'settings.html';
-
-      new WebviewWindow('settings', {
-        url,
-        title: '设置中心',
-        width: 1000,
-        height: 600,
-        resizable: true,
-        center: true,
-        decorations: true,
-        alwaysOnTop: false,
-        skipTaskbar: false,
-      });
-    }
+    const windowManager = getWindowManager();
+    await windowManager.openSettingsWindow();
   };
 
   const allItems: MenuItem[] = createMenuItems(
@@ -312,10 +275,20 @@ export function ContextMenu({
   const getSectionItems = (section: MenuSection) =>
     filteredItems.filter((i) => i.section === section);
 
-  const petFunItems = getSectionItems('pet_fun');
-  const petCareItems = getSectionItems('pet_care');
-  const assistantItems = getSectionItems('assistant');
-  const systemItems = getSectionItems('system');
+  // Determine which items are already shown in top sections to avoid duplicates below
+  const shownIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (normalizedQuery) return ids;
+    favoriteItems.forEach((i) => ids.add(i.id));
+    recentItems.forEach((i) => ids.add(i.id));
+    recommendedItems.forEach((i) => ids.add(i.id));
+    return ids;
+  }, [favoriteItems, normalizedQuery, recentItems, recommendedItems]);
+
+  const petFunItems = getSectionItems('pet_fun').filter((i) => !shownIds.has(i.id));
+  const petCareItems = getSectionItems('pet_care').filter((i) => !shownIds.has(i.id));
+  const assistantItems = getSectionItems('assistant').filter((i) => !shownIds.has(i.id));
+  const systemItems = getSectionItems('system').filter((i) => !shownIds.has(i.id));
 
   const getVisibleItems = useMemo(() => {
     if (normalizedQuery) return filteredItems;
@@ -412,6 +385,14 @@ export function ContextMenu({
           placeholder="搜索…（喂食/睡觉/天气/设置）"
           className="game-context-menu-search-input"
         />
+        <button
+          type="button"
+          className="game-context-menu-close-btn"
+          onClick={onClose}
+          title="关闭"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
       {!normalizedQuery && favoriteItems.length > 0 && (

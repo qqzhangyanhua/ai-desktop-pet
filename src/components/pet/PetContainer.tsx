@@ -47,6 +47,7 @@ export function PetContainer(_props: PetContainerProps) {
   const useLive2D = config?.live2d?.useLive2D ?? false;
   const appearance = config.appearance;
   const performance = config.performance;
+  const statusPanelVisible = appearance.statusPanelVisible;
 
   // Debug: Log Live2D state
   useEffect(() => {
@@ -366,8 +367,8 @@ export function PetContainer(_props: PetContainerProps) {
         ...backgroundStyle,
       }}
     >
-      {/* Status Bar - always visible */}
-      <StatusBar />
+      {/* Status Bar - always visible when enabled */}
+      {statusPanelVisible && <StatusBar />}
 
       {/* Interaction Feedback - floating text */}
       <InteractionFeedback

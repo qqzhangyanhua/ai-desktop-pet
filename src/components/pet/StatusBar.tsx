@@ -8,39 +8,46 @@
  * Linus 准则: "消除特殊情况" - status 永远有值，无需 null 检查
  */
 
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
+import { X } from 'lucide-react';
 import { usePetStatus } from '@/hooks/usePetStatus';
 import { useEconomy } from '@/hooks/useEconomy';
-import { useDrag } from '@/hooks/useDrag';
 import { useConfigStore } from '@/stores';
 import './StatusBar.css';
 
 export const StatusBar = memo(function StatusBar() {
   const { status } = usePetStatus();
   const { coins, levelInfo } = useEconomy();
-  const statusPanelVisible = useConfigStore((s) => s.config.appearance.statusPanelVisible);
-  const { handleMouseDown } = useDrag();
+  // statusPanelVisible is now handled by parent (PetContainer)
+  const setConfig = useConfigStore((s) => s.setConfig);
+  const saveConfig = useConfigStore((s) => s.saveConfig);
 
-  console.log('[StatusBar] statusPanelVisible:', statusPanelVisible);
-
-  // 默认隐藏：仅在右键菜单显式开启时渲染
-  if (!statusPanelVisible) return null;
+  const handleClose = useCallback(async () => {
+    const currentAppearance = useConfigStore.getState().config.appearance;
+    setConfig({
+      appearance: {
+        ...currentAppearance,
+        statusPanelVisible: false,
+      },
+    });
+    try {
+      await saveConfig();
+    } catch (err) {
+      console.warn('[StatusBar] Failed to save config:', err);
+    }
+  }, [setConfig, saveConfig]);
 
   return (
-    <div
-      className="status-bar"
-      onMouseDown={(e) => {
-        e.stopPropagation();
-        handleMouseDown(e);
-      }}
-      onMouseUp={(e) => {
-        e.stopPropagation();
-      }}
-    >
-      <div className="drag-indicator">
-        <span className="drag-icon">⋮⋮</span>
-        <span className="drag-hint">拖动移动</span>
-      </div>
+    <div className="status-bar">
+      <button
+        type="button"
+        className="status-bar-close-btn"
+        onClick={handleClose}
+        title="关闭"
+      >
+        <X className="w-3 h-3" />
+      </button>
+
       <StatusItem
         label="心情"
         value={status.mood}
