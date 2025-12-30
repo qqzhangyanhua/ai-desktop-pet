@@ -230,7 +230,7 @@ CREATE INDEX IF NOT EXISTS idx_care_timestamp ON care_history(timestamp);
 `;
 
 /**
- * 迁移pet_status表：首次启动时插入默认记录，已有数据添加金币/经验/昵称字段
+ * 迁移pet_status表：首次启动时插入默认记录，已有数据添加金币/经验/昵称/交互时间戳字段
  * @param db Database instance
  */
 async function migratePetStatus(db: Database): Promise<void> {
@@ -243,10 +243,15 @@ async function migratePetStatus(db: Database): Promise<void> {
     if (existing[0]?.count === 0) {
       // 首次启动，插入默认状态
       const now = Date.now();
+      const defaultTimestamps = JSON.stringify({
+        feed: 0,
+        play: 0,
+        pet: 0,
+      });
       await db.execute(
-        `INSERT INTO pet_status (id, nickname, last_interaction, coins, experience, created_at, updated_at)
-         VALUES (1, '我的宠物', ?, 0, 0, ?, ?)`,
-        [now, now, now]
+        `INSERT INTO pet_status (id, nickname, last_interaction, interaction_timestamps, coins, experience, created_at, updated_at)
+         VALUES (1, '我的宠物', ?, ?, 0, 0, ?, ?)`,
+        [now, defaultTimestamps, now, now]
       );
       console.log('[Database] Pet status default record inserted');
     } else {
@@ -267,6 +272,36 @@ async function migratePetStatus(db: Database): Promise<void> {
       } catch {
         await db.execute("ALTER TABLE pet_status ADD COLUMN nickname TEXT NOT NULL DEFAULT '我的宠物'");
         console.log('[Database] Added nickname column to pet_status');
+      }
+
+      // P0-3: 检查并添加 interaction_timestamps 字段（新架构）
+      try {
+        await db.select('SELECT interaction_timestamps FROM pet_status LIMIT 1');
+        console.log('[Database] interaction_timestamps column already exists');
+      } catch {
+        // 字段不存在，添加新字段
+        await db.execute('ALTER TABLE pet_status ADD COLUMN interaction_timestamps TEXT');
+        console.log('[Database] Added interaction_timestamps column to pet_status');
+
+        // 数据迁移：将旧的 last_feed, last_play 迁移到新的 JSON 格式
+        const rows = await db.select<Array<{ id: number; last_feed: number | null; last_play: number | null }>>(
+          'SELECT id, last_feed, last_play FROM pet_status'
+        );
+
+        for (const row of rows) {
+          const timestamps: Record<string, number> = {
+            feed: row.last_feed || 0,
+            play: row.last_play || 0,
+            pet: 0, // 旧版本没有单独的 pet 时间戳，设为 0
+          };
+
+          await db.execute(
+            'UPDATE pet_status SET interaction_timestamps = ? WHERE id = ?',
+            [JSON.stringify(timestamps), row.id]
+          );
+        }
+
+        console.log('[Database] Migrated legacy timestamp fields to interaction_timestamps (JSON)');
       }
     }
   } catch (error) {

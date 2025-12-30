@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,16 +29,17 @@ interface AssistantTabProps {
   localConfig: AppConfig;
   setLocalConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
   handleVoiceConfigChange?: (voice: VoiceConfig) => void;
-  llmProviders?: any;
-  availableModels?: any;
-  onProviderChange?: any;
-  onModelChange?: any;
-  onApiKeyChange?: any;
-  onBaseUrlChange?: any;
-  onTemperatureChange?: any;
-  onSystemPromptChange?: any;
-  onVoiceConfigChange?: any;
-  onFeedback?: (message: string, type?: any, duration?: number) => void;
+  // Optional props from parent that can be ignored
+  llmProviders?: unknown;
+  availableModels?: unknown;
+  onProviderChange?: unknown;
+  onModelChange?: unknown;
+  onApiKeyChange?: unknown;
+  onBaseUrlChange?: unknown;
+  onTemperatureChange?: unknown;
+  onSystemPromptChange?: unknown;
+  onVoiceConfigChange?: unknown;
+  onFeedback?: unknown;
 }
 
 export function AssistantTab({
@@ -59,42 +59,42 @@ export function AssistantTab({
         baseUrl: provider === 'ollama' ? 'http://localhost:11434/api' : undefined,
       },
     }));
-  }, []);
+  }, [setLocalConfig]);
 
   const handleModelChange = useCallback((model: string) => {
     setLocalConfig((prev) => ({
       ...prev,
       llm: { ...prev.llm, model },
     }));
-  }, []);
+  }, [setLocalConfig]);
 
   const handleApiKeyChange = useCallback((apiKey: string) => {
     setLocalConfig((prev) => ({
       ...prev,
       llm: { ...prev.llm, apiKey },
     }));
-  }, []);
+  }, [setLocalConfig]);
 
   const handleBaseUrlChange = useCallback((baseUrl: string) => {
     setLocalConfig((prev) => ({
       ...prev,
       llm: { ...prev.llm, baseUrl: baseUrl || undefined },
     }));
-  }, []);
+  }, [setLocalConfig]);
 
   const handleTemperatureChange = useCallback((temperature: number) => {
     setLocalConfig((prev) => ({
       ...prev,
       llm: { ...prev.llm, temperature },
     }));
-  }, []);
+  }, [setLocalConfig]);
 
   const handleSystemPromptChange = useCallback((systemPrompt: string) => {
     setLocalConfig((prev) => ({
       ...prev,
       systemPrompt,
     }));
-  }, []);
+  }, [setLocalConfig]);
 
   const availableModels = DEFAULT_MODELS[localConfig.llm.provider] ?? [];
 
@@ -222,7 +222,9 @@ export function AssistantTab({
         </div>
       </div>
 
-      <VoiceSettings config={localConfig.voice} onChange={handleVoiceConfigChange} />
+      {handleVoiceConfigChange && (
+        <VoiceSettings config={localConfig.voice} onChange={handleVoiceConfigChange} />
+      )}
 
       <div className="settings-section">
         <div className="settings-section-title">隐私设置（对话历史）</div>

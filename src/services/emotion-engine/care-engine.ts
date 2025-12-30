@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Care Engine
  * 智能关怀引擎
@@ -223,7 +222,7 @@ export class CareEngine {
   /**
    * 记录通知已发送
    */
-  recordNotification(_opportunityId: string, type: CareOpportunity['type']): void {
+  recordNotification(_opportunityId: string, _type: CareOpportunity['type']): void {
     this.lastNotificationTime = Date.now();
     this.notificationCountThisHour++;
   }
@@ -232,13 +231,13 @@ export class CareEngine {
    * 记录用户反馈
    */
   recordFeedback(
-    _opportunityId: string,
+    opportunityId: string,
     response: 'accepted' | 'dismissed' | 'ignored',
     rating?: number
   ): void {
     const history: CareHistory = {
       timestamp: Date.now(),
-      opportunityId,
+      _opportunityId: opportunityId,
       type: this.getOpportunityTypeById(opportunityId),
       response,
       userFeedback: rating,
@@ -616,17 +615,20 @@ export class CareEngine {
 
   private selectBestTemplate(
     templates: Array<{ tone: string; title: string; message: string }>,
-    opportunity: CareOpportunity
-  ) {
+    _opportunity: CareOpportunity
+  ): { tone: string; title: string; message: string } {
     // 简化：随机选择或根据用户偏好选择
     const bestTemplate = templates[Math.floor(Math.random() * templates.length)];
+    if (!bestTemplate) {
+      return { tone: 'gentle', title: '关怀', message: '我在这里陪着你' };
+    }
     return bestTemplate;
   }
 
   private personalizeMessage(
     template: { tone: string; title: string; message: string },
     opportunity: CareOpportunity
-  ): { title: string; message: string; action?: string; tone: string } {
+  ): { title: string; message: string; action?: string; tone: 'gentle' | 'urgent' | 'celebratory' | 'supportive' } {
     // 这里可以添加个性化逻辑
     // 例如：根据用户历史反馈调整语调
 
@@ -634,11 +636,11 @@ export class CareEngine {
       title: template.title,
       message: template.message,
       action: opportunity.suggestion.action,
-      tone: template.tone,
+      tone: template.tone as 'gentle' | 'urgent' | 'celebratory' | 'supportive',
     };
   }
 
-  private getLastBreakTime(events: EmotionEvent[]): number {
+  private getLastBreakTime(_events: EmotionEvent[]): number {
     // 简化：返回当前时间（实际应该从事件中提取）
     return Date.now() - 60 * 60 * 1000; // 假设1小时前休息过
   }
@@ -653,7 +655,7 @@ export class CareEngine {
     }
   }
 
-  private getOpportunityTypeById(_opportunityId: string): CareOpportunity['type'] {
+  private getOpportunityTypeById(opportunityId: string): CareOpportunity['type'] {
     // 简化：从ID中提取类型
     if (opportunityId.includes('low_mood')) return 'low_mood';
     if (opportunityId.includes('high_stress')) return 'high_stress';
@@ -666,7 +668,7 @@ export class CareEngine {
     return 'break_reminder';
   }
 
-  private learnUserPreference(_opportunityId: string, rating: number): void {
+  private learnUserPreference(opportunityId: string, rating: number): void {
     // 学习用户对不同类型关怀的偏好
     const type = this.getOpportunityTypeById(opportunityId);
     const currentPref = this.userPreferences.get(type) || 0.5;

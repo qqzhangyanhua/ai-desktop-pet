@@ -217,3 +217,30 @@ export interface DiaryCallbacks {
   /** 情绪统计更新 */
   onStatisticsUpdated?: (stats: DiaryStatistics) => void;
 }
+
+/**
+ * 数据库行类型定义
+ * Database row types - 与SQLite表结构对应
+ */
+
+/** 日记条目数据库行类型 */
+export interface DiaryEntryRow {
+  id: string;
+  created_at: number;
+  updated_at: number;
+  title: string;
+  content: string;
+  emotion_primary: string;
+  emotion_secondary: string | null;
+  emotion_intensity: number;
+  emotion_confidence: number;
+  activities: string;
+  weather: string | null;
+  location: string | null;
+  photos: string;
+  voice_note: string | null;
+  related_conversation_id: string | null;
+  is_favorite: number;
+  tags: string;
+  visibility: string;
+}

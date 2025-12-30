@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Emotional Diary Service
  * 情感日记服务
@@ -19,6 +18,7 @@ import type {
   DiaryUpdateOptions,
   // DiaryShareOptions,
   DiaryCallbacks,
+  DiaryEntryRow,
 } from '@/types/emotion-diary';
 
 /**
@@ -250,7 +250,7 @@ export class EmotionDiaryService {
 
     if (!this.db) throw new Error('Database not initialized');
 
-    const result = await this.db.select<Array<any>>(
+    const result = await this.db.select<DiaryEntryRow[]>(
       'SELECT * FROM diary_entries WHERE id = $1',
       [id]
     );
@@ -259,7 +259,12 @@ export class EmotionDiaryService {
       return null;
     }
 
-    const entry = this.rowToEntry(result[0]);
+    const row = result[0];
+    if (!row) {
+      return null;
+    }
+
+    const entry = this.rowToEntry(row);
     this.cache.set(id, entry);
 
     return entry;
@@ -272,7 +277,7 @@ export class EmotionDiaryService {
     if (!this.db) throw new Error('Database not initialized');
 
     let query = 'SELECT * FROM diary_entries WHERE 1=1';
-    const params: any[] = [];
+    const params: (string | number)[] = [];
 
     // 日期范围过滤
     if (options.startDate) {
@@ -339,7 +344,7 @@ export class EmotionDiaryService {
 
     query += ` LIMIT ${limit} OFFSET ${offset}`;
 
-    const rows = await this.db.select<Array<any>>(query, params);
+    const rows = await this.db.select<DiaryEntryRow[]>(query, params);
     return rows.map(row => this.rowToEntry(row));
   }
 
@@ -424,7 +429,7 @@ export class EmotionDiaryService {
     const timelineStart = new Date(nowDate);
     timelineStart.setDate(nowDate.getDate() - 30);
 
-    const timelineResult = await this.db.select<Array<any>>(
+    const timelineResult = await this.db.select<Array<{ created_at: number; emotion_primary: string; emotion_intensity: number }>>(
       `SELECT created_at, emotion_primary, emotion_intensity
        FROM diary_entries
        WHERE created_at >= $1
@@ -433,7 +438,7 @@ export class EmotionDiaryService {
     );
 
     const emotionTimeline = timelineResult.map(row => ({
-      date: new Date(row.created_at).toISOString().split('T')[0],
+      date: new Date(row.created_at).toISOString().split('T')[0] ?? '',
       emotion: row.emotion_primary,
       intensity: row.emotion_intensity,
     }));
@@ -494,7 +499,7 @@ export class EmotionDiaryService {
 
     // 计算情绪趋势
     const scores = entries.map(entry => ({
-      date: new Date(entry.createdAt).toISOString().split('T')[0],
+      date: new Date(entry.createdAt).toISOString().split('T')[0] ?? '',
       score: entry.emotion.intensity * (entry.emotion.primary === 'happy' ? 1 : -1),
     }));
 
@@ -526,8 +531,8 @@ export class EmotionDiaryService {
     const report: EmotionTrendReport = {
       id: `report_${Date.now()}`,
       type,
-      startDate: startDate || new Date().toISOString().split('T')[0],
-      endDate: endDate || new Date().toISOString().split('T')[0],
+      startDate: startDate?.toISOString().split('T')[0] ?? new Date().toISOString().split('T')[0] ?? '',
+      endDate: endDate?.toISOString().split('T')[0] ?? new Date().toISOString().split('T')[0] ?? '',
       generatedAt: Date.now(),
       trends: {
         overall,
@@ -554,7 +559,7 @@ export class EmotionDiaryService {
 
   // ============ 私有方法 ============
 
-  private rowToEntry(row: any): DiaryEntry {
+  private rowToEntry(row: DiaryEntryRow): DiaryEntry {
     return {
       id: row.id,
       createdAt: row.created_at,
@@ -567,15 +572,15 @@ export class EmotionDiaryService {
         intensity: row.emotion_intensity,
         confidence: row.emotion_confidence,
       },
-      activities: JSON.parse(row.activities ?? '[]'),
-      weather: row.weather ?? undefined,
+      activities: JSON.parse(row.activities ?? '[]') as string[],
+      weather: (row.weather as DiaryEntry['weather']) ?? undefined,
       location: row.location ?? undefined,
-      photos: JSON.parse(row.photos ?? '[]'),
+      photos: JSON.parse(row.photos ?? '[]') as string[],
       voiceNote: row.voice_note ?? undefined,
       relatedConversationId: row.related_conversation_id ?? undefined,
       isFavorite: row.is_favorite === 1,
-      tags: JSON.parse(row.tags ?? '[]'),
-      visibility: row.visibility,
+      tags: JSON.parse(row.tags ?? '[]') as string[],
+      visibility: row.visibility as DiaryEntry['visibility'],
     };
   }
 

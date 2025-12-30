@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 自动打工管理器
  * Auto Work Manager
@@ -111,7 +110,7 @@ class AutoWorkManager {
     }
 
     // 检查今日工作时长是否超过上限
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0] ?? '';
     const todayWorkHours = Number((await getTodayWorkHours(today)) || 0) || 0;
     if (todayWorkHours >= config.behavior.autoWork.dailyMaxWorkHours) {
       console.log('[AutoWorkManager] Daily work limit reached');
@@ -319,7 +318,7 @@ class AutoWorkManager {
       averageSessionHours: number;
     };
   }> {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0] ?? '';
     const todayWorkHours = Number((await getTodayWorkHours(today)) || 0) || 0;
     const stats = await getWorkStats();
 

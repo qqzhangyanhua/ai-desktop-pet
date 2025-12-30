@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Emotion-Driven Dialogue Engine
  * 情绪驱动对话引擎
@@ -21,7 +20,6 @@ import type {
   EmotionDialogueContext,
   EmotionDialogueOptions,
   EmotionDialogueResult,
-  SystemPromptTemplate,
 } from './types';
 
 /**
@@ -59,11 +57,11 @@ export async function generateEmotionDialogue(
 
   // 4. 调用LLM生成回复
   try {
-    let llmResult: EmotionDialogueResult;
+    let baseResult: { text: string; usage: any; finishReason: string };
 
     if (stream) {
       // 流式输出
-      llmResult = await streamDialogue({
+      baseResult = await streamDialogue({
         messages,
         systemPrompt,
         config,
@@ -72,7 +70,7 @@ export async function generateEmotionDialogue(
       });
     } else {
       // 非流式输出
-      llmResult = await generateDialogue({
+      baseResult = await generateDialogue({
         messages,
         systemPrompt,
         config,
@@ -81,17 +79,19 @@ export async function generateEmotionDialogue(
     }
 
     // 5. 分析回复文本，提取宠物情绪和语调
-    const analyzed = analyzeResponseText(llmResult.text, sentiment);
+    const analyzed = analyzeResponseText(baseResult.text, sentiment);
 
     // 6. 更新对话历史
-    updateHistory(context.userInput, llmResult.text);
+    updateHistory(context.userInput, baseResult.text);
 
     // 7. 构建完整结果
     const result: EmotionDialogueResult = {
-      ...llmResult,
+      text: baseResult.text,
+      usage: baseResult.usage,
+      finishReason: baseResult.finishReason,
       ...analyzed,
       systemPrompt: template,
-      hasCareSuggestion: context.careOpportunities?.length > 0,
+      hasCareSuggestion: (context.careOpportunities?.length ?? 0) > 0,
     };
 
     // 8. 完成回调
@@ -117,7 +117,7 @@ async function streamDialogue(params: {
   config: EmotionDialogueOptions['config'];
   onToken?: (token: string) => void;
   signal?: AbortSignal;
-}): Promise<Omit<EmotionDialogueResult, 'petEmotion' | 'tone' | 'hasCareSuggestion' | 'systemPrompt'>> {
+}): Promise<{ text: string; usage: any; finishReason: string }> {
   const { messages, systemPrompt, config, onToken, signal } = params;
 
   const result = await streamChatCompletion({
@@ -131,7 +131,7 @@ async function streamDialogue(params: {
   return {
     text: result.content,
     usage: result.usage,
-    finishReason: result.finishReason,
+    finishReason: result.finishReason ?? 'stop',
   };
 }
 
@@ -143,7 +143,7 @@ async function generateDialogue(params: {
   systemPrompt: string;
   config: EmotionDialogueOptions['config'];
   signal?: AbortSignal;
-}): Promise<Omit<EmotionDialogueResult, 'petEmotion' | 'tone' | 'hasCareSuggestion' | 'systemPrompt'>> {
+}): Promise<{ text: string; usage: any; finishReason: string }> {
   const { messages, systemPrompt, config, signal } = params;
 
   const result = await chatCompletion({
@@ -156,7 +156,7 @@ async function generateDialogue(params: {
   return {
     text: result.content,
     usage: result.usage,
-    finishReason: result.finishReason,
+    finishReason: result.finishReason ?? 'stop',
   };
 }
 

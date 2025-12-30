@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * PetCore Interaction Handler
  * 基于PetCore的新互动处理系统
@@ -41,11 +40,10 @@ export interface LegacyInteractionResult {
  * 使用PetCore Service统一管理
  */
 export async function handleInteractionNew(
-  type: InteractionType
+  type: 'pet' | 'feed' | 'play'
 ): Promise<LegacyInteractionResult> {
   // 使用PetCore处理互动
   const result: CoreInteractionResult = await petCoreService.handleInteraction(type);
-    // @ts-expect-error - InteractionType includes sleep
 
   if (!result.success) {
     return {
@@ -67,22 +65,19 @@ export async function handleInteractionNew(
 /**
  * 检查冷却时间
  */
-export function checkCooldown(type: InteractionType): { onCooldown: boolean; remaining: number } {
+export function checkCooldown(type: 'pet' | 'feed' | 'play'): { onCooldown: boolean; remaining: number } {
   return petCoreService.checkCooldown(type);
 }
 
 /**
  * 获取所有冷却状态
  */
-export function getAllCooldowns(): Record<InteractionType, number> {
-    // @ts-expect-error - state not used
-  const state = petCoreService.getState();
+export function getAllCooldowns(): Partial<Record<InteractionType, number>> {
   const cooldowns = {
     pet: petCoreService.checkCooldown('pet'),
     feed: petCoreService.checkCooldown('feed'),
     play: petCoreService.checkCooldown('play'),
   };
-    // @ts-expect-error - missing properties
 
   return {
     pet: cooldowns.pet.remaining,
@@ -102,14 +97,14 @@ export function hasAvailableInteraction(): boolean {
 /**
  * 根据当前状态推荐互动
  */
-export function getRecommendedInteraction(): InteractionType | null {
+export function getRecommendedInteraction(): 'pet' | 'feed' | 'play' | null {
   const state = petCoreService.getState();
   const cooldowns = getAllCooldowns();
 
   // Filter available interactions
-  const available: InteractionType[] = (
-    Object.keys(cooldowns) as InteractionType[]
-  ).filter((type) => cooldowns[type] === 0);
+  const available: Array<'pet' | 'feed' | 'play'> = (['pet', 'feed', 'play'] as const).filter(
+    (type) => cooldowns[type] === 0
+  );
 
   if (available.length === 0) {
     return null;
@@ -159,11 +154,8 @@ export function subscribeToStateChanges(
 /**
  * 将PetCoreState映射为旧接口格式
  * 保持向后兼容性
-    // @ts-expect-error - now not used
  */
 function mapStateToLegacyStatus(state: PetCoreState) {
-  const now = Date.now();
-
   return {
     mood: state.care.mood,
     energy: state.care.energy,

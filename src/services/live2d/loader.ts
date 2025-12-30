@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Live2DModelConfig, Live2DState } from '../../types';
 import type { Oml2dMethods, Oml2dProperties, Oml2dEvents } from 'oh-my-live2d';
 
@@ -12,16 +11,11 @@ export interface Live2DLoaderOptions {
 
 export class Live2DLoader {
   private instance: Oml2dInstance | null = null;
-  private models: Live2DModelConfig[] = [];
-  private onStateChange?: (state: Live2DState) => void;
   private isInitializing = false;
 
   async init(models: Live2DModelConfig[], options?: Live2DLoaderOptions): Promise<Oml2dInstance | null> {
     if (this.instance && this.instance) {
       console.log('[Live2DLoader] Already initialized, reusing existing instance');
-      if (options?.onStateChange) {
-        this.onStateChange = options.onStateChange;
-      }
       return this.instance;
     }
 
@@ -39,9 +33,6 @@ export class Live2DLoader {
 
     this.isInitializing = true;
     console.log('[Live2DLoader] Starting initialization with models:', models.map(m => ({ name: m.name, path: m.path })));
-
-    this.onStateChange = options?.onStateChange;
-    this.models = models;
 
     try {
       console.log('[Live2DLoader] Loading oh-my-live2d...');
@@ -127,8 +118,6 @@ export class Live2DLoader {
       // Clear any pending operations
     }
     this.instance = null;
-    this.models = [];
-    this.onStateChange = undefined;
     this.isInitializing = false;
   }
 }

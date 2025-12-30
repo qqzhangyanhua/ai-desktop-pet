@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Animation System - Unified Exports
  * 动画系统 - 统一导出
@@ -32,7 +31,7 @@ export type {
  * 动画系统管理器
  * 整合微互动、粒子效果和待机动画
  */
-import { MicroInteractionHandler } from './micro-interactions';
+import { MicroInteractionHandler, calculateRelativePosition } from './micro-interactions';
 import { ParticleSystem, createParticleSystem } from './particle-system';
 import { IdleAnimationManager } from './idle-animations';
 import type { EmotionType } from '@/types';
@@ -45,8 +44,8 @@ export class AnimationManager {
   private isInitialized = false;
 
   constructor(
-    microConfig?: Parameters<typeof MicroInteractionHandler>[0],
-    idleConfig?: Parameters<typeof IdleAnimationManager>[0]
+    microConfig?: ConstructorParameters<typeof MicroInteractionHandler>[0],
+    idleConfig?: ConstructorParameters<typeof IdleAnimationManager>[0]
   ) {
     this.microInteraction = new MicroInteractionHandler(microConfig);
     this.idleAnimation = new IdleAnimationManager(idleConfig);

@@ -60,7 +60,6 @@ export function usePetActions() {
       console.warn('[PetAction] Live2D action fallback', err);
     }
 
-    const warning = report.warnings[0];
     // Warning is already shown in bubble via getPetActionFeedback
   }, []);
 

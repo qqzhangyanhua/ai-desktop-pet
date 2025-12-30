@@ -1,10 +1,14 @@
 /**
  * Pet Status Database Operations
  * 宠物状态数据库操作层
+ *
+ * P0-3: 支持新的 interaction_timestamps 字段（JSON格式）
+ * 向后兼容旧的 last_feed, last_play 字段
  */
 
 import { getDatabase } from './index';
 import type { PetStatus, InteractionType } from '@/types';
+import { InteractionTimestamps } from '@/types/pet-care';
 
 /**
  * Database column name mapping
@@ -36,6 +40,7 @@ interface PetStatusRow {
   last_interaction: number;
   last_feed: number | null;
   last_play: number | null;
+  interaction_timestamps: string | null; // P0-3: 新字段（JSON格式）
   total_interactions: number;
   coins: number;
   experience: number;
@@ -46,16 +51,32 @@ interface PetStatusRow {
 /**
  * Convert database row to PetStatus type
  * 数据库行转换为 PetStatus 类型
+ *
+ * P0-3: 优先使用 interaction_timestamps（新格式），兜底使用旧字段
  */
 function rowToPetStatus(row: PetStatusRow): PetStatus {
+  // 优先使用新格式
+  let lastFeed = row.last_feed;
+  let lastPlay = row.last_play;
+
+  if (row.interaction_timestamps) {
+    try {
+      const timestamps = InteractionTimestamps.fromJSON(row.interaction_timestamps);
+      lastFeed = timestamps.getLastTime('feed') || lastFeed;
+      lastPlay = timestamps.getLastTime('play') || lastPlay;
+    } catch (error) {
+      console.warn('[Database] Failed to parse interaction_timestamps, using legacy fields:', error);
+    }
+  }
+
   return {
     nickname: row.nickname,
     mood: row.mood,
     energy: row.energy,
     intimacy: row.intimacy,
     lastInteraction: row.last_interaction,
-    lastFeed: row.last_feed,
-    lastPlay: row.last_play,
+    lastFeed,
+    lastPlay,
     totalInteractions: row.total_interactions,
     coins: row.coins,
     experience: row.experience,
@@ -127,6 +148,8 @@ export async function updatePetStatus(
 /**
  * Increment interaction count and update timestamps
  * 增加互动计数并更新时间戳
+ *
+ * P0-3: 双写模式 - 同时更新旧字段和新的 interaction_timestamps
  */
 export async function incrementInteractionCount(
   type: InteractionType
@@ -135,7 +158,7 @@ export async function incrementInteractionCount(
     const db = await getDatabase();
     const now = Date.now();
 
-    // Map interaction type to database column
+    // Map interaction type to database column (旧字段)
     const typeColumnMap: Record<InteractionType, string> = {
       pet: 'last_interaction',
       feed: 'last_feed',
@@ -144,14 +167,40 @@ export async function incrementInteractionCount(
 
     const typeColumn = typeColumnMap[type];
 
+    // P0-3: 读取现有的 interaction_timestamps
+    const existing = await db.select<Array<{ interaction_timestamps: string | null }>>(
+      'SELECT interaction_timestamps FROM pet_status WHERE id = 1'
+    );
+
+    let timestampsJson = '{}';
+    if (existing[0]?.interaction_timestamps) {
+      try {
+        const timestamps = InteractionTimestamps.fromJSON(existing[0].interaction_timestamps);
+        timestamps.setLastTime(type, now);
+        timestampsJson = timestamps.toJSON();
+      } catch {
+        // 解析失败，创建新的
+        const timestamps = new InteractionTimestamps();
+        timestamps.setLastTime(type, now);
+        timestampsJson = timestamps.toJSON();
+      }
+    } else {
+      // 首次写入，创建新的
+      const timestamps = new InteractionTimestamps();
+      timestamps.setLastTime(type, now);
+      timestampsJson = timestamps.toJSON();
+    }
+
+    // 双写模式：同时更新旧字段和新字段
     await db.execute(
       `UPDATE pet_status
        SET total_interactions = total_interactions + 1,
            last_interaction = ?,
            ${typeColumn} = ?,
+           interaction_timestamps = ?,
            updated_at = ?
        WHERE id = 1`,
-      [now, now, now]
+      [now, now, timestampsJson, now]
     );
   } catch (error) {
     console.error('[Database] Failed to increment interaction count:', error);

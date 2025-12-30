@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Sentiment Analyzer
  * 情绪分析引擎
@@ -6,7 +5,8 @@
  * 支持中英文情绪分析，基于词典和规则
  */
 
-import type { SentimentResult, EmotionType } from './types';
+import type { EmotionType } from '@/types';
+import type { SentimentResult } from './types';
 
 /**
  * 中文情绪词典
@@ -99,7 +99,6 @@ const EMOTION_KEYWORDS: Record<EmotionType, string[]> = {
   surprised: ['惊讶', '意外', '哇', 'surprised', 'shocked', 'wow'],
   neutral: ['还好', '一般', 'okay', 'fine', 'alright', 'normal'],
   sad: ['难过', '伤心', '悲伤', 'sad', 'upset', 'down'],
-  angry: ['生气', '愤怒', '恼火', 'angry', 'mad', 'furious'],
 };
 
 /**
@@ -295,7 +294,7 @@ export class SentimentAnalyzer {
   /**
    * 计算上下文得分
    */
-  private calculateContextualScore(text: string): number {
+  private calculateContextualScore(_text: string): number {
     // 这里可以添加更多上下文分析规则
     // 例如：时间段、前文上下文等
     return 0;

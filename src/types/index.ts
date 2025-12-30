@@ -2,6 +2,7 @@
 
 export * from './pet';
 export * from './pet-status';
+export * from './pet-care';
 export * from './growth-stage';
 export * from './statistics';
 export * from './chat';

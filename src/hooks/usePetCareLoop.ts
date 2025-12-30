@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useCareStore, useConfigStore, usePetStore, toast } from '../stores';
+import { useCareStore, useConfigStore, usePetStore } from '../stores';
 import { ensurePetVoiceLinkInitialized, petSpeak } from '@/services/pet/voice-link';
 
 const getLoopIntervalMs = (frequency: 'low' | 'standard' | 'high') => {
@@ -40,46 +40,45 @@ export function usePetCareLoop() {
     const warningCooldown = getWarningCooldownMs(behavior.interactionFrequency);
     const loopInterval = getLoopIntervalMs(behavior.interactionFrequency);
 
+    // 使用内联函数避免闭包依赖问题
     const tick = () => {
+      // 每次执行时获取最新状态，避免闭包陈旧值
       const care = useCareStore.getState();
       const pet = usePetStore.getState();
+      const currentBehavior = useConfigStore.getState().config.behavior;
+      const currentVoice = useConfigStore.getState().config.voice;
 
       const stats = care.applyDecay();
       const report = care.getStatusReport();
 
-      // 病弱提示
-      if (stats.isSick && Date.now() - lastWarnAtRef.current > warningCooldown) {
-        if (behavior.notifications.bubbleEnabled) {
-          const msg = report.warnings[0] || '有点不舒服，帮我清洁或喂点东西吧';
-          pet.showBubble(msg, 5200);
-          pet.setEmotion('sad');
-          if (voice.ttsEnabled) {
-            void petSpeak(msg, { priority: 'high', interrupt: true });
+      // 统一警告逻辑：病弱优先，否则显示常规警告
+      const shouldWarn =
+        (stats.isSick || report.warnings.length > 0) &&
+        Date.now() - lastWarnAtRef.current > warningCooldown;
+
+      if (shouldWarn) {
+        // 确定警告消息和情绪
+        const message = stats.isSick
+          ? (report.warnings[0] || '有点不舒服，帮我清洁或喂点东西吧')
+          : (report.warnings[0] || '');
+
+        const emotion = stats.isSick ? 'sad' : report.emotion;
+        const bubbleDuration = stats.isSick ? 5200 : 4200;
+
+        if (message && currentBehavior.notifications.bubbleEnabled) {
+          pet.showBubble(message, bubbleDuration);
+          pet.setEmotion(emotion);
+
+          if (currentVoice.ttsEnabled) {
+            void petSpeak(message, { priority: 'high', interrupt: true });
           }
         }
-        if (behavior.notifications.toastEnabled) {
+
+        if (currentBehavior.notifications.toastEnabled && stats.isSick) {
           // toast.warning(report.warnings[0] || '宠物状态较弱，请优先喂食/清洁/休息');
         }
-        lastWarnAtRef.current = Date.now();
-        return;
-      }
 
-      // 低频提醒，避免频繁打扰
-      if (
-        report.warnings.length > 0 &&
-        Date.now() - lastWarnAtRef.current > warningCooldown
-      ) {
-        const warning = report.warnings[0];
-        if (warning) {
-          if (behavior.notifications.bubbleEnabled) {
-            pet.showBubble(warning, 4200);
-            pet.setEmotion(report.emotion);
-            if (voice.ttsEnabled) {
-              void petSpeak(warning, { priority: 'high', interrupt: true });
-            }
-          }
-          lastWarnAtRef.current = Date.now();
-        }
+        lastWarnAtRef.current = Date.now();
       }
     };
 
@@ -90,5 +89,5 @@ export function usePetCareLoop() {
     return () => {
       clearInterval(timer);
     };
-  }, [behavior, voice.sttEnabled, voice.ttsEnabled]);
+  }, [behavior.interactionFrequency, behavior.notifications.bubbleEnabled, behavior.notifications.toastEnabled, voice.sttEnabled, voice.ttsEnabled]);
 }

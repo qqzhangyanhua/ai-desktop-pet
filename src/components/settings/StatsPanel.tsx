@@ -11,7 +11,6 @@ import {
   getAchievements,
   getAchievementStatistics,
 } from '@/services/achievements';
-import { Button } from '@/components/ui/button';
 
 interface StatCardProps {
   icon: LucideIcon;

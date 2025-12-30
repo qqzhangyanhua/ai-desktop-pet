@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Emotion Engine - Unified Exports
  * 情感引擎 - 统一导出
@@ -30,6 +29,7 @@ import { getSentimentAnalyzer } from './sentiment-analyzer';
 import { getBehaviorAnalyzer } from './behavior-analyzer';
 import { getEmotionMemory } from './emotion-memory';
 import { getCareEngine } from './care-engine';
+import type { EmotionType } from '@/types';
 import type {
   SentimentResult,
   BehaviorData,
@@ -82,8 +82,11 @@ export class EmotionEngine {
    */
   detectCareOpportunities(
     sentiment: SentimentResult,
-    behavior: BehaviorData
+    behaviorData: BehaviorData
   ): CareOpportunity[] {
+    // 先分析行为模式
+    const behavior = this.behaviorAnalyzer.analyze(behaviorData);
+
     // 获取最近的情感事件
     const recentEvents = this.emotionMemory.queryMemories({
       timeRange: {
@@ -98,11 +101,11 @@ export class EmotionEngine {
       timestamp: memory.createdAt,
       type: 'system',
       source: 'memory',
-      emotion: memory.emotion as any,
+      emotion: memory.emotion as EmotionType,
       sentiment: {
         sentiment: 'neutral',
         confidence: memory.intensity,
-        emotion: memory.emotion as any,
+        emotion: memory.emotion as EmotionType,
         score: 0,
         keywords: memory.content.keywords,
       },
@@ -145,13 +148,12 @@ export class EmotionEngine {
 
     // 基于情绪生成回应
     let responseText = this.generateTextBySentiment(sentiment);
-    let targetEmotion: any = sentiment.emotion;
+    const targetEmotion: EmotionType = sentiment.emotion;
 
     // 检查关怀机会
     let careOpportunities: CareOpportunity[] = [];
     if (context.behaviorData) {
-      const behavior = this.analyzeBehavior(context.behaviorData);
-      careOpportunities = this.detectCareOpportunities(sentiment, behavior);
+      careOpportunities = this.detectCareOpportunities(sentiment, context.behaviorData);
 
       // 如果有高优先级关怀机会，调整回应
       const highPriorityCare = careOpportunities.find(c => c.priority >= 8);
@@ -262,8 +264,8 @@ export class EmotionEngine {
       ],
     };
 
-    const emotionResponses = responses[emotion as keyof typeof responses] || responses.neutral;
-    return emotionResponses[Math.floor(Math.random() * emotionResponses.length)];
+    const emotionResponses = responses[emotion as keyof typeof responses] ?? responses.neutral;
+    return emotionResponses[Math.floor(Math.random() * emotionResponses.length)] ?? '';
   }
 
   private getToneBySentiment(sentiment: SentimentResult): string {

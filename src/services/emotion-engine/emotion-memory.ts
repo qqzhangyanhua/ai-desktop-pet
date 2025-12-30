@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Emotion Memory System
  * 情感记忆系统
@@ -170,7 +169,7 @@ export class EmotionMemorySystem {
     }
 
     if (options.minImportance !== undefined) {
-      results = results.filter(m => m.importance >= options.minImportance);
+      results = results.filter(m => m.importance >= (options.minImportance ?? 0));
     }
 
     if (options.keywords && options.keywords.length > 0) {
@@ -336,7 +335,7 @@ export class EmotionMemorySystem {
       emotionCounts.set(m.emotion, (emotionCounts.get(m.emotion) || 0) + 1);
     });
     const dominantEmotion = Array.from(emotionCounts.entries())
-      .sort((a, b) => b[1] - a[1])[0][0];
+      .sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'neutral';
 
     // 情绪趋势
     const half = Math.floor(memories.length / 2);
