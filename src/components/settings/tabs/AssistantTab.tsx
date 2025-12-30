@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { VoiceSettings } from '../VoiceSettings';
+import { ShortcutInput } from '../ShortcutInput';
 import { GrowthStageIndicator } from '../../pet/GrowthStageIndicator';
 import {
   Select,
@@ -12,34 +13,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { AppConfig, LLMConfig, VoiceConfig } from '../../../types';
-
-const LLM_PROVIDERS = [
-  { value: 'openai', label: 'GPT（OpenAI）' },
-  { value: 'anthropic', label: 'Claude（Anthropic）' },
-  { value: 'ollama', label: '本地模型（Ollama）' },
-] as const;
-
-const DEFAULT_MODELS: Record<string, string[]> = {
-  openai: ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'],
-  anthropic: ['claude-3-haiku-20240307', 'claude-3-sonnet-20240229', 'claude-3-opus-20240229'],
-  ollama: ['llama2', 'mistral', 'codellama', 'neural-chat'],
-};
+import {
+  LLM_PROVIDERS,
+  getModelsForProvider,
+  getDefaultModelForProvider,
+} from '../../../services/llm/models';
 
 interface AssistantTabProps {
   localConfig: AppConfig;
   setLocalConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
   handleVoiceConfigChange?: (voice: VoiceConfig) => void;
-  // Optional props from parent that can be ignored
-  llmProviders?: unknown;
-  availableModels?: unknown;
-  onProviderChange?: unknown;
-  onModelChange?: unknown;
-  onApiKeyChange?: unknown;
-  onBaseUrlChange?: unknown;
-  onTemperatureChange?: unknown;
-  onSystemPromptChange?: unknown;
-  onVoiceConfigChange?: unknown;
-  onFeedback?: unknown;
 }
 
 export function AssistantTab({
@@ -48,7 +31,7 @@ export function AssistantTab({
   handleVoiceConfigChange,
 }: AssistantTabProps) {
   const handleProviderChange = useCallback((provider: LLMConfig['provider']) => {
-    const defaultModel = DEFAULT_MODELS[provider]?.[0] ?? '';
+    const defaultModel = getDefaultModelForProvider(provider);
     setLocalConfig((prev) => ({
       ...prev,
       llm: {
@@ -96,7 +79,7 @@ export function AssistantTab({
     }));
   }, [setLocalConfig]);
 
-  const availableModels = DEFAULT_MODELS[localConfig.llm.provider] ?? [];
+  const availableModels = getModelsForProvider(localConfig.llm.provider);
 
   return (
     <>
@@ -130,8 +113,8 @@ export function AssistantTab({
             </SelectTrigger>
             <SelectContent>
               {availableModels.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {m}
+                <SelectItem key={m.id} value={m.id}>
+                  {m.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -185,39 +168,37 @@ export function AssistantTab({
       <div className="settings-section">
         <div className="settings-section-title">快捷键设置</div>
 
-        <div className="settings-row">
+        <div className="settings-row settings-row-column">
           <span className="settings-label">打开聊天</span>
-          <Input
-            type="text"
+          <ShortcutInput
             value={localConfig.assistant.shortcuts.openChat}
-            onChange={(e) =>
+            onChange={(value) =>
               setLocalConfig((prev) => ({
                 ...prev,
                 assistant: {
                   ...prev.assistant,
-                  shortcuts: { ...prev.assistant.shortcuts, openChat: e.target.value },
+                  shortcuts: { ...prev.assistant.shortcuts, openChat: value },
                 },
               }))
             }
-            placeholder="例如：CmdOrCtrl+Shift+C"
+            placeholder="点击后按下快捷键"
           />
         </div>
 
-        <div className="settings-row settings-row-no-border">
+        <div className="settings-row settings-row-column settings-row-no-border">
           <span className="settings-label">打开设置</span>
-          <Input
-            type="text"
+          <ShortcutInput
             value={localConfig.assistant.shortcuts.openSettings}
-            onChange={(e) =>
+            onChange={(value) =>
               setLocalConfig((prev) => ({
                 ...prev,
                 assistant: {
                   ...prev.assistant,
-                  shortcuts: { ...prev.assistant.shortcuts, openSettings: e.target.value },
+                  shortcuts: { ...prev.assistant.shortcuts, openSettings: value },
                 },
               }))
             }
-            placeholder="例如：CmdOrCtrl+Shift+S"
+            placeholder="点击后按下快捷键"
           />
         </div>
       </div>

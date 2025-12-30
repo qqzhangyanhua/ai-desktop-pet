@@ -8,9 +8,7 @@ import { PerformanceTab } from './tabs/PerformanceTab';
 import { AdvancedTab } from './tabs/AdvancedTab';
 import { MemoryTab } from './tabs/MemoryTab';
 import { StatsPanel } from './StatsPanel';
-import { getMCPManager } from '../../services/mcp';
 import { getSkinManager } from '../../services/skin';
-import type { MCPServerConfig, MCPClientState } from '../../services/mcp/types';
 import { Button } from '@/components/ui/button';
 
 type SettingsTab = 'appearance' | 'behavior' | 'assistant' | 'statistics' | 'performance' | 'advanced' | 'memory';
@@ -27,9 +25,6 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   const didSaveRef = useRef(false);
   const initialSkinIdRef = useRef(config.appearance.skinId);
 
-  const [mcpServers, setMcpServers] = useState<MCPServerConfig[]>([]);
-  const [mcpServerStates, setMcpServerStates] = useState<Map<string, MCPClientState>>(new Map());
-
   useEffect(() => {
     setLocalConfig(config);
   }, [config]);
@@ -40,48 +35,6 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
       const initialSkinId = initialSkinIdRef.current;
       getSkinManager().switchSkin(initialSkinId).catch(() => {});
     };
-  }, []);
-
-  useEffect(() => {
-    const manager = getMCPManager();
-    setMcpServers(manager.getServers());
-    setMcpServerStates(manager.getServerStates());
-  }, []);
-
-  const handleMCPAddServer = useCallback(async (config: MCPServerConfig) => {
-    const manager = getMCPManager();
-    manager.addServer(config);
-    setMcpServers(manager.getServers());
-
-    try {
-      await manager.connectServer(config.id);
-      setMcpServerStates(manager.getServerStates());
-    } catch (error) {
-      console.error('Failed to connect to server:', error);
-    }
-  }, []);
-
-  const handleMCPRemoveServer = useCallback((serverId: string) => {
-    const manager = getMCPManager();
-    manager.removeServer(serverId);
-    setMcpServers(manager.getServers());
-    setMcpServerStates(manager.getServerStates());
-  }, []);
-
-  const handleMCPConnect = useCallback(async (serverId: string) => {
-    const manager = getMCPManager();
-    try {
-      await manager.connectServer(serverId);
-      setMcpServerStates(manager.getServerStates());
-    } catch (error) {
-      console.error('Failed to connect:', error);
-    }
-  }, []);
-
-  const handleMCPDisconnect = useCallback(async (serverId: string) => {
-    const manager = getMCPManager();
-    await manager.disconnectServer(serverId);
-    setMcpServerStates(manager.getServerStates());
   }, []);
 
   const handleVoiceConfigChange = useCallback((voice: VoiceConfig) => {
@@ -224,16 +177,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
             />
           )}
 
-          {activeTab === 'advanced' && (
-            <AdvancedTab
-              mcpServers={mcpServers}
-              mcpServerStates={mcpServerStates}
-              onMCPAddServer={handleMCPAddServer}
-              onMCPRemoveServer={handleMCPRemoveServer}
-              onMCPConnect={handleMCPConnect}
-              onMCPDisconnect={handleMCPDisconnect}
-            />
-          )}
+          {activeTab === 'advanced' && <AdvancedTab />}
 
           {activeTab === 'memory' && <MemoryTab />}
         </div>

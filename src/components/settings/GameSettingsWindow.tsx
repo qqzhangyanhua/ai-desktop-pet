@@ -5,7 +5,6 @@ import { initDatabase } from '../../services/database';
 import { getSkinManager } from '../../services/skin';
 import { useSettingsConfig } from '../../hooks/useSettingsConfig';
 import { usePetInteraction } from '../../hooks/usePetInteraction';
-import { useMCPManagement } from '../../hooks/useMCPManagement';
 import {
   AppearanceTab,
   BehaviorTab,
@@ -20,12 +19,6 @@ import './game-ui.css';
 
 type SettingsTab = 'appearance' | 'behavior' | 'chat' | 'assistant' | 'statistics' | 'performance' | 'advanced';
 
-const LLM_PROVIDERS = [
-  { value: 'openai', label: 'GPT（OpenAI）' },
-  { value: 'anthropic', label: 'Claude（Anthropic）' },
-  { value: 'ollama', label: '本地模型（Ollama）' },
-] as const;
-
 export function GameSettingsWindow() {
   const [activeTab, setActiveTab] = useState<SettingsTab | null>(null);
   const [dbReady, setDbReady] = useState(false);
@@ -39,7 +32,6 @@ export function GameSettingsWindow() {
     setLocalConfig,
     isSaving,
     didSaveRef,
-    availableModels,
     handlers: configHandlers,
     loadConfig,
   } = useSettingsConfig();
@@ -52,8 +44,6 @@ export function GameSettingsWindow() {
     setEditedNickname,
     handlers: petHandlers,
   } = usePetInteraction(showFeedback);
-
-  const { mcpServers, mcpServerStates, handlers: mcpHandlers } = useMCPManagement(dbReady);
 
   // Initialize database and config
   useEffect(() => {
@@ -100,14 +90,6 @@ export function GameSettingsWindow() {
   const handleBackToDashboard = useCallback(() => {
     setActiveTab(null);
   }, []);
-
-  const handleProviderChangeWithFeedback = useCallback(
-    (provider: typeof localConfig.llm.provider) => {
-      configHandlers.handleProviderChange(provider);
-      showFeedback(`已切换提供商为 ${provider}`, 'success');
-    },
-    [configHandlers, showFeedback]
-  );
 
   if (!dbReady) {
     return (
@@ -160,16 +142,7 @@ export function GameSettingsWindow() {
             <AssistantTab
               localConfig={localConfig}
               setLocalConfig={setLocalConfig}
-              llmProviders={LLM_PROVIDERS}
-              availableModels={availableModels}
-              onProviderChange={handleProviderChangeWithFeedback}
-              onModelChange={configHandlers.handleModelChange}
-              onApiKeyChange={configHandlers.handleApiKeyChange}
-              onBaseUrlChange={configHandlers.handleBaseUrlChange}
-              onTemperatureChange={configHandlers.handleTemperatureChange}
-              onSystemPromptChange={configHandlers.handleSystemPromptChange}
-              onVoiceConfigChange={configHandlers.handleVoiceConfigChange}
-              onFeedback={showFeedback}
+              handleVoiceConfigChange={configHandlers.handleVoiceConfigChange}
             />
           )}
 
@@ -179,16 +152,7 @@ export function GameSettingsWindow() {
             <PerformanceTab localConfig={localConfig} setLocalConfig={setLocalConfig} onFeedback={showFeedback} />
           )}
 
-          {activeTab === 'advanced' && (
-            <AdvancedTab
-              mcpServers={mcpServers}
-              mcpServerStates={mcpServerStates}
-              onMCPAddServer={mcpHandlers.handleMCPAddServer}
-              onMCPRemoveServer={mcpHandlers.handleMCPRemoveServer}
-              onMCPConnect={mcpHandlers.handleMCPConnect}
-              onMCPDisconnect={mcpHandlers.handleMCPDisconnect}
-            />
-          )}
+          {activeTab === 'advanced' && <AdvancedTab />}
         </div>
       </div>
     </div>
