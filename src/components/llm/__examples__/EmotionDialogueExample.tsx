@@ -3,6 +3,12 @@
  * Emotion-Driven Dialogue Integration Example
  * 情绪驱动对话集成示例
  *
+ * ⚠️ DEPRECATED (P2-1-F): This example uses old PetCoreService architecture.
+ * For current implementation, see:
+ * - src/services/llm/emotion-dialogue.ts (emotion-driven dialogue)
+ * - src/hooks/useChatDialog.ts (chat integration)
+ * - src/components/chat/ (production chat UI)
+ *
  * 展示如何在React组件中使用情绪驱动对话引擎，
  * 整合LLM和情感引擎，实现智能情感对话
  */

@@ -1,10 +1,12 @@
 /**
  * PetCore Service Exports
  * 宠物核心服务导出
+ *
+ * P2-1-E: Cleaned up - removed StateManager (deprecated)
+ * TODO P2-1-F: Will update examples to not use PetCoreService
  */
 
-export { default as PetCoreService } from './service';
-export { StateManager, createInitialState } from './state-manager';
+export { default as PetCoreService, petCoreService } from './service';
 export {
   handleInteractionNew,
   checkCooldown,
@@ -25,5 +27,3 @@ export type {
   InteractionResult,
   DecayConfig,
 } from './types';
-
-export { petCoreService } from './service';

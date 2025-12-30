@@ -3,6 +3,12 @@
  * Emotion Engine Integration Example
  * 情感引擎集成示例
  *
+ * ⚠️ DEPRECATED (P2-1-F): This example uses old PetCoreService architecture.
+ * For current implementation, see:
+ * - src/services/emotion-engine/ (emotion analysis services)
+ * - src/hooks/useProactiveBehavior.ts (proactive care system)
+ * - src/hooks/usePetCareLoop.ts (care loop implementation)
+ *
  * 展示如何在React组件中使用情感引擎进行情绪分析、行为分析和智能关怀
  */
 

@@ -367,6 +367,15 @@ export async function initDatabase(): Promise<Database> {
   // Migrate user_profiles: insert default record if not exist
   await migrateUserProfile(db);
 
+  // P2-1-A: Apply migration 004 (extend pet_status schema)
+  try {
+    const { applyMigration_004 } = await import('./migrations/004-extend-pet-status');
+    await applyMigration_004(db);
+  } catch (error) {
+    console.error('[Database] Migration 004 failed:', error);
+    // Non-fatal: migration might already be applied
+  }
+
   console.log('Database initialized');
   return db;
 }

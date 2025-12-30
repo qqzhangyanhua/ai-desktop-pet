@@ -7,6 +7,13 @@ import type {
   EmotionType,
 } from '../types';
 import { useConfigStore } from './configStore';
+import { getCareStatus, updateCareStatus } from '@/services/database/pet-status';
+
+/**
+ * P2-1-B: 数据库持久化防抖计时器（2秒）
+ */
+let dbSaveTimer: ReturnType<typeof setTimeout> | null = null;
+const DB_SAVE_DEBOUNCE_MS = 2000;
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(Math.max(value, min), max);
 
@@ -122,6 +129,8 @@ export interface CareStore extends PetCareStats {
   applyAction: (action: PetActionType) => CareEffect & { stats: PetCareStats };
   getStatusReport: () => CareStatusReport;
   resetCare: () => void;
+  loadFromDatabase: () => Promise<void>;
+  saveToDatabase: () => Promise<void>;
 }
 
 export const useCareStore = create<CareStore>((set, get) => ({
@@ -145,6 +154,9 @@ export const useCareStore = create<CareStore>((set, get) => ({
       };
       return updated;
     });
+
+    // P2-1-B: Auto-save to database (debounced)
+    get().saveToDatabase();
     return updated;
   },
 
@@ -164,6 +176,9 @@ export const useCareStore = create<CareStore>((set, get) => ({
       };
       return updated;
     });
+
+    // P2-1-B: Auto-save to database (debounced)
+    get().saveToDatabase();
 
     return {
       ...effect,
@@ -199,4 +214,56 @@ export const useCareStore = create<CareStore>((set, get) => ({
   },
 
   resetCare: () => set(initialCareStats),
+
+  /**
+   * P2-1-B: 从数据库加载Care状态
+   */
+  loadFromDatabase: async () => {
+    try {
+      const dbStats = await getCareStatus();
+      if (dbStats) {
+        set({
+          satiety: dbStats.satiety,
+          energy: dbStats.energy,
+          hygiene: dbStats.hygiene,
+          mood: dbStats.mood,
+          boredom: dbStats.boredom,
+          isSick: dbStats.isSick,
+          lastAction: dbStats.lastAction,
+        });
+        console.log('[CareStore] Loaded care status from database');
+      } else {
+        console.log('[CareStore] No existing care status, using defaults');
+      }
+    } catch (error) {
+      console.error('[CareStore] Failed to load from database:', error);
+    }
+  },
+
+  /**
+   * P2-1-B: 保存Care状态到数据库（带2秒防抖）
+   */
+  saveToDatabase: async () => {
+    if (dbSaveTimer) {
+      clearTimeout(dbSaveTimer);
+    }
+
+    dbSaveTimer = setTimeout(async () => {
+      try {
+        const state = get();
+        await updateCareStatus({
+          satiety: state.satiety,
+          energy: state.energy,
+          hygiene: state.hygiene,
+          mood: state.mood,
+          boredom: state.boredom,
+          isSick: state.isSick,
+          lastAction: state.lastAction,
+        });
+        console.log('[CareStore] Saved care status to database');
+      } catch (error) {
+        console.error('[CareStore] Failed to save to database:', error);
+      }
+    }, DB_SAVE_DEBOUNCE_MS);
+  },
 }));

@@ -3,6 +3,12 @@
  * Pet Animation Integration Example
  * 宠物动画集成示例
  *
+ * ⚠️ DEPRECATED (P2-1-F): This example uses old PetCoreService architecture.
+ * For current implementation, see:
+ * - src/stores/careStore.ts (new Care system)
+ * - src/hooks/usePetActions.ts (new interaction handling)
+ * - src/components/pet/PetContainer.tsx (production usage)
+ *
  * 展示如何在React组件中使用动画系统
  */
 

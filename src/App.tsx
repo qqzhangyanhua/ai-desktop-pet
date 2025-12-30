@@ -16,7 +16,7 @@ import { getPushToTalkManager } from './services/voice';
 import { initializeStatsService } from './services/statistics';
 import { initializeAchievements } from './services/achievements';
 import { AgentRuntime } from './services/agent';
-import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, useUserProfileStore, toast } from './stores';
+import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, useUserProfileStore, useCareStore, toast } from './stores';
 import { getSkinManager } from './services/skin';
 import { getWindowManager } from './services/window';
 import { petSpeak } from './services/pet/voice-link';
@@ -95,6 +95,11 @@ function App() {
         const { loadStatus } = usePetStatusStore.getState();
         await loadStatus();
         console.log('[App] Pet status loaded');
+
+        // P2-1-D: Load care status from database
+        const { loadFromDatabase: loadCareStatus } = useCareStore.getState();
+        await loadCareStatus();
+        console.log('[App] Care status loaded');
 
         // Load user profile
         await loadUserProfile();

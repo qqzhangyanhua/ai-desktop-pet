@@ -3,11 +3,12 @@
  * 宠物状态数据库操作层
  *
  * P0-3: 支持新的 interaction_timestamps 字段（JSON格式）
+ * P2-1-C: 支持完整的5维度Care系统 (satiety/energy/hygiene/mood/boredom)
  * 向后兼容旧的 last_feed, last_play 字段
  */
 
 import { getDatabase } from './index';
-import type { PetStatus, InteractionType } from '@/types';
+import type { PetStatus, InteractionType, PetCareStats, PetActionType } from '@/types';
 import { InteractionTimestamps } from '@/types/pet-care';
 
 /**
@@ -204,6 +205,102 @@ export async function incrementInteractionCount(
     );
   } catch (error) {
     console.error('[Database] Failed to increment interaction count:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get care status from database
+ * 获取宠物Care系统状态（5维度）
+ *
+ * P2-1-C: 支持新的5维度Care系统
+ */
+export async function getCareStatus(): Promise<PetCareStats | null> {
+  try {
+    const db = await getDatabase();
+    const rows = await db.select<Array<{
+      satiety: number;
+      energy: number;
+      hygiene: number;
+      mood: number;
+      boredom: number;
+      is_sick: number;
+      last_action: string | null;
+    }>>(
+      'SELECT satiety, energy, hygiene, mood, boredom, is_sick, last_action FROM pet_status WHERE id = 1'
+    );
+
+    if (rows.length === 0 || !rows[0]) {
+      return null;
+    }
+
+    const row = rows[0];
+    return {
+      satiety: row.satiety,
+      energy: row.energy,
+      hygiene: row.hygiene,
+      mood: row.mood,
+      boredom: row.boredom,
+      isSick: row.is_sick === 1,
+      lastAction: row.last_action as PetActionType | null,
+    };
+  } catch (error) {
+    console.error('[Database] Failed to get care status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update care status in database
+ * 更新宠物Care系统状态
+ *
+ * P2-1-C: 支持部分更新5维度Care系统状态
+ */
+export async function updateCareStatus(status: Partial<PetCareStats>): Promise<void> {
+  try {
+    const db = await getDatabase();
+
+    // Map TypeScript fields to database columns
+    const fieldMap: Record<string, string> = {
+      satiety: 'satiety',
+      energy: 'energy',
+      hygiene: 'hygiene',
+      mood: 'mood',
+      boredom: 'boredom',
+      isSick: 'is_sick',
+      lastAction: 'last_action',
+    };
+
+    const dbFields: string[] = [];
+    const values: unknown[] = [];
+
+    for (const [key, value] of Object.entries(status)) {
+      const dbField = fieldMap[key];
+      if (dbField) {
+        dbFields.push(`${dbField} = ?`);
+
+        // Convert boolean to integer for is_sick
+        if (key === 'isSick') {
+          values.push(value ? 1 : 0);
+        } else {
+          values.push(value);
+        }
+      }
+    }
+
+    if (dbFields.length === 0) {
+      return; // No fields to update
+    }
+
+    const setClause = dbFields.join(', ');
+    const now = Date.now();
+
+    await db.execute(
+      `UPDATE pet_status SET ${setClause}, updated_at = ? WHERE id = 1`,
+      [...values, now]
+    );
+  } catch (error) {
+    console.error('[Database] Failed to update care status:', error);
     throw error;
   }
 }
