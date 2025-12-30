@@ -340,9 +340,39 @@ export class OpportunityDetector {
 
   /**
    * 获取最后休息时间
+   *
+   * 从情感事件中查找最近一次休息事件的时间
+   * 休息事件定义：interaction类型的事件，且context包含休息相关元数据
    */
-  private getLastBreakTime(_events: EmotionEvent[]): number {
-    // TODO: 实际应该从事件中计算
-    return Date.now() - 45 * 60 * 1000; // 简化：45分钟前
+  private getLastBreakTime(events: EmotionEvent[]): number {
+    // 过滤休息相关的事件
+    // 休息事件特征：
+    // 1. type === 'interaction'
+    // 2. context.metadata 包含 action === 'rest' 或相关操作
+    const breakEvents = events.filter((e) => {
+      if (e.type !== 'interaction') return false;
+
+      const metadata = e.context.metadata;
+      if (!metadata) return false;
+
+      // 检查是否是休息相关的操作
+      const action = metadata.action as string | undefined;
+      return (
+        action === 'rest' ||
+        action === 'sleep' ||
+        action === 'break' ||
+        action === 'relax'
+      );
+    });
+
+    // 如果找到休息事件，返回最近一次的时间
+    if (breakEvents.length > 0) {
+      // 按时间倒序排序，取最新的
+      const sorted = breakEvents.sort((a, b) => b.timestamp - a.timestamp);
+      return sorted[0]!.timestamp;
+    }
+
+    // 如果没有找到休息事件，假设45分钟前休息过
+    return Date.now() - 45 * 60 * 1000;
   }
 }

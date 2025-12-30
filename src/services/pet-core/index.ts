@@ -3,7 +3,6 @@
  * 宠物核心服务导出
  *
  * P2-1-E: Cleaned up - removed StateManager (deprecated)
- * TODO P2-1-F: Will update examples to not use PetCoreService
  */
 
 export { default as PetCoreService, petCoreService } from './service';

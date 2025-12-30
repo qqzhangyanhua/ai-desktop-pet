@@ -13,6 +13,7 @@ import {
   updatePetStatus,
   incrementInteractionCount,
 } from '@/services/database/pet-status';
+import { useToastStore } from './toastStore';
 import {
   getCurrentStage,
   calculateStageProgress,
@@ -156,10 +157,10 @@ export const usePetStatusStore = create<PetStatusStore>((set, get) => ({
         console.log(
           `[PetStatusStore] Stage upgraded: ${stageUpgrade.fromStage} → ${stageUpgrade.toStage}`
         );
-        console.log(`[PetStatusStore] Celebration message: ${message}`);
 
-        // TODO: 触发 Toast 或其他 UI 反馈
-        // 可以通过事件系统或 callback 通知 UI 层
+        // Show celebration toast
+        const toastStore = useToastStore.getState();
+        toastStore.addToast(message, { type: 'success', duration: 5000 });
       }
     } catch (error) {
       console.error('[PetStatusStore] Failed to update status:', error);

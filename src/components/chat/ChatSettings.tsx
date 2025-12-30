@@ -20,9 +20,94 @@ import {
   History,
 } from 'lucide-react';
 import { useConfigStore, useChatStore } from '@/stores';
-import type { LLMConfig } from '@/types';
+import type { LLMConfig, MessageRole } from '@/types';
 import { confirmAction } from '@/lib/confirm';
 import '../settings/game-ui.css';
+
+/**
+ * 解析导入的对话文件
+ *
+ * 支持两种格式：
+ * 1. JSON格式：Message[]数组
+ * 2. 纯文本格式：每段对话以"用户:"或"助手:"开头
+ *
+ * @param text - 文件内容
+ * @returns 解析后的消息数组，如果格式不正确返回null
+ */
+function parseImportedChat(
+  text: string
+): Array<{ role: MessageRole; content: string; createdAt?: number }> | null {
+  // 1. 尝试解析为JSON格式
+  try {
+    const json = JSON.parse(text);
+    if (Array.isArray(json) && json.length > 0) {
+      // 验证是否是合法的Message数组
+      const isValid = json.every(
+        (item) =>
+          typeof item === 'object' &&
+          item !== null &&
+          ('role' in item) &&
+          ('content' in item) &&
+          typeof item.content === 'string'
+      );
+
+      if (isValid) {
+        return json.map((item) => ({
+          role: (item.role === 'user' || item.role === 'assistant' ? item.role : 'user') as MessageRole,
+          content: item.content,
+          createdAt: item.createdAt || item.timestamp || Date.now(),
+        }));
+      }
+    }
+  } catch {
+    // JSON解析失败，继续尝试纯文本格式
+  }
+
+  // 2. 尝试解析纯文本格式
+  const lines = text.split('\n');
+  const messages: Array<{ role: MessageRole; content: string }> = [];
+  let currentRole: MessageRole | null = null;
+  let currentContent: string[] = [];
+
+  const finishCurrentMessage = () => {
+    if (currentRole && currentContent.length > 0) {
+      messages.push({
+        role: currentRole,
+        content: currentContent.join('\n').trim(),
+      });
+      currentContent = [];
+    }
+  };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // 检查是否是角色标记行
+    if (trimmed.startsWith('用户:') || trimmed.startsWith('User:')) {
+      finishCurrentMessage();
+      currentRole = 'user';
+      const content = trimmed.replace(/^(用户:|User:)\s*/, '');
+      if (content) {
+        currentContent.push(content);
+      }
+    } else if (trimmed.startsWith('助手:') || trimmed.startsWith('Assistant:')) {
+      finishCurrentMessage();
+      currentRole = 'assistant';
+      const content = trimmed.replace(/^(助手:|Assistant:)\s*/, '');
+      if (content) {
+        currentContent.push(content);
+      }
+    } else if (trimmed && currentRole) {
+      // 当前行是消息内容的一部分
+      currentContent.push(trimmed);
+    }
+  }
+
+  // 完成最后一条消息
+  finishCurrentMessage();
+
+  return messages.length > 0 ? messages : null;
+}
 
 interface ToastApi {
   success: (title: string, description?: string, duration?: number) => void;
@@ -50,7 +135,7 @@ const MODEL_PRESETS = {
 
 export function ChatSettings({ toast, onClose }: ChatSettingsProps) {
   const { config, setConfig, saveConfig } = useConfigStore();
-  const { messages, clearMessages } = useChatStore();
+  const { messages, clearMessages, addMessage, currentConversationId } = useChatStore();
 
   // LLM 配置状态
   const [llmConfig, setLlmConfig] = useState<LLMConfig>(config.llm);
@@ -176,8 +261,31 @@ export function ChatSettings({ toast, onClose }: ChatSettingsProps) {
           toast.error('文件为空');
           return;
         }
-        // TODO: 实现真实的导入逻辑
-        toast.info('导入对话功能开发中，敬请期待');
+
+        // 尝试解析导入的对话
+        const parsed = parseImportedChat(text);
+        if (!parsed) {
+          toast.error('文件格式不正确');
+          return;
+        }
+
+        // 获取当前对话ID
+        const conversationId = currentConversationId || 'default';
+
+        // 批量添加消息
+        let successCount = 0;
+        for (const msg of parsed) {
+          addMessage({
+            id: `imported_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+            conversationId,
+            role: msg.role,
+            content: msg.content,
+            createdAt: msg.createdAt || Date.now(),
+          });
+          successCount++;
+        }
+
+        toast.success(`成功导入 ${successCount} 条消息`);
       } catch (error) {
         console.error('Failed to import chat:', error);
         toast.error('导入失败');

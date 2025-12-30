@@ -16,7 +16,7 @@ import { getPushToTalkManager } from './services/voice';
 import { initializeStatsService } from './services/statistics';
 import { initializeAchievements } from './services/achievements';
 import { AgentRuntime } from './services/agent';
-import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, useUserProfileStore, useCareStore, toast } from './stores';
+import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, useUserProfileStore, useCareStore, useChatStore, toast } from './stores';
 import { getSkinManager } from './services/skin';
 import { getWindowManager } from './services/window';
 import { petSpeak } from './services/pet/voice-link';
@@ -339,10 +339,21 @@ function App() {
 
         // Set message callback to send recognized text to chat
         manager.onMessage((text) => {
-          // Show in pet bubble for now
-          // TODO: Integrate with chat window to send message
-          usePetStore.getState().showBubble(`识别: ${text}`, 3000);
-          console.log('[App] Push-to-talk recognized:', text);
+          // Send to chat window
+          const chatState = useChatStore.getState();
+          const conversationId = chatState.currentConversationId || 'default';
+
+          useChatStore.getState().addMessage({
+            id: `voice_${Date.now()}`,
+            conversationId,
+            role: 'user',
+            content: text,
+            createdAt: Date.now(),
+          });
+
+          // Also show in pet bubble for immediate feedback
+          usePetStore.getState().showBubble(`语音: ${text}`, 2000);
+          console.log('[App] Push-to-talk recognized and sent to chat:', text);
         });
 
         manager.enable().catch((err) => {
