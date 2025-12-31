@@ -32,7 +32,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'interaction' as AchievementType,
     name: '初次相遇',
     description: '第一次抚摸宠物',
-    icon: '👋',
+    icon: 'Hand',
     unlockCondition: 'pet_count >= 1',
   },
   {
@@ -40,7 +40,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'interaction' as AchievementType,
     name: '熟悉的手感',
     description: '累计抚摸10次',
-    icon: '🤗',
+    icon: 'HandHeart',
     unlockCondition: 'pet_count >= 10',
   },
   {
@@ -48,7 +48,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'interaction' as AchievementType,
     name: '抚摸大师',
     description: '累计抚摸100次',
-    icon: '🎖️',
+    icon: 'Medal',
     unlockCondition: 'pet_count >= 100',
   },
   {
@@ -56,7 +56,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'interaction' as AchievementType,
     name: '营养师',
     description: '累计喂食10次',
-    icon: '🍱',
+    icon: 'Utensils',
     unlockCondition: 'feed_count >= 10',
   },
   {
@@ -64,7 +64,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'interaction' as AchievementType,
     name: '玩伴',
     description: '累计玩耍10次',
-    icon: '🎮',
+    icon: 'Gamepad2',
     unlockCondition: 'play_count >= 10',
   },
   {
@@ -72,7 +72,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'interaction' as AchievementType,
     name: '话痨',
     description: '累计对话10次',
-    icon: '💬',
+    icon: 'MessageSquare',
     unlockCondition: 'chat_count >= 10',
   },
   {
@@ -80,7 +80,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'interaction' as AchievementType,
     name: '互动达人',
     description: '累计互动100次',
-    icon: '⭐',
+    icon: 'Star',
     unlockCondition: 'total_interactions >= 100',
   },
   {
@@ -88,7 +88,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'interaction' as AchievementType,
     name: '铁杆玩家',
     description: '累计互动500次',
-    icon: '🏆',
+    icon: 'Trophy',
     unlockCondition: 'total_interactions >= 500',
   },
 
@@ -98,7 +98,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'duration' as AchievementType,
     name: '初识',
     description: '陪伴1天',
-    icon: '🌱',
+    icon: 'Sprout',
     unlockCondition: 'total_days >= 1',
   },
   {
@@ -106,7 +106,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'duration' as AchievementType,
     name: '一周之约',
     description: '陪伴7天',
-    icon: '🌿',
+    icon: 'Leaf',
     unlockCondition: 'total_days >= 7',
   },
   {
@@ -114,7 +114,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'duration' as AchievementType,
     name: '月度伙伴',
     description: '陪伴30天',
-    icon: '🌳',
+    icon: 'TreeDeciduous',
     unlockCondition: 'total_days >= 30',
   },
   {
@@ -122,7 +122,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'duration' as AchievementType,
     name: '百日守护',
     description: '陪伴100天',
-    icon: '🌲',
+    icon: 'TreePine',
     unlockCondition: 'total_days >= 100',
   },
   {
@@ -130,7 +130,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'duration' as AchievementType,
     name: '持之以恒',
     description: '连续互动7天',
-    icon: '📅',
+    icon: 'Calendar',
     unlockCondition: 'consecutive_days >= 7',
   },
   {
@@ -138,7 +138,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'duration' as AchievementType,
     name: '日久生情',
     description: '连续互动30天',
-    icon: '❤️',
+    icon: 'Heart',
     unlockCondition: 'consecutive_days >= 30',
   },
 
@@ -148,7 +148,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'intimacy' as AchievementType,
     name: '破冰',
     description: '亲密度达到30',
-    icon: '🧊',
+    icon: 'Snowflake',
     unlockCondition: 'intimacy >= 30',
   },
   {
@@ -156,7 +156,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'intimacy' as AchievementType,
     name: '好友',
     description: '亲密度达到50',
-    icon: '👥',
+    icon: 'Users',
     unlockCondition: 'intimacy >= 50',
   },
   {
@@ -164,7 +164,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'intimacy' as AchievementType,
     name: '挚友',
     description: '亲密度达到70',
-    icon: '💙',
+    icon: 'HeartHandshake',
     unlockCondition: 'intimacy >= 70',
   },
   {
@@ -172,7 +172,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'intimacy' as AchievementType,
     name: '灵魂伴侣',
     description: '亲密度达到100',
-    icon: '💖',
+    icon: 'Sparkles',
     unlockCondition: 'intimacy >= 100',
   },
 
@@ -182,7 +182,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'special' as AchievementType,
     name: '第一次对话',
     description: '与宠物进行第一次对话',
-    icon: '🗨️',
+    icon: 'MessagesSquare',
     unlockCondition: 'chat_count >= 1',
   },
   {
@@ -190,7 +190,7 @@ const PRESET_ACHIEVEMENTS: Array<
     type: 'special' as AchievementType,
     name: '全面发展',
     description: '体验所有互动类型（抚摸、喂食、玩耍、对话）',
-    icon: '🎯',
+    icon: 'Target',
     unlockCondition: 'pet_count >= 1 AND feed_count >= 1 AND play_count >= 1 AND chat_count >= 1',
   },
 ];

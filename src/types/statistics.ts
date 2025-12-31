@@ -64,7 +64,7 @@ export interface Achievement {
   /** 成就描述 */
   description: string;
 
-  /** 成就图标 (emoji 或图片 URL) */
+  /** 成就图标 (Lucide React icon 名称) */
   icon: string;
 
   /** 解锁条件 (JSON 字符串) */

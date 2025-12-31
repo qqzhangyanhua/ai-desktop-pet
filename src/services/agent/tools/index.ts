@@ -33,3 +33,9 @@ export function getBuiltInTool(name: string): Tool | undefined {
   const tools = createBuiltInTools();
   return tools.find((t) => t.name === name);
 }
+
+// 智能体专用工具
+export { memoryTool } from './memory-tool';
+export { emotionTool } from './emotion-tool';
+export { notificationTool, type NotificationType, type NotificationConfig } from './notification-tool';
+export { scheduleTool, type ScheduleEntry } from './schedule-tool';

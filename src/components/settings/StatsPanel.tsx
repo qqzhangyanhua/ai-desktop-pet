@@ -5,12 +5,26 @@
 
 import { useState, useEffect } from 'react';
 import { Calendar, Sparkles, Flame, Target, Hand, Utensils, Gamepad2, MessageSquare, type LucideIcon } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import type { StatsSummary, Achievement } from '@/types';
 import { getStatsSummary } from '@/services/statistics';
 import {
   getAchievements,
   getAchievementStatistics,
 } from '@/services/achievements';
+
+/**
+ * 动态获取 Lucide icon 组件
+ * @param iconName - Lucide icon 名称
+ * @returns Icon component or null
+ */
+function getDynamicIcon(iconName: string): React.ComponentType<{ className?: string }> | null {
+  const Icon = (LucideIcons as Record<string, unknown>)[iconName];
+  if (Icon && typeof Icon === 'function') {
+    return Icon as React.ComponentType<{ className?: string }>;
+  }
+  return null;
+}
 
 interface StatCardProps {
   icon: LucideIcon;
@@ -95,6 +109,9 @@ function AchievementCard({ achievement }: AchievementCardProps) {
 
   const colorClass = typeColors[achievement.type];
 
+  // 动态获取成就图标
+  const AchievementIcon = getDynamicIcon(achievement.icon);
+
   return (
     <div
       className={`rounded-lg p-4 border-2 transition-all ${
@@ -105,11 +122,17 @@ function AchievementCard({ achievement }: AchievementCardProps) {
     >
       <div className="flex items-start gap-3">
         <div
-          className={`text-3xl ${
-            achievement.isUnlocked ? 'filter drop-shadow-sm' : ''
+          className={`flex items-center justify-center w-12 h-12 rounded-lg ${
+            achievement.isUnlocked ? 'bg-amber-100' : 'bg-gray-200'
           }`}
         >
-          {achievement.icon}
+          {AchievementIcon && (
+            <AchievementIcon
+              className={`w-6 h-6 ${
+                achievement.isUnlocked ? 'text-amber-600' : 'text-gray-400'
+              }`}
+            />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">

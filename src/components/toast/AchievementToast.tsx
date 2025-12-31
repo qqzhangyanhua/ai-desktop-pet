@@ -9,6 +9,7 @@
 
 import { useEffect } from 'react';
 import { Trophy, X } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import type { Achievement } from '@/types';
 import './AchievementToast.css';
 
@@ -16,6 +17,19 @@ export interface AchievementToastProps {
   achievement: Achievement;
   onClose: () => void;
   duration?: number; // 默认 5000ms
+}
+
+/**
+ * 动态获取 Lucide icon 组件
+ * @param iconName - Lucide icon 名称
+ * @returns Icon component or null
+ */
+function getDynamicIcon(iconName: string): React.ComponentType<{ className?: string }> | null {
+  const Icon = (LucideIcons as Record<string, unknown>)[iconName];
+  if (Icon && typeof Icon === 'function') {
+    return Icon as React.ComponentType<{ className?: string }>;
+  }
+  return null;
 }
 
 export function AchievementToast({
@@ -32,6 +46,9 @@ export function AchievementToast({
 
     return () => clearTimeout(timer);
   }, [duration, onClose]);
+
+  // 动态获取成就图标
+  const AchievementIcon = getDynamicIcon(achievement.icon);
 
   return (
     <div className="achievement-toast">
@@ -52,7 +69,9 @@ export function AchievementToast({
 
           {/* 成就名称 */}
           <div className="achievement-name">
-            <span className="achievement-icon">{achievement.icon}</span>
+            {AchievementIcon && (
+              <AchievementIcon className="achievement-icon-svg w-5 h-5" />
+            )}
             <span className="achievement-title">{achievement.name}</span>
           </div>
 

@@ -397,3 +397,6 @@ export async function execute(sql: string, params: unknown[] = []): Promise<numb
   const result = await database.execute(sql, params);
   return result.rowsAffected;
 }
+
+// Re-export migration utilities
+export { migrateAchievementIcons, cleanAllAchievements, validateAchievementIcons } from './migrate-achievements';
