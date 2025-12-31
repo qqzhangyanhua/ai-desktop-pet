@@ -1,7 +1,8 @@
 // Toast Store - Global toast/notification management
 
 import { create } from 'zustand';
-import type { Toast, ToastOptions } from '../types/toast';
+import type { Toast, ToastOptions, StatChange } from '../types/toast';
+import type { InteractionType } from '../types/pet-status';
 
 interface ToastStore {
   toasts: Toast[];
@@ -22,6 +23,8 @@ export const useToastStore = create<ToastStore>((set) => ({
       message,
       duration: options.duration ?? 3000,
       timestamp: Date.now(),
+      interactionType: options.interactionType,
+      statChanges: options.statChanges,
     };
 
     set((state) => ({
@@ -62,5 +65,22 @@ export const toast = {
   },
   error: (message: string, duration?: number) => {
     useToastStore.getState().addToast(message, { type: 'error', duration: duration ?? 5000 });
+  },
+  /**
+   * 互动反馈 Toast
+   * 显示亲密度变化等互动结果
+   */
+  interaction: (
+    interactionType: InteractionType,
+    message: string,
+    statChanges?: StatChange[],
+    duration?: number
+  ) => {
+    useToastStore.getState().addToast(message, {
+      type: 'interaction',
+      duration: duration ?? 2500,
+      interactionType,
+      statChanges,
+    });
   },
 };

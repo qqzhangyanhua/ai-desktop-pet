@@ -8,7 +8,7 @@
 
 import { useEffect, useCallback, useRef, useMemo } from 'react';
 import { usePetStatusStore, usePetStore } from '@/stores';
-import { handleInteraction } from '@/services/pet/interaction';
+import { handleInteraction, getAllCooldowns } from '@/services/pet/interaction';
 import { applyDecay } from '@/services/pet/status';
 import { getMoodEmotion, shouldUpdateEmotion } from '@/services/pet/emotion';
 import type { InteractionType, InteractionResult } from '@/types';
@@ -145,6 +145,21 @@ export function usePetStatus() {
    */
   const energyLevel = getEnergyLevel();
 
+  /**
+   * Get cooldown remaining time for a specific interaction type
+   * 获取指定互动类型的剩余冷却时间
+   *
+   * @param type - Interaction type
+   * @returns Remaining cooldown in seconds (0 if not on cooldown)
+   */
+  const getCooldownRemaining = useCallback(
+    (type: InteractionType): number => {
+      const cooldowns = getAllCooldowns(status);
+      return cooldowns[type];
+    },
+    [status]
+  );
+
   // Stable return value using useMemo to prevent unnecessary re-renders
   return useMemo(
     () => ({
@@ -159,6 +174,7 @@ export function usePetStatus() {
 
       // Actions
       performInteraction,
+      getCooldownRemaining,
       loadStatus,
       updateStatus,
     }),
@@ -169,6 +185,7 @@ export function usePetStatus() {
       moodLevel,
       energyLevel,
       performInteraction,
+      getCooldownRemaining,
       loadStatus,
       updateStatus,
     ]

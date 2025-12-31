@@ -4,6 +4,8 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { PetCanvas } from './PetCanvas';
 import { ContextMenu } from './ContextMenu';
 import { StatusBar } from './StatusBar';
+import { StatusBubble } from './StatusBubble';
+import { MiniStatusBar } from './MiniStatusBar';
 import { InteractionFeedback } from './InteractionFeedback';
 import { Live2DPet } from './Live2DPet';
 // import { PetStatusPanel } from './PetStatusPanel';
@@ -16,11 +18,43 @@ import {
   usePetIdleBehavior,
   usePetVoiceLink,
   useWindowAutoHide,
+  useStatusDisplay,
 } from '../../hooks';
 import { useWindowPlacement } from '@/hooks/useWindowPlacement';
 import { usePetStatus } from '../../hooks/usePetStatus';
 import { BreathingOverlay, StoryPlayerModal, MeditationModal } from '../relaxation';
+import { getCooldownFeedback } from '@/services/pet';
+import { toast } from '@/stores/toastStore';
 import type { InteractionType } from '@/types';
+import type { StatChange } from '@/types/toast';
+
+/**
+ * 获取互动类型标签
+ */
+function getInteractionLabel(type: InteractionType): string {
+  switch (type) {
+    case 'pet':
+      return '抚摸';
+    case 'feed':
+      return '喂食';
+    case 'play':
+      return '玩耍';
+  }
+}
+
+/**
+ * 获取互动对应的属性
+ */
+function getStatForInteraction(type: InteractionType): StatChange['stat'] {
+  switch (type) {
+    case 'pet':
+      return 'mood';
+    case 'feed':
+      return 'satiety';
+    case 'play':
+      return 'mood';
+  }
+}
 
 interface PetContainerProps {
   // No props needed - chat opens in separate window
@@ -41,7 +75,24 @@ export function PetContainer(_props: PetContainerProps) {
 
   const { runPetAction } = usePetActions();
   const { performSkill } = useAssistantSkills();
-  const { performInteraction, status } = usePetStatus();
+  const { performInteraction, status, getCooldownRemaining } = usePetStatus();
+
+  // 状态展示 hook (气泡 + 迷你状态条)
+  const {
+    stats: careStats,
+    currentBubble,
+    isUrgent,
+    miniBarVisible,
+    handleBubbleAction,
+    dismissBubble,
+    handleMouseEnter,
+    handleMouseLeave,
+  } = useStatusDisplay({
+    enableBubble: true,
+    enableMiniBar: true,
+    checkInterval: 30000,
+    hoverDelay: 1500,
+  });
 
   // Relaxation store for breathing exercise, story player and meditation
   const { breathingVisible, breathingPatternId, closeBreathing, storyPlayerVisible, meditationVisible } = useRelaxationStore();
@@ -103,6 +154,79 @@ export function PetContainer(_props: PetContainerProps) {
   const handleCloseContextMenu = useCallback(() => {
     setContextMenu(null);
   }, []);
+
+  /**
+   * 处理气泡按钮点击
+   * 触发对应的互动操作
+   */
+  const handleBubbleActionClick = useCallback(
+    async (actionType: InteractionType | 'dismiss') => {
+      handleBubbleAction(actionType);
+
+      if (actionType === 'dismiss') return;
+
+      // 检查冷却
+      const cooldownRemaining = getCooldownRemaining(actionType);
+      if (cooldownRemaining > 0) {
+        const feedback = getCooldownFeedback(actionType, cooldownRemaining);
+        toast.warning(feedback.message, feedback.duration);
+        return;
+      }
+
+      // 执行互动
+      const result = await performInteraction(actionType);
+      if (result.success) {
+        // 获取对应的属性变化
+        let valueChange = 0;
+        if (actionType === 'pet') {
+          valueChange = result.newStatus.mood - status.mood;
+        } else if (actionType === 'feed') {
+          valueChange = result.newStatus.energy - status.energy;
+        } else if (actionType === 'play') {
+          valueChange = result.newStatus.mood - status.mood;
+        }
+
+        // 发送互动成功 Toast
+        toast.interaction(actionType, `${getInteractionLabel(actionType)}成功！`, [
+          { stat: getStatForInteraction(actionType), delta: valueChange },
+        ]);
+      }
+    },
+    [handleBubbleAction, getCooldownRemaining, performInteraction, status]
+  );
+
+  /**
+   * 处理迷你状态条点击
+   */
+  const handleMiniStatusClick = useCallback(
+    async (type: InteractionType) => {
+      // 检查冷却
+      const cooldownRemaining = getCooldownRemaining(type);
+      if (cooldownRemaining > 0) {
+        const feedback = getCooldownFeedback(type, cooldownRemaining);
+        toast.warning(feedback.message, feedback.duration);
+        return;
+      }
+
+      // 执行互动
+      const result = await performInteraction(type);
+      if (result.success) {
+        let valueChange = 0;
+        if (type === 'pet') {
+          valueChange = result.newStatus.mood - status.mood;
+        } else if (type === 'feed') {
+          valueChange = result.newStatus.energy - status.energy;
+        } else if (type === 'play') {
+          valueChange = result.newStatus.mood - status.mood;
+        }
+
+        toast.interaction(type, `${getInteractionLabel(type)}成功！`, [
+          { stat: getStatForInteraction(type), delta: valueChange },
+        ]);
+      }
+    },
+    [getCooldownRemaining, performInteraction, status]
+  );
 
   /**
    * Determine interaction zone from click position
@@ -365,6 +489,8 @@ export function PetContainer(_props: PetContainerProps) {
       onMouseUpCapture={handleMouseUpCapture}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       style={{
         opacity: Math.min(1, Math.max(0.2, appearance.opacity)),
         paddingTop: 100, // 进一步增加顶部内边距，确保气泡不溢出
@@ -373,6 +499,21 @@ export function PetContainer(_props: PetContainerProps) {
     >
       {/* Status Bar - always visible when enabled */}
       {statusPanelVisible && <StatusBar />}
+
+      {/* Status Bubble - 状态提示气泡 */}
+      <StatusBubble
+        bubble={currentBubble}
+        urgent={isUrgent}
+        onAction={handleBubbleActionClick}
+        onDismiss={dismissBubble}
+      />
+
+      {/* Mini Status Bar - 悬停显示迷你状态条 */}
+      <MiniStatusBar
+        stats={careStats}
+        visible={miniBarVisible}
+        onStatClick={handleMiniStatusClick}
+      />
 
       {/* Interaction Feedback - floating text */}
       <InteractionFeedback

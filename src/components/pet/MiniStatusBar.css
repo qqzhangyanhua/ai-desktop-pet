@@ -1,0 +1,128 @@
+/**
+ * Mini Status Bar Styles
+ * 迷你状态条样式
+ */
+
+.mini-status-bar-wrapper {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  pointer-events: none;
+}
+
+.mini-status-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(245, 240, 255, 0.9));
+  border-radius: 12px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  min-width: 140px;
+}
+
+.mini-status-bar--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 单行状态 */
+.mini-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-status-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.mini-status-bar-container {
+  flex: 1;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.mini-status-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* 饱腹度 - 橙色 */
+.mini-status-bar-fill--satiety {
+  background: linear-gradient(90deg, #fb923c, #f97316);
+}
+
+/* 精力 - 蓝色 */
+.mini-status-bar-fill--energy {
+  background: linear-gradient(90deg, #60a5fa, #3b82f6);
+}
+
+/* 心情 - 粉色 */
+.mini-status-bar-fill--mood {
+  background: linear-gradient(90deg, #f472b6, #ec4899);
+}
+
+/* 低值警告 - 红色 */
+.mini-status-bar-fill--warning {
+  background: linear-gradient(90deg, #f87171, #ef4444);
+  animation: pulse-warning 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.mini-status-value {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  min-width: 28px;
+  text-align: right;
+}
+
+.mini-status-value--warning {
+  color: #ef4444;
+}
+
+/* 可点击提示 */
+.mini-status-row--clickable {
+  cursor: pointer;
+  transition: background 0.2s ease;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 6px;
+}
+
+.mini-status-row--clickable:hover {
+  background: rgba(167, 139, 250, 0.1);
+}
+
+.mini-status-row--clickable:active {
+  background: rgba(167, 139, 250, 0.2);
+}

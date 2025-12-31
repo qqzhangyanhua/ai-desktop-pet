@@ -43,3 +43,20 @@ export {
   getUpgradeCelebrationMessage,
   getAllStages,
 } from './growth';
+
+// Status trigger service
+export {
+  checkStatusThresholds,
+  isUrgentStatus,
+  getStatusWarnings,
+  resetThresholdCooldown,
+  resetAllThresholdCooldowns,
+  getThresholdConfigs,
+} from './status-trigger';
+
+// Cooldown feedback service
+export {
+  getCooldownFeedback,
+  getCooldownShortMessage,
+  shouldShowCooldownFeedback,
+} from './cooldown-feedback';

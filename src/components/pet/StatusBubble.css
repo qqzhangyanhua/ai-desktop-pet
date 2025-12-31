@@ -1,0 +1,218 @@
+/**
+ * Status Bubble Styles
+ * 状态气泡样式
+ */
+
+.status-bubble-container {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  pointer-events: none;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.status-bubble {
+  position: relative;
+  max-width: 200px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 240, 255, 0.95));
+  border-radius: 16px;
+  box-shadow:
+    0 4px 12px rgba(167, 139, 250, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  pointer-events: auto;
+  animation: bubble-appear 0.3s ease-out;
+}
+
+.status-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid rgba(255, 255, 255, 0.95);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* 气泡类型变体 */
+.status-bubble--need {
+  background: linear-gradient(135deg, rgba(255, 245, 230, 0.95), rgba(255, 235, 210, 0.95));
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.status-bubble--need::after {
+  border-top-color: rgba(255, 245, 230, 0.95);
+}
+
+.status-bubble--cooldown {
+  background: linear-gradient(135deg, rgba(240, 245, 255, 0.95), rgba(230, 240, 255, 0.95));
+  border-color: rgba(100, 150, 220, 0.3);
+}
+
+.status-bubble--cooldown::after {
+  border-top-color: rgba(240, 245, 255, 0.95);
+}
+
+.status-bubble--action {
+  background: linear-gradient(135deg, rgba(240, 255, 245, 0.95), rgba(230, 255, 240, 0.95));
+  border-color: rgba(107, 203, 119, 0.4);
+}
+
+.status-bubble--action::after {
+  border-top-color: rgba(240, 255, 245, 0.95);
+}
+
+/* 紧急状态 */
+.status-bubble--urgent {
+  background: linear-gradient(135deg, rgba(255, 240, 240, 0.95), rgba(255, 230, 230, 0.95));
+  border-color: rgba(239, 68, 68, 0.4);
+  animation: bubble-appear 0.3s ease-out, bubble-pulse 2s ease-in-out infinite;
+}
+
+.status-bubble--urgent::after {
+  border-top-color: rgba(255, 240, 240, 0.95);
+}
+
+/* 消息内容 */
+.status-bubble__message {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #374151;
+  text-align: center;
+  word-break: break-word;
+}
+
+/* 按钮组 */
+.status-bubble__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.status-bubble__action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-bubble__action-btn--primary {
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  color: white;
+  box-shadow: 0 2px 6px rgba(167, 139, 250, 0.4);
+}
+
+.status-bubble__action-btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(167, 139, 250, 0.5);
+}
+
+.status-bubble__action-btn--primary:active {
+  transform: translateY(0);
+}
+
+.status-bubble__action-btn--secondary {
+  background: rgba(0, 0, 0, 0.05);
+  color: #6b7280;
+}
+
+.status-bubble__action-btn--secondary:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* 关闭按钮 */
+.status-bubble__dismiss {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(107, 114, 128, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.status-bubble:hover .status-bubble__dismiss {
+  opacity: 1;
+}
+
+.status-bubble__dismiss:hover {
+  background: rgba(239, 68, 68, 0.8);
+}
+
+/* 动画 */
+@keyframes bubble-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bubble-pulse {
+  0%, 100% {
+    box-shadow:
+      0 4px 12px rgba(239, 68, 68, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 4px 20px rgba(239, 68, 68, 0.4),
+      0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* 退出动画 */
+.status-bubble--exit {
+  animation: bubble-exit 0.25s ease-in forwards;
+}
+
+@keyframes bubble-exit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.9);
+  }
+}
+
+/* 进度条（用于显示剩余时间） */
+.status-bubble__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+  border-radius: 0 0 16px 16px;
+  transition: width 0.1s linear;
+}
