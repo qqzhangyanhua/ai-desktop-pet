@@ -138,3 +138,92 @@ export interface DecayConfig {
   /** 精力值最大衰减量 (上限) */
   maxEnergyDecay: number;
 }
+
+/**
+ * 主动请求类型
+ * 宠物根据自身状态主动发起的互动请求
+ *
+ * Linus 原则: 合并相似情况，减少分支
+ * - need_attention: 合并了"需要休息"和"需要安抚"(都推荐pet互动)
+ */
+export type ProactiveRequestType =
+  | 'need_attention'  // 需要关注 (精力低或心情差)
+  | 'hungry'          // 饥饿 (饱食度低)
+  | 'bored';          // 无聊 (无聊度高)
+
+/**
+ * 主动请求数据结构
+ */
+export interface ProactiveRequest {
+  /** 请求ID (用于追踪和去重) */
+  id: string;
+
+  /** 请求类型 */
+  type: ProactiveRequestType;
+
+  /** 推荐的互动方式 */
+  suggestedInteraction: InteractionType;
+
+  /** 气泡显示文案 */
+  message: string;
+
+  /** 情绪表现 */
+  emotion: EmotionType;
+
+  /** 创建时间戳 (毫秒) */
+  timestamp: number;
+
+  /** 用户是否已响应 */
+  responded: boolean;
+
+  /** 用户响应方式 (接受/拒绝/忽略) */
+  response?: 'accepted' | 'declined' | 'ignored';
+
+  /** 紧急度分数 (0-100) - 用于计算触发间隔 */
+  urgency: number;
+}
+
+/**
+ * 主动请求配置
+ */
+export interface ProactiveRequestConfig {
+  /** 是否启用主动请求 */
+  enabled: boolean;
+
+  /** 频率档位 (UI快捷选项) */
+  frequency: 'low' | 'standard' | 'high';
+
+  /** 基础触发间隔 (毫秒) */
+  baseIntervalMs: number;
+
+  /** 最小触发间隔 (毫秒) - 紧急情况下的最短间隔 */
+  minIntervalMs: number;
+
+  /** 最大触发间隔 (毫秒) - 低紧急度或被拒绝后的最长间隔 */
+  maxIntervalMs: number;
+
+  /** 连续拒绝多少次后触发惩罚 */
+  declineThreshold: number;
+
+  /** 拒绝后频率降低系数 (每次拒绝间隔 *= 此系数) */
+  declinePenalty: number;
+}
+
+/**
+ * 默认主动请求配置
+ */
+export const DEFAULT_PROACTIVE_CONFIG: ProactiveRequestConfig = {
+  enabled: true,
+  frequency: 'standard',
+  baseIntervalMs: 30 * 60 * 1000,  // 30分钟
+  minIntervalMs: 15 * 60 * 1000,   // 15分钟
+  maxIntervalMs: 120 * 60 * 1000,  // 2小时
+  declineThreshold: 3,
+  declinePenalty: 1.2,
+};
+
+/**
+ * EmotionType 引用 (避免循环依赖)
+ * 实际定义在 emotion.ts
+ */
+type EmotionType = 'happy' | 'sad' | 'excited' | 'confused' | 'thinking' | 'neutral' | 'surprised';

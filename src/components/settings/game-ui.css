@@ -1128,7 +1128,63 @@
   }
 }
 
+/**
+ * Interactive Bubble Buttons - 交互式气泡按钮
+ * 用于主动请求的响应按钮
+ */
+.game-pet-bubble-text {
+  margin-bottom: 0;
+}
 
+.game-pet-bubble-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(139, 69, 19, 0.15);
+  justify-content: center;
+}
 
+.game-pet-bubble-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: var(--radius-lg, 24px);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  -webkit-app-region: no-drag; /* 防止按钮被拖动 */
+}
 
+.game-pet-bubble-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.game-pet-bubble-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.game-pet-bubble-btn-primary {
+  background: var(--color-primary, #a78bfa);
+  color: white;
+}
+
+.game-pet-bubble-btn-primary:hover {
+  background: #9370db;
+}
+
+.game-pet-bubble-btn-secondary {
+  background: rgba(255, 255, 255, 0.8);
+  color: #5D4037;
+  border: 1.5px solid rgba(139, 69, 19, 0.3);
+}
+
+.game-pet-bubble-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(139, 69, 19, 0.5);
+}
 

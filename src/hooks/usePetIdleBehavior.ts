@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useCareStore, useConfigStore, usePetStore } from '@/stores';
 import { getIdleBehavior, getIdleGestureOnly } from '@/services/pet/idle-behavior';
 import { getLive2DManager } from '@/services/live2d';
+import { shouldTriggerProactiveRequest } from '@/services/pet/proactive-requests';
 
 const getIdleIntervalMs = (frequency: 'low' | 'standard' | 'high') => {
   switch (frequency) {
@@ -53,6 +54,7 @@ export function usePetIdleBehavior() {
     const idleInterval = getIdleIntervalMs(behavior.interactionFrequency);
     const minAfterAction = getMinAfterActionMs(behavior.interactionFrequency);
     const bubbleEnabled = behavior.notifications.bubbleEnabled;
+    const proactiveConfig = behavior.proactiveRequests;
 
     const timer = window.setInterval(() => {
       const now = Date.now();
@@ -67,6 +69,23 @@ export function usePetIdleBehavior() {
       const report = care.getStatusReport();
       const hasWarning = report.warnings.length > 0;
 
+      // 优先级1: 主动请求（紧急度驱动）
+      if (proactiveConfig.enabled && !hasWarning && !care.isSick) {
+        const request = shouldTriggerProactiveRequest(
+          care,
+          pet.lastProactiveRequestTime,
+          proactiveConfig,
+          pet.consecutiveDeclines
+        );
+
+        if (request) {
+          pet.triggerProactiveRequest(request);
+          lastIdleAtRef.current = now;
+          return;
+        }
+      }
+
+      // 优先级2: 告警/生病状态的小动作
       if (hasWarning || care.isSick) {
         // 有告警/生病时不插话，只做轻量小动作
         const gestureOnly = getIdleGestureOnly(care);
@@ -80,6 +99,7 @@ export function usePetIdleBehavior() {
           // ignore
         }
       } else if (bubbleEnabled) {
+        // 优先级3: 日常闲聊气泡
         const result = getIdleBehavior(care);
         pet.setEmotion(result.emotion);
         pet.showBubble(result.message, result.bubbleDurationMs);

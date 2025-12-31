@@ -85,8 +85,8 @@ export function ContextMenu({
     onClose();
   };
 
-  const handleAssistantAction = (skill: string) => {
-    onAssistantAction(skill as AssistantSkill);
+  const handleAssistantAction = (skill: AssistantSkill) => {
+    onAssistantAction(skill);
     onClose();
   };
 
@@ -198,7 +198,13 @@ export function ContextMenu({
   // 选择菜单项
   const selectItem = (item: MenuItem) => {
     recordRecent(item.id);
-    item.onSelect();
+    try {
+      Promise.resolve(item.onSelect()).catch((err) => {
+        console.warn('[ContextMenu] Menu action failed:', item.id, err);
+      });
+    } catch (err) {
+      console.warn('[ContextMenu] Menu action threw:', item.id, err);
+    }
   };
 
   const {

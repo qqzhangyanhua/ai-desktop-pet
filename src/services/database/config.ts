@@ -67,9 +67,17 @@ export async function loadAppConfig(): Promise<AppConfig> {
       behavior: {
         ...DEFAULT_CONFIG.behavior,
         ...saved.behavior,
+        autoWork: {
+          ...DEFAULT_CONFIG.behavior.autoWork,
+          ...saved.behavior?.autoWork,
+        },
         notifications: {
           ...DEFAULT_CONFIG.behavior.notifications,
           ...saved.behavior?.notifications,
+        },
+        proactiveRequests: {
+          ...DEFAULT_CONFIG.behavior.proactiveRequests,
+          ...saved.behavior?.proactiveRequests,
         },
       },
       assistant: {

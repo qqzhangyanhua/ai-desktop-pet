@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
+import type { AssistantSkill } from './assistant';
 import type { PetActionType } from './pet';
+
+export type MenuSelectHandler = () => void | Promise<void>;
 
 /**
  * Menu section types - 菜单分组
@@ -16,37 +19,37 @@ export interface MenuItem {
   keywords: string[];
   icon: ReactNode;
   danger?: boolean;
-  onSelect: () => void;
+  onSelect: MenuSelectHandler;
 }
 
 /**
  * Pet action handler - 宠物动作处理器
  */
-export type PetActionHandler = (action: PetActionType) => void;
+export type PetActionHandler = (action: PetActionType) => void | Promise<void>;
 
 /**
  * Assistant skill handler - 助手技能处理器
  */
-export type AssistantSkillHandler = (skill: string) => void;
+export type AssistantSkillHandler = (skill: AssistantSkill) => void | Promise<void>;
 
 /**
  * System handlers - 系统操作处理器集合
  */
 export interface SystemHandlers {
-  openChat: () => void;
-  openSettings: () => void;
-  toggleStatusPanel: () => void;
-  hide: () => void;
-  quit: () => void;
+  openChat: MenuSelectHandler;
+  openSettings: MenuSelectHandler;
+  toggleStatusPanel: MenuSelectHandler;
+  hide: MenuSelectHandler;
+  quit: MenuSelectHandler;
 }
 
 /**
  * Relaxation handlers - 放松功能处理器（可选）
  */
 export interface RelaxationHandlers {
-  breathing?: () => void;
-  story?: () => void;
-  meditation?: () => void;
+  breathing?: MenuSelectHandler;
+  story?: MenuSelectHandler;
+  meditation?: MenuSelectHandler;
 }
 
 /**

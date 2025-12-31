@@ -26,6 +26,7 @@ import {
   Brain,
 } from 'lucide-react';
 import type { MenuSection, MenuHandlers, MenuState } from '@/types/menu';
+import type { AssistantSkill } from '@/types';
 import type { PetActionType } from '@/types/pet';
 
 /**
@@ -53,7 +54,7 @@ interface PetMenuItemConfig extends BaseMenuItemConfig {
  */
 interface AssistantMenuItemConfig extends BaseMenuItemConfig {
   type: 'assistant';
-  skill: string;
+  skill: AssistantSkill;
 }
 
 /**

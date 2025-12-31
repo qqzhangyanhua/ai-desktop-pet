@@ -16,6 +16,10 @@ import { MENU_REGISTRY } from './menu-config';
 export function createMenuItems(config: MenuConfig): MenuItem[] {
   const { handlers, state } = config;
 
+  const createMissingHandlerFallback = (id: string, action: string) => () => {
+    console.warn('[Menu] Handler not found, action ignored', { id, action });
+  };
+
   return MENU_REGISTRY.filter((item) => {
     // Filter out relaxation items if handlers not provided
     if (item.type === 'relaxation') {
@@ -28,7 +32,7 @@ export function createMenuItems(config: MenuConfig): MenuItem[] {
     const label = typeof item.label === 'function' ? item.label(state) : item.label;
 
     // Bind handler based on item type
-    let onSelect: () => void;
+    let onSelect: MenuItem['onSelect'];
 
     switch (item.type) {
       case 'pet':
@@ -45,10 +49,7 @@ export function createMenuItems(config: MenuConfig): MenuItem[] {
 
       case 'relaxation': {
         const handler = handlers.relaxation?.[item.relaxationAction];
-        if (!handler) {
-          throw new Error(`Relaxation handler not found: ${item.relaxationAction}`);
-        }
-        onSelect = handler;
+        onSelect = handler ?? createMissingHandlerFallback(item.id, item.relaxationAction);
         break;
       }
 

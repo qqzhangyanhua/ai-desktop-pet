@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Application, Graphics } from 'pixi.js';
 import { usePetStore } from '../../stores';
 import type { EmotionType } from '../../types';
+import { usePetStatus } from '../../hooks/usePetStatus';
 import '../../styles/global.css';
 import '../../components/settings/game-ui.css';
 
@@ -103,7 +104,32 @@ export function PetCanvas({
   const graphicsRef = useRef<Graphics | null>(null);
   const [isReady, setIsReady] = useState(false);
 
-  const { emotion, bubbleText, isSpeaking, isListening } = usePetStore();
+  const { emotion, bubbleText, isSpeaking, isListening, currentProactiveRequest, respondToProactiveRequest, clearProactiveRequest } = usePetStore();
+  const { performInteraction } = usePetStatus();
+
+  /**
+   * 处理主动请求的按钮点击
+   */
+  const handleProactiveResponse = useCallback(async (response: 'accepted' | 'declined') => {
+    if (!currentProactiveRequest) return;
+
+    // 标记响应
+    respondToProactiveRequest(response);
+
+    if (response === 'accepted') {
+      // 执行推荐的互动
+      const suggestedInteraction = currentProactiveRequest.suggestedInteraction;
+      await performInteraction(suggestedInteraction);
+    } else {
+      // 拒绝时显示理解的文案
+      // （气泡已被 respondToProactiveRequest 清除）
+    }
+
+    // 延迟清除请求（给动画时间）
+    setTimeout(() => {
+      clearProactiveRequest();
+    }, 300);
+  }, [currentProactiveRequest, respondToProactiveRequest, performInteraction, clearProactiveRequest]);
 
   // Initialize PixiJS
   useEffect(() => {
@@ -195,11 +221,31 @@ export function PetCanvas({
       onContextMenu={onContextMenu}
       style={{ width, height }}
     >
+      {/* 渲染气泡：普通气泡 或 交互式主动请求气泡 */}
       {bubbleText && (
         <div className="game-pet-bubble">
-          {bubbleText}
+          <div className="game-pet-bubble-text">{bubbleText}</div>
+
+          {/* 如果有主动请求且未响应，显示按钮 */}
+          {currentProactiveRequest && !currentProactiveRequest.responded && (
+            <div className="game-pet-bubble-actions">
+              <button
+                className="game-pet-bubble-btn game-pet-bubble-btn-primary"
+                onClick={() => handleProactiveResponse('accepted')}
+              >
+                {getAcceptButtonText(currentProactiveRequest.type)}
+              </button>
+              <button
+                className="game-pet-bubble-btn game-pet-bubble-btn-secondary"
+                onClick={() => handleProactiveResponse('declined')}
+              >
+                {getDeclineButtonText(currentProactiveRequest.type)}
+              </button>
+            </div>
+          )}
         </div>
       )}
+
       {!bubbleText && (isSpeaking || isListening) && (
         <div
           className={`pet-voice-indicator ${isListening ? 'listening' : 'speaking'}`}
@@ -215,4 +261,36 @@ export function PetCanvas({
       )}
     </div>
   );
+}
+
+/**
+ * 根据请求类型获取"接受"按钮文案
+ */
+function getAcceptButtonText(type: string): string {
+  switch (type) {
+    case 'need_attention':
+      return '休息一会';
+    case 'hungry':
+      return '喂食';
+    case 'bored':
+      return '一起玩';
+    default:
+      return '好的';
+  }
+}
+
+/**
+ * 根据请求类型获取"拒绝"按钮文案
+ */
+function getDeclineButtonText(type: string): string {
+  switch (type) {
+    case 'need_attention':
+      return '继续工作';
+    case 'hungry':
+      return '稍等';
+    case 'bored':
+      return '我很忙';
+    default:
+      return '稍后';
+  }
 }

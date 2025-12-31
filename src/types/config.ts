@@ -66,6 +66,23 @@ export interface BehaviorConfig {
     bubbleEnabled: boolean;
     toastEnabled: boolean;
   };
+  /** 主动互动请求配置 */
+  proactiveRequests: {
+    /** 是否启用主动请求 */
+    enabled: boolean;
+    /** 频率档位 (UI快捷选项) */
+    frequency: 'low' | 'standard' | 'high';
+    /** 基础触发间隔 (毫秒) */
+    baseIntervalMs: number;
+    /** 最小触发间隔 (毫秒) */
+    minIntervalMs: number;
+    /** 最大触发间隔 (毫秒) */
+    maxIntervalMs: number;
+    /** 连续拒绝阈值 */
+    declineThreshold: number;
+    /** 拒绝惩罚系数 */
+    declinePenalty: number;
+  };
 }
 
 export interface ChatConfig {
@@ -211,6 +228,15 @@ export const DEFAULT_CONFIG: AppConfig = {
     notifications: {
       bubbleEnabled: true,
       toastEnabled: true,
+    },
+    proactiveRequests: {
+      enabled: true,
+      frequency: 'standard',
+      baseIntervalMs: 30 * 60 * 1000,  // 30分钟
+      minIntervalMs: 15 * 60 * 1000,   // 15分钟
+      maxIntervalMs: 120 * 60 * 1000,  // 2小时
+      declineThreshold: 3,
+      declinePenalty: 1.2,
     },
   },
   assistant: {
