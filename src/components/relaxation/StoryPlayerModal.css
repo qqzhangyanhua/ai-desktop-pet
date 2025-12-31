@@ -1,0 +1,328 @@
+/**
+ * StoryPlayerModal Styles
+ * 故事播放器模态框样式
+ */
+
+.story-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal, 1000);
+}
+
+.story-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.story-modal-content {
+  position: relative;
+  width: 380px;
+  max-height: 80vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 头部 */
+.story-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.story-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.story-modal-title::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #fbbf24;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #fbbf24;
+}
+
+.story-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.story-modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+}
+
+/* 故事列表 */
+.story-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.story-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.story-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.story-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.story-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.story-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.story-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.story-item.active {
+  background: rgba(167, 139, 250, 0.2);
+  border-color: rgba(167, 139, 250, 0.4);
+}
+
+.story-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #a78bfa;
+  flex-shrink: 0;
+}
+
+.story-item.active .story-item-icon {
+  background: rgba(167, 139, 250, 0.3);
+  color: #c4b5fd;
+}
+
+.story-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.story-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.story-item-meta {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* 故事详情 */
+.story-detail {
+  padding: 16px 20px 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.story-detail-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.story-detail-summary {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+/* 进度条 */
+.story-progress {
+  margin-bottom: 16px;
+}
+
+.story-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.story-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a78bfa, #c4b5fd);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.story-progress-time {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 控制按钮 */
+.story-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.story-control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.story-control-btn.primary {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(167, 139, 250, 0.4);
+}
+
+.story-control-btn.primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(167, 139, 250, 0.5);
+}
+
+.story-control-btn.primary:active {
+  transform: scale(0.95);
+}
+
+.story-control-btn.secondary {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+.story-control-btn.secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+}
+
+.story-control-btn.secondary:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.story-control-spacer {
+  width: 40px;
+}
+
+/* 夜间主题动画 */
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.story-modal-content::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  width: 4px;
+  height: 4px;
+  background: #fbbf24;
+  border-radius: 50%;
+  box-shadow:
+    30px 15px 0 #fbbf24,
+    60px 5px 0 #fbbf24,
+    90px 20px 0 #fbbf24,
+    120px 8px 0 #fbbf24;
+  animation: twinkle 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.story-modal-content::after {
+  content: '';
+  position: absolute;
+  top: 25px;
+  right: 40px;
+  width: 3px;
+  height: 3px;
+  background: #f8fafc;
+  border-radius: 50%;
+  box-shadow:
+    40px 10px 0 #f8fafc,
+    80px 15px 0 #f8fafc,
+    110px 5px 0 #f8fafc;
+  animation: twinkle 4s ease-in-out infinite;
+  animation-delay: 1s;
+  pointer-events: none;
+}

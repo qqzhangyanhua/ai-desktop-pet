@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Search, Trash2, X } from 'lucide-react';
 import type { AssistantSkill, PetActionType } from '../../types';
-import { useCareStore, useConfigStore, useContextMenuStore } from '@/stores';
+import { useCareStore, useConfigStore, useContextMenuStore, useRelaxationStore } from '@/stores';
 import { createMenuItems, type MenuItem } from './menu-items';
 import { getWindowManager } from '@/services/window';
 import { useContextMenuPosition } from './useContextMenuPosition';
@@ -102,6 +102,21 @@ export function ContextMenu({
     await windowManager.openSettingsWindow();
   };
 
+  const handleOpenBreathing = () => {
+    onClose();
+    useRelaxationStore.getState().openBreathing();
+  };
+
+  const handleOpenStoryPlayer = () => {
+    onClose();
+    useRelaxationStore.getState().openStoryPlayer();
+  };
+
+  const handleOpenMeditation = () => {
+    onClose();
+    useRelaxationStore.getState().openMeditation();
+  };
+
   // 创建所有菜单项
   const allItems: MenuItem[] = createMenuItems(
     handlePetAction,
@@ -111,7 +126,10 @@ export function ContextMenu({
     handleToggleStatusPanel,
     handleHide,
     handleQuit,
-    statusPanelVisible
+    statusPanelVisible,
+    handleOpenBreathing,
+    handleOpenStoryPlayer,
+    handleOpenMeditation
   );
 
   // 处理菜单逻辑（过滤、推荐、分组）

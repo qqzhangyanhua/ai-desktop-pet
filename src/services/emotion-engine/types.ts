@@ -163,7 +163,10 @@ export interface CareOpportunity {
     | 'break_reminder'
     | 'health_warning'
     | 'emotional_support'
-    | 'achievement_celebration';
+    | 'achievement_celebration'
+    | 'breathing_exercise'
+    | 'bedtime_story'
+    | 'meditation_suggestion';
 
   /** 优先级 (1-10, 10最高) */
   priority: number;

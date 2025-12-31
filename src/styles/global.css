@@ -755,13 +755,10 @@ body {
 
 /* 打字机光标效果 */
 .typing-cursor {
-  display: inline-block;
-  width: 2px;
-  height: 1em;
-  background: #ffb6c1;
-  margin-left: 2px;
-  vertical-align: text-bottom;
-  animation: cursor-blink 1s step-end infinite;
+  display: inline;
+  color: #a78bfa;
+  font-weight: bold;
+  animation: cursor-blink 0.8s ease-in-out infinite;
 }
 
 @keyframes cursor-blink {

@@ -7,6 +7,7 @@
  */
 
 import { register, unregister, isRegistered } from '@tauri-apps/plugin-global-shortcut';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import type { ShortcutAction, ShortcutConfig, ShortcutConflict } from '@/types';
 import { getWindowManager } from '@/services/window';
 
@@ -217,9 +218,22 @@ class ShortcutManager {
   }
 
   /**
-   * 打开聊天窗口
+   * 打开聊天窗口（同时确保主窗口可见）
    */
   private async openChatWindow(): Promise<void> {
+    // 确保主窗口可见
+    try {
+      const mainWindow = getCurrentWindow();
+      const isVisible = await mainWindow.isVisible();
+      if (!isVisible) {
+        await mainWindow.show();
+        await mainWindow.setFocus();
+      }
+    } catch {
+      // 忽略错误 - 主窗口可能尚未初始化
+    }
+
+    // 打开聊天窗口
     const windowManager = getWindowManager();
     await windowManager.openChatWindow();
   }

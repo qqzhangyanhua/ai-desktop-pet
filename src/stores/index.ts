@@ -10,3 +10,4 @@ export { useAssistantStore } from './assistantStore';
 export { useSkinStore } from './skinStore';
 export { useContextMenuStore } from './contextMenuStore';
 export { useUserProfileStore } from './userProfileStore';
+export { useRelaxationStore } from './relaxationStore';

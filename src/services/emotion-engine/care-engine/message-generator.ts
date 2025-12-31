@@ -109,6 +109,42 @@ const MESSAGE_TEMPLATES: Record<CareOpportunity['type'], MessageTemplate[]> = {
       message: '你的努力有回报了！为你骄傲！',
     },
   ],
+  breathing_exercise: [
+    {
+      tone: 'gentle',
+      title: '呼吸放松',
+      message: '来做个简单的呼吸练习吧，只需要几分钟就能帮你放松身心。',
+    },
+    {
+      tone: 'gentle',
+      title: '深呼吸',
+      message: '试试4-7-8呼吸法，跟着我一起调整呼吸，缓解压力。',
+    },
+  ],
+  bedtime_story: [
+    {
+      tone: 'gentle',
+      title: '睡前故事',
+      message: '夜深了，要不要听个温馨的故事帮助入睡？',
+    },
+    {
+      tone: 'gentle',
+      title: '晚安时光',
+      message: '我准备了一些轻松的故事，陪你度过安静的夜晚。',
+    },
+  ],
+  meditation_suggestion: [
+    {
+      tone: 'gentle',
+      title: '冥想时刻',
+      message: '花几分钟冥想一下吧，让心灵得到片刻宁静。',
+    },
+    {
+      tone: 'gentle',
+      title: '正念练习',
+      message: '我们来做个简短的正念练习，帮你重新集中注意力。',
+    },
+  ],
 };
 
 /**

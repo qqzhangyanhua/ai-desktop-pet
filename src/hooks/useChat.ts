@@ -151,13 +151,16 @@ export function useChat(options: UseChatOptions = {}) {
 
         // Collect context and enrich system prompt
         let enrichedSystemPrompt = appConfig.systemPrompt;
+        console.log('[useChat] Base systemPrompt:', appConfig.systemPrompt?.slice(0, 100) + '...');
         try {
           const context = await collectPetContext();
           enrichedSystemPrompt = enrichSystemPrompt(appConfig.systemPrompt, context);
+          console.log('[useChat] Enriched systemPrompt:', enrichedSystemPrompt?.slice(0, 200) + '...');
         } catch (error) {
           console.warn('[useChat] Failed to collect context, using base prompt:', error);
           // Fall back to base prompt
         }
+        console.log('[useChat] Final systemPrompt length:', enrichedSystemPrompt?.length ?? 0);
 
         const result = await sessionRef.current.sendMessage({
           messages: historyMessages,

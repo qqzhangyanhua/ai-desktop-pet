@@ -20,6 +20,9 @@ function convertToAIMessages(
       role: 'system',
       content: systemPrompt,
     });
+    console.log('[LLM] System prompt added, length:', systemPrompt.length);
+  } else {
+    console.warn('[LLM] No system prompt provided!');
   }
 
   for (const msg of messages) {
@@ -42,6 +45,7 @@ function convertToAIMessages(
     // Skip tool messages for now as they need special handling
   }
 
+  console.log('[LLM] Total messages to send:', result.length, '| Roles:', result.map(m => m.role).join(', '));
   return result;
 }
 
@@ -89,6 +93,10 @@ export async function streamChatCompletion(
 ): Promise<ChatCompletionResult> {
   const { messages, systemPrompt, config, onToken, onComplete, onError, signal } =
     options;
+
+  console.log('[LLM] streamChatCompletion called');
+  console.log('[LLM] Config:', { provider: config.provider, model: config.model, baseUrl: config.baseUrl?.slice(0, 50) });
+  console.log('[LLM] systemPrompt received:', systemPrompt ? `${systemPrompt.slice(0, 80)}... (${systemPrompt.length} chars)` : 'NONE');
 
   const model = createModel(config);
   const aiMessages = convertToAIMessages(messages, systemPrompt);

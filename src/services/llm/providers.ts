@@ -60,6 +60,14 @@ export function createProvider(config: LLMProviderConfig): ProviderInstance {
 
 export function createModel(config: LLMProviderConfig): LanguageModel {
   const provider = createProvider(config);
+
+  // OpenAI provider: use .chat() to force Chat Completions API (/chat/completions)
+  // instead of Responses API (/responses) which is the default in AI SDK 5.0
+  if (config.provider === 'openai') {
+    const openaiProvider = provider as OpenAIProvider;
+    return openaiProvider.chat(config.model) as LanguageModel;
+  }
+
   return provider(config.model) as LanguageModel;
 }
 

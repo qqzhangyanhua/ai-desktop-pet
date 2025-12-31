@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { User, Sparkles } from 'lucide-react';
 import type { Message } from '../../types';
 
@@ -8,20 +8,116 @@ interface ChatMessageProps {
   isLastMessage?: boolean;
 }
 
-function TypewriterText({ text, enabled }: { text: string; enabled: boolean }) {
-  const [displayText, setDisplayText] = useState(text);
+/** 打字机效果配置 */
+const TYPEWRITER_CONFIG = {
+  /** 基础字符间隔(ms) */
+  baseInterval: 30,
+  /** 最小间隔(ms) */
+  minInterval: 15,
+  /** 最大间隔(ms) */
+  maxInterval: 80,
+  /** 标点符号额外延迟(ms) */
+  punctuationDelay: 100,
+  /** 每次追赶的最大字符数（当落后太多时加速） */
+  catchUpChars: 3,
+  /** 触发追赶的阈值 */
+  catchUpThreshold: 20,
+};
 
+/** 判断是否为标点符号 */
+function isPunctuation(char: string): boolean {
+  return /[，。！？；：、,.!?;:]/.test(char);
+}
+
+function TypewriterText({ text, enabled }: { text: string; enabled: boolean }) {
+  const [displayedLength, setDisplayedLength] = useState(0);
+  const targetTextRef = useRef(text);
+  const animationRef = useRef<number | null>(null);
+  const lastTimeRef = useRef(0);
+
+  // 更新目标文本
   useEffect(() => {
+    targetTextRef.current = text;
+  }, [text]);
+
+  // 动画循环
+  const animate = useCallback((timestamp: number) => {
     if (!enabled) {
-      setDisplayText(text);
+      setDisplayedLength(targetTextRef.current.length);
       return;
     }
 
-    // 文本更新时立即显示全部（流式返回时字符会逐个添加）
-    setDisplayText(text);
-  }, [text, enabled]);
+    const targetLength = targetTextRef.current.length;
 
-  return <span>{displayText}</span>;
+    setDisplayedLength(prevLength => {
+      if (prevLength >= targetLength) {
+        // 已经显示完毕，继续监听新内容
+        animationRef.current = requestAnimationFrame(animate);
+        return prevLength;
+      }
+
+      const elapsed = timestamp - lastTimeRef.current;
+      const currentChar = targetTextRef.current[prevLength] || '';
+      const behind = targetLength - prevLength;
+
+      // 计算间隔：落后太多时加速追赶
+      let interval = TYPEWRITER_CONFIG.baseInterval;
+      if (behind > TYPEWRITER_CONFIG.catchUpThreshold) {
+        interval = TYPEWRITER_CONFIG.minInterval;
+      } else if (isPunctuation(currentChar)) {
+        interval = TYPEWRITER_CONFIG.baseInterval + TYPEWRITER_CONFIG.punctuationDelay;
+      }
+
+      if (elapsed >= interval) {
+        lastTimeRef.current = timestamp;
+
+        // 落后太多时一次显示多个字符
+        const charsToAdd = behind > TYPEWRITER_CONFIG.catchUpThreshold
+          ? Math.min(TYPEWRITER_CONFIG.catchUpChars, behind)
+          : 1;
+
+        animationRef.current = requestAnimationFrame(animate);
+        return Math.min(prevLength + charsToAdd, targetLength);
+      }
+
+      animationRef.current = requestAnimationFrame(animate);
+      return prevLength;
+    });
+  }, [enabled]);
+
+  // 启动动画
+  useEffect(() => {
+    if (!enabled) {
+      setDisplayedLength(text.length);
+      return;
+    }
+
+    lastTimeRef.current = performance.now();
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [enabled, animate]);
+
+  // 流式结束时确保显示完整内容
+  useEffect(() => {
+    if (!enabled) {
+      setDisplayedLength(text.length);
+    }
+  }, [enabled, text.length]);
+
+  const displayText = text.slice(0, displayedLength);
+  const isTyping = enabled && displayedLength < text.length;
+
+  return (
+    <span>
+      {displayText}
+      {isTyping && <span className="typing-cursor animate-pulse">|</span>}
+    </span>
+  );
 }
 
 export function ChatMessage({
@@ -61,9 +157,6 @@ export function ChatMessage({
           <TypewriterText text={message.content} enabled={true} />
         ) : (
           message.content
-        )}
-        {shouldTypewriter && message.content.length === 0 && (
-          <span className="typing-cursor">|</span>
         )}
       </div>
       {isUser && (

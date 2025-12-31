@@ -7,7 +7,7 @@ import { StatusBar } from './StatusBar';
 import { InteractionFeedback } from './InteractionFeedback';
 import { Live2DPet } from './Live2DPet';
 // import { PetStatusPanel } from './PetStatusPanel';
-import { useConfigStore } from '../../stores';
+import { useConfigStore, useRelaxationStore } from '../../stores';
 import {
   useAssistantSkills,
   useAutoWork,
@@ -19,6 +19,7 @@ import {
 } from '../../hooks';
 import { useWindowPlacement } from '@/hooks/useWindowPlacement';
 import { usePetStatus } from '../../hooks/usePetStatus';
+import { BreathingOverlay, StoryPlayerModal, MeditationModal } from '../relaxation';
 import type { InteractionType } from '@/types';
 
 interface PetContainerProps {
@@ -41,6 +42,9 @@ export function PetContainer(_props: PetContainerProps) {
   const { runPetAction } = usePetActions();
   const { performSkill } = useAssistantSkills();
   const { performInteraction, status } = usePetStatus();
+
+  // Relaxation store for breathing exercise, story player and meditation
+  const { breathingVisible, breathingPatternId, closeBreathing, storyPlayerVisible, meditationVisible } = useRelaxationStore();
 
   // Get config to determine if Live2D is enabled
   const { config } = useConfigStore();
@@ -408,6 +412,19 @@ export function PetContainer(_props: PetContainerProps) {
           }}
         />
       )}
+
+      {/* Breathing Exercise Overlay */}
+      <BreathingOverlay
+        visible={breathingVisible}
+        patternId={breathingPatternId}
+        onClose={closeBreathing}
+      />
+
+      {/* Story Player Modal */}
+      {storyPlayerVisible && <StoryPlayerModal />}
+
+      {/* Meditation Modal */}
+      {meditationVisible && <MeditationModal />}
     </div>
   );
 }

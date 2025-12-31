@@ -22,6 +22,7 @@ import { getWindowManager } from './services/window';
 import { petSpeak } from './services/pet/voice-link';
 import { useAchievementListener } from './hooks';
 import { useProactiveBehavior } from './hooks/useProactiveBehavior';
+import { usePerformanceMode } from './hooks/usePerformanceMode';
 import './styles/global.css';
 
 function App() {
@@ -35,6 +36,9 @@ function App() {
 
   // Enable proactive behavior
   useProactiveBehavior(true);
+
+  // Enable performance mode management
+  usePerformanceMode();
 
   // Initialize database, scheduler, and load config
   useEffect(() => {
@@ -134,6 +138,15 @@ function App() {
           console.log('[App] Autostart synced');
         } catch (error) {
           console.warn('[App] Failed to sync autostart:', error);
+        }
+
+        // Start resource monitoring (best-effort)
+        try {
+          const { startResourceMonitoring } = await import('./services/performance');
+          startResourceMonitoring();
+          console.log('[App] Resource monitoring started');
+        } catch (error) {
+          console.warn('[App] Failed to start resource monitoring:', error);
         }
 
         setDbReady(true);

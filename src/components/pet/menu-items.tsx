@@ -21,6 +21,9 @@ import {
   BarChart3,
   EyeOff,
   X,
+  Wind,
+  BookOpen,
+  Brain,
 } from 'lucide-react';
 import type { PetActionType } from '../../types';
 
@@ -44,9 +47,12 @@ export function createMenuItems(
   handleToggleStatusPanel: () => void,
   handleHide: () => void,
   handleQuit: () => void,
-  statusPanelVisible: boolean
+  statusPanelVisible: boolean,
+  handleOpenBreathing?: () => void,
+  handleOpenStoryPlayer?: () => void,
+  handleOpenMeditation?: () => void
 ): MenuItem[] {
-  return [
+  const items: MenuItem[] = [
     // Pet fun
     {
       id: 'pet:feed',
@@ -232,4 +238,42 @@ export function createMenuItems(
       onSelect: handleQuit,
     },
   ];
+
+  // Add breathing exercise if handler provided
+  if (handleOpenBreathing) {
+    items.push({
+      id: 'relaxation:breathing',
+      section: 'pet_care',
+      label: '呼吸放松',
+      keywords: ['呼吸', '放松', '减压', 'breathing', 'relax'],
+      icon: <Wind className="w-4 h-4" />,
+      onSelect: handleOpenBreathing,
+    });
+  }
+
+  // Add story player if handler provided
+  if (handleOpenStoryPlayer) {
+    items.push({
+      id: 'relaxation:story',
+      section: 'pet_care',
+      label: '睡前故事',
+      keywords: ['故事', '睡前', '催眠', 'story', 'bedtime'],
+      icon: <BookOpen className="w-4 h-4" />,
+      onSelect: handleOpenStoryPlayer,
+    });
+  }
+
+  // Add meditation if handler provided
+  if (handleOpenMeditation) {
+    items.push({
+      id: 'relaxation:meditation',
+      section: 'pet_care',
+      label: '正念冥想',
+      keywords: ['冥想', '正念', '减压', 'meditation', 'mindfulness'],
+      icon: <Brain className="w-4 h-4" />,
+      onSelect: handleOpenMeditation,
+    });
+  }
+
+  return items;
 }

@@ -62,6 +62,21 @@ export const DEFAULT_CARE_CONFIG: CareConfig = {
       threshold: 0.8,
       priority: 4,
     },
+    breathing_exercise: {
+      enabled: true,
+      threshold: 0.6, // 压力达到0.6时推荐
+      priority: 7,
+    },
+    bedtime_story: {
+      enabled: true,
+      threshold: 0.5, // 夜间时段触发
+      priority: 5,
+    },
+    meditation_suggestion: {
+      enabled: true,
+      threshold: 0.7, // 持续紧张时推荐
+      priority: 6,
+    },
   },
 
   personalization: {

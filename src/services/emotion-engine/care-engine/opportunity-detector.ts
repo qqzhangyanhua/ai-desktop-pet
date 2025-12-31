@@ -83,6 +83,21 @@ export class OpportunityDetector {
       opportunities.push(this.createAchievementOpportunity(emotionEvents));
     }
 
+    // 9. 呼吸练习（压力中等时推荐）
+    if (this.shouldTriggerBreathingExercise(behavior)) {
+      opportunities.push(this.createBreathingExerciseOpportunity(behavior));
+    }
+
+    // 10. 睡前故事（夜间时段）
+    if (this.shouldTriggerBedtimeStory()) {
+      opportunities.push(this.createBedtimeStoryOpportunity());
+    }
+
+    // 11. 冥想建议（持续紧张）
+    if (this.shouldTriggerMeditation(behavior, emotionEvents)) {
+      opportunities.push(this.createMeditationOpportunity(behavior));
+    }
+
     return this.filterAndRank(opportunities);
   }
 
@@ -374,5 +389,133 @@ export class OpportunityDetector {
 
     // 如果没有找到休息事件，假设45分钟前休息过
     return Date.now() - 45 * 60 * 1000;
+  }
+
+  // ============================================
+  // 新增：放松功能检测方法
+  // ============================================
+
+  /**
+   * 检查是否应触发呼吸练习
+   * 条件：压力中等（0.5-0.8），未达到高压警告
+   */
+  private shouldTriggerBreathingExercise(behavior: BehaviorPatternResult): boolean {
+    const stressLevel = behavior.characteristics.stressLevel;
+    const threshold = this.config.careTypes.breathing_exercise.threshold;
+    // 压力在阈值以上但低于高压力阈值时推荐呼吸练习
+    return stressLevel >= threshold && stressLevel < this.config.careTypes.high_stress.threshold;
+  }
+
+  /**
+   * 创建呼吸练习关怀机会
+   */
+  private createBreathingExerciseOpportunity(behavior: BehaviorPatternResult): CareOpportunity {
+    return {
+      id: `breathing_exercise_${Date.now()}`,
+      timestamp: Date.now(),
+      type: 'breathing_exercise',
+      priority: getCarePriority('breathing_exercise', this.config),
+      trigger: {
+        condition: 'moderate_stress',
+        value: behavior.characteristics.stressLevel,
+        threshold: this.config.careTypes.breathing_exercise.threshold,
+      },
+      suggestion: {
+        title: '呼吸放松',
+        message: '来做个简单的呼吸练习吧，只需要几分钟就能帮你放松身心。',
+        action: 'start_breathing',
+        tone: 'gentle',
+      },
+      relatedData: { behavior },
+    };
+  }
+
+  /**
+   * 检查是否应触发睡前故事
+   * 条件：当前时间在quietHours内
+   */
+  private shouldTriggerBedtimeStory(): boolean {
+    const hour = new Date().getHours();
+    const { start, end } = this.config.disturbanceControl.quietHours;
+
+    // quietHours 可能跨午夜，例如 22-7
+    if (start > end) {
+      // 跨午夜：22:00-23:59 或 00:00-07:00
+      return hour >= start || hour < end;
+    } else {
+      return hour >= start && hour < end;
+    }
+  }
+
+  /**
+   * 创建睡前故事关怀机会
+   */
+  private createBedtimeStoryOpportunity(): CareOpportunity {
+    const hour = new Date().getHours();
+    return {
+      id: `bedtime_story_${Date.now()}`,
+      timestamp: Date.now(),
+      type: 'bedtime_story',
+      priority: getCarePriority('bedtime_story', this.config),
+      trigger: {
+        condition: 'night_time',
+        value: hour,
+        threshold: this.config.disturbanceControl.quietHours.start,
+      },
+      suggestion: {
+        title: '睡前故事',
+        message: '夜深了，要不要听个温馨的故事帮助入睡？',
+        action: 'play_story',
+        tone: 'gentle',
+      },
+      relatedData: { hour },
+    };
+  }
+
+  /**
+   * 检查是否应触发冥想建议
+   * 条件：持续紧张（多个负面事件 + 高压力）
+   */
+  private shouldTriggerMeditation(
+    behavior: BehaviorPatternResult,
+    events: EmotionEvent[]
+  ): boolean {
+    // 过去1小时内有持续的紧张信号
+    const recentStressEvents = events.filter(
+      (e) =>
+        e.sentiment.sentiment === 'negative' &&
+        e.sentiment.confidence > 0.5 &&
+        Date.now() - e.timestamp < 60 * 60 * 1000
+    );
+
+    // 至少2个负面事件 + 压力水平中等以上
+    return (
+      recentStressEvents.length >= 2 &&
+      behavior.characteristics.stressLevel >= this.config.careTypes.meditation_suggestion.threshold
+    );
+  }
+
+  /**
+   * 创建冥想建议关怀机会
+   */
+  private createMeditationOpportunity(behavior: BehaviorPatternResult): CareOpportunity {
+    return {
+      id: `meditation_${Date.now()}`,
+      timestamp: Date.now(),
+      type: 'meditation_suggestion',
+      priority: getCarePriority('meditation_suggestion', this.config),
+      trigger: {
+        condition: 'sustained_tension',
+        value: behavior.characteristics.stressLevel,
+        threshold: this.config.careTypes.meditation_suggestion.threshold,
+      },
+      suggestion: {
+        title: '冥想时刻',
+        message: '花几分钟冥想一下吧，让心灵得到片刻宁静。',
+        action: 'start_meditation',
+        tone: 'gentle',
+      },
+      relatedData: { behavior },
+    };
   }
 }

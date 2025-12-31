@@ -101,6 +101,8 @@ export interface AssistantConfig {
 
 export type PerformanceMode = 'balanced' | 'battery' | 'performance';
 
+export type ResourceLimit = 'low' | 'medium' | 'high';
+
 export interface PerformanceConfig {
   /** 开机自启动（预留） */
   launchOnStartup: boolean;
@@ -109,7 +111,7 @@ export interface PerformanceConfig {
   /** 动画帧率（15-60） */
   animationFps: number;
   /** 资源占用限制（预留） */
-  resourceLimit: 'low' | 'medium' | 'high';
+  resourceLimit: ResourceLimit;
 }
 
 export interface DesktopInteractionConfig {
@@ -213,8 +215,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   },
   assistant: {
     shortcuts: {
-      openChat: '',
-      openSettings: '',
+      openChat: 'Alt+Space',       // macOS: Option+Space
+      openSettings: 'Alt+Shift+S', // macOS: Option+Shift+S
     },
     privacy: {
       saveChatHistory: true,
