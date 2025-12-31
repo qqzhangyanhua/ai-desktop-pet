@@ -229,7 +229,8 @@ export function initGlobalLive2D(): Promise<Oml2dInstance | null> {
         console.log('[GlobalLive2D] ⚡ onLoad:', status);
         if (status === 'success') {
           forceFixLive2DSize();
-          tryMarkLoaded('onLoad(success)');
+          // 直接标记为已加载，不依赖内部模型检测（版本兼容性问题）
+          markLoaded('onLoad(success)');
           // 某些环境下舞台/画布尺寸可能会是 0，额外兜底修复
           setTimeout(forceFixLive2DSize, 200);
           finishInit();

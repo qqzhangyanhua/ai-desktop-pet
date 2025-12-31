@@ -20,3 +20,4 @@ export * from './system';
 export * from './memory';
 export * from './proactive';
 export * from './message-ui';
+export * from './menu';

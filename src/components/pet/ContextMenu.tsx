@@ -118,19 +118,27 @@ export function ContextMenu({
   };
 
   // 创建所有菜单项
-  const allItems: MenuItem[] = createMenuItems(
-    handlePetAction,
-    handleAssistantAction,
-    handleOpenChat,
-    handleOpenSettings,
-    handleToggleStatusPanel,
-    handleHide,
-    handleQuit,
-    statusPanelVisible,
-    handleOpenBreathing,
-    handleOpenStoryPlayer,
-    handleOpenMeditation
-  );
+  const allItems: MenuItem[] = createMenuItems({
+    handlers: {
+      pet: handlePetAction,
+      assistant: handleAssistantAction,
+      system: {
+        openChat: handleOpenChat,
+        openSettings: handleOpenSettings,
+        toggleStatusPanel: handleToggleStatusPanel,
+        hide: handleHide,
+        quit: handleQuit,
+      },
+      relaxation: {
+        breathing: handleOpenBreathing,
+        story: handleOpenStoryPlayer,
+        meditation: handleOpenMeditation,
+      },
+    },
+    state: {
+      statusPanelVisible,
+    },
+  });
 
   // 处理菜单逻辑（过滤、推荐、分组）
   const processed = useMemo(

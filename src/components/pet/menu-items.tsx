@@ -1,279 +1,74 @@
-import React from 'react';
-import {
-  GlassWater,
-  Gamepad2,
-  Music,
-  Sparkles,
-  Wand2,
-  Palette,
-  Moon,
-  Droplet,
-  Brush,
-  Armchair,
-  Cloud,
-  Clock,
-  Bell,
-  Lightbulb,
-  Monitor,
-  Star,
-  MessageSquare,
-  Settings,
-  BarChart3,
-  EyeOff,
-  X,
-  Wind,
-  BookOpen,
-  Brain,
-} from 'lucide-react';
-import type { PetActionType } from '../../types';
+import type { MenuItem, MenuConfig } from '@/types/menu';
+import { MENU_REGISTRY } from './menu-config';
 
-export type MenuSection = 'quick' | 'pet_fun' | 'pet_care' | 'assistant' | 'system';
+/**
+ * Create menu items from configuration
+ *
+ * 设计原则：
+ * 1. 单一参数对象 - 消除参数地狱
+ * 2. 配置驱动 - 所有菜单项由 MENU_REGISTRY 定义
+ * 3. 类型安全 - 使用 discriminated union 确保正确的 handler 绑定
+ * 4. 过滤可选项 - 自动过滤未提供的 relaxation handlers
+ *
+ * @param config - Menu configuration containing handlers and state
+ * @returns Array of menu items with handlers bound
+ */
+export function createMenuItems(config: MenuConfig): MenuItem[] {
+  const { handlers, state } = config;
 
-export interface MenuItem {
-  id: string;
-  section: MenuSection;
-  label: string;
-  keywords: string[];
-  icon: React.ReactNode;
-  danger?: boolean;
-  onSelect: () => void;
+  return MENU_REGISTRY.filter((item) => {
+    // Filter out relaxation items if handlers not provided
+    if (item.type === 'relaxation') {
+      const handler = handlers.relaxation?.[item.relaxationAction];
+      return handler !== undefined;
+    }
+    return true;
+  }).map((item) => {
+    // Resolve label (string or function)
+    const label = typeof item.label === 'function' ? item.label(state) : item.label;
+
+    // Bind handler based on item type
+    let onSelect: () => void;
+
+    switch (item.type) {
+      case 'pet':
+        onSelect = () => handlers.pet(item.action);
+        break;
+
+      case 'assistant':
+        onSelect = () => handlers.assistant(item.skill);
+        break;
+
+      case 'system':
+        onSelect = handlers.system[item.systemAction];
+        break;
+
+      case 'relaxation': {
+        const handler = handlers.relaxation?.[item.relaxationAction];
+        if (!handler) {
+          throw new Error(`Relaxation handler not found: ${item.relaxationAction}`);
+        }
+        onSelect = handler;
+        break;
+      }
+
+      default:
+        // Exhaustive check - TypeScript will error if we miss a type
+        const _exhaustive: never = item;
+        throw new Error(`Unknown menu item type: ${(_exhaustive as { type: string }).type}`);
+    }
+
+    return {
+      id: item.id,
+      section: item.section,
+      label,
+      keywords: item.keywords,
+      icon: item.icon,
+      danger: item.danger,
+      onSelect,
+    };
+  });
 }
 
-export function createMenuItems(
-  handlePetAction: (action: PetActionType) => void,
-  handleAssistantAction: (skill: string) => void,
-  handleOpenChat: () => void,
-  handleOpenSettings: () => void,
-  handleToggleStatusPanel: () => void,
-  handleHide: () => void,
-  handleQuit: () => void,
-  statusPanelVisible: boolean,
-  handleOpenBreathing?: () => void,
-  handleOpenStoryPlayer?: () => void,
-  handleOpenMeditation?: () => void
-): MenuItem[] {
-  const items: MenuItem[] = [
-    // Pet fun
-    {
-      id: 'pet:feed',
-      section: 'pet_fun',
-      label: '喂食/吃苹果',
-      keywords: ['喂食', '吃', '苹果', 'feed'],
-      icon: <GlassWater className="w-4 h-4" />,
-      onSelect: () => handlePetAction('feed'),
-    },
-    {
-      id: 'pet:play',
-      section: 'pet_fun',
-      label: '玩小游戏',
-      keywords: ['玩', '游戏', 'play'],
-      icon: <Gamepad2 className="w-4 h-4" />,
-      onSelect: () => handlePetAction('play'),
-    },
-    {
-      id: 'pet:dance',
-      section: 'pet_fun',
-      label: '跳舞秀',
-      keywords: ['跳舞', '舞蹈', 'dance'],
-      icon: <Music className="w-4 h-4" />,
-      onSelect: () => handlePetAction('dance'),
-    },
-    {
-      id: 'pet:music',
-      section: 'pet_fun',
-      label: '播放音乐',
-      keywords: ['音乐', '播放', 'music'],
-      icon: <Music className="w-4 h-4" />,
-      onSelect: () => handlePetAction('music'),
-    },
-    {
-      id: 'pet:magic',
-      section: 'pet_fun',
-      label: '表演魔术',
-      keywords: ['魔术', 'magic'],
-      icon: <Wand2 className="w-4 h-4" />,
-      onSelect: () => handlePetAction('magic'),
-    },
-    {
-      id: 'pet:art',
-      section: 'pet_fun',
-      label: '生成艺术作品',
-      keywords: ['艺术', '画', 'art'],
-      icon: <Palette className="w-4 h-4" />,
-      onSelect: () => handlePetAction('art'),
-    },
-    {
-      id: 'pet:transform',
-      section: 'pet_fun',
-      label: '变身',
-      keywords: ['变身', '换装', 'transform'],
-      icon: <Sparkles className="w-4 h-4" />,
-      onSelect: () => handlePetAction('transform'),
-    },
-
-    // Pet care
-    {
-      id: 'pet:sleep',
-      section: 'pet_care',
-      label: '睡觉/休息',
-      keywords: ['睡觉', '休息', 'sleep'],
-      icon: <Moon className="w-4 h-4" />,
-      onSelect: () => handlePetAction('sleep'),
-    },
-    {
-      id: 'pet:clean',
-      section: 'pet_care',
-      label: '清洁',
-      keywords: ['清洁', '洗', 'clean'],
-      icon: <Droplet className="w-4 h-4" />,
-      onSelect: () => handlePetAction('clean'),
-    },
-    {
-      id: 'pet:brush',
-      section: 'pet_care',
-      label: '梳毛',
-      keywords: ['梳', '梳毛', 'brush'],
-      icon: <Brush className="w-4 h-4" />,
-      onSelect: () => handlePetAction('brush'),
-    },
-    {
-      id: 'pet:rest',
-      section: 'pet_care',
-      label: '放松',
-      keywords: ['放松', '冥想', 'rest'],
-      icon: <Armchair className="w-4 h-4" />,
-      onSelect: () => handlePetAction('rest'),
-    },
-
-    // Assistant
-    {
-      id: 'assistant:weather',
-      section: 'assistant',
-      label: '查询天气提示',
-      keywords: ['天气', 'weather'],
-      icon: <Cloud className="w-4 h-4" />,
-      onSelect: () => handleAssistantAction('weather'),
-    },
-    {
-      id: 'assistant:time',
-      section: 'assistant',
-      label: '播报时间',
-      keywords: ['时间', '几点', 'time'],
-      icon: <Clock className="w-4 h-4" />,
-      onSelect: () => handleAssistantAction('time'),
-    },
-    {
-      id: 'assistant:alarm',
-      section: 'assistant',
-      label: '创建15分钟提醒',
-      keywords: ['提醒', '闹钟', 'alarm'],
-      icon: <Bell className="w-4 h-4" />,
-      onSelect: () => handleAssistantAction('alarm'),
-    },
-    {
-      id: 'assistant:lights',
-      section: 'assistant',
-      label: '控制灯光/设备（模拟）',
-      keywords: ['灯', '灯光', 'lights'],
-      icon: <Lightbulb className="w-4 h-4" />,
-      onSelect: () => handleAssistantAction('lights'),
-    },
-    {
-      id: 'assistant:pc_action',
-      section: 'assistant',
-      label: '简单电脑操作',
-      keywords: ['电脑', '打开', 'pc', 'action'],
-      icon: <Monitor className="w-4 h-4" />,
-      onSelect: () => handleAssistantAction('pc_action'),
-    },
-    {
-      id: 'assistant:habit',
-      section: 'assistant',
-      label: '记住偏好/给出建议',
-      keywords: ['偏好', '建议', '习惯', 'habit'],
-      icon: <Star className="w-4 h-4" />,
-      onSelect: () => handleAssistantAction('habit'),
-    },
-
-    // System
-    {
-      id: 'system:chat',
-      section: 'system',
-      label: '聊天',
-      keywords: ['chat', '聊天', '对话'],
-      icon: <MessageSquare className="w-4 h-4" />,
-      onSelect: handleOpenChat,
-    },
-    {
-      id: 'system:settings',
-      section: 'system',
-      label: '设置中心',
-      keywords: ['设置', 'settings'],
-      icon: <Settings className="w-4 h-4" />,
-      onSelect: handleOpenSettings,
-    },
-    {
-      id: 'system:status_panel',
-      section: 'system',
-      label: statusPanelVisible ? '隐藏状态面板' : '显示状态面板',
-      keywords: ['状态', '面板', '统计'],
-      icon: <BarChart3 className="w-4 h-4" />,
-      onSelect: handleToggleStatusPanel,
-    },
-    {
-      id: 'system:hide',
-      section: 'system',
-      label: '隐藏',
-      keywords: ['隐藏', 'hide'],
-      icon: <EyeOff className="w-4 h-4" />,
-      onSelect: handleHide,
-    },
-    {
-      id: 'system:quit',
-      section: 'system',
-      label: '退出',
-      keywords: ['退出', 'quit'],
-      icon: <X className="w-4 h-4" />,
-      danger: true,
-      onSelect: handleQuit,
-    },
-  ];
-
-  // Add breathing exercise if handler provided
-  if (handleOpenBreathing) {
-    items.push({
-      id: 'relaxation:breathing',
-      section: 'pet_care',
-      label: '呼吸放松',
-      keywords: ['呼吸', '放松', '减压', 'breathing', 'relax'],
-      icon: <Wind className="w-4 h-4" />,
-      onSelect: handleOpenBreathing,
-    });
-  }
-
-  // Add story player if handler provided
-  if (handleOpenStoryPlayer) {
-    items.push({
-      id: 'relaxation:story',
-      section: 'pet_care',
-      label: '睡前故事',
-      keywords: ['故事', '睡前', '催眠', 'story', 'bedtime'],
-      icon: <BookOpen className="w-4 h-4" />,
-      onSelect: handleOpenStoryPlayer,
-    });
-  }
-
-  // Add meditation if handler provided
-  if (handleOpenMeditation) {
-    items.push({
-      id: 'relaxation:meditation',
-      section: 'pet_care',
-      label: '正念冥想',
-      keywords: ['冥想', '正念', '减压', 'meditation', 'mindfulness'],
-      icon: <Brain className="w-4 h-4" />,
-      onSelect: handleOpenMeditation,
-    });
-  }
-
-  return items;
-}
+// Re-export types for convenience
+export type { MenuItem, MenuSection } from '@/types/menu';
