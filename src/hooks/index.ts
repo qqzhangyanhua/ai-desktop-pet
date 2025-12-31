@@ -14,3 +14,7 @@ export { useAutoWork } from './useAutoWork';
 export { useEconomy } from './useEconomy';
 export { useAchievementListener, triggerAchievementCheck, recordInteractionAndCheck } from './useAchievementListener';
 export { usePerformanceMode } from './usePerformanceMode';
+
+// 智能体系统
+export { useAgentSystem } from './useAgentSystem';
+export { useAgentListener } from './useAgentListener';

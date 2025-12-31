@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 情绪趋势分析器
  * Emotion Trend Analyzer

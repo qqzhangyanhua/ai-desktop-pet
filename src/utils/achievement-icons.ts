@@ -60,5 +60,13 @@ export const ACHIEVEMENT_ICON_MAP: Record<string, LucideIcon> = {
  * @returns Lucide Icon 组件或 null
  */
 export function getAchievementIcon(iconName: string): LucideIcon | null {
-  return ACHIEVEMENT_ICON_MAP[iconName] || null;
+  const icon = ACHIEVEMENT_ICON_MAP[iconName] || null;
+
+  // Debug logging
+  if (!icon) {
+    console.warn(`[AchievementIcons] Icon not found: "${iconName}"`);
+    console.log('[AchievementIcons] Available icons:', Object.keys(ACHIEVEMENT_ICON_MAP));
+  }
+
+  return icon;
 }

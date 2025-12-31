@@ -98,6 +98,14 @@ export function useChat(options: UseChatOptions = {}) {
       // Record chat interaction for achievement tracking
       void recordInteractionAndCheck('chat');
 
+      // 触发智能体系统处理用户消息
+      try {
+        const { triggerUserMessage } = await import('../services/agent/integration');
+        void triggerUserMessage(content.trim());
+      } catch (error) {
+        console.warn('[useChat] Failed to trigger agent system:', error);
+      }
+
       // Detect user emotion
       const emotionResult = detectEmotion(content);
       if (emotionResult.detected) {

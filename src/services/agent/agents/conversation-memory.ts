@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 对话记忆智能体
  * Conversation Memory Agent

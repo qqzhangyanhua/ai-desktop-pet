@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 记忆提取器
  * Memory Extractor

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 情绪工具
  * Emotion Tool

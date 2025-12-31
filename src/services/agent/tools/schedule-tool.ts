@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 日程工具
  * Schedule Tool

@@ -20,7 +20,7 @@ import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, useUserPr
 import { getSkinManager } from './services/skin';
 import { getWindowManager } from './services/window';
 import { petSpeak } from './services/pet/voice-link';
-import { useAchievementListener } from './hooks';
+import { useAchievementListener, useAgentSystem, useAgentListener } from './hooks';
 import { useProactiveBehavior } from './hooks/useProactiveBehavior';
 import { usePerformanceMode } from './hooks/usePerformanceMode';
 import './styles/global.css';
@@ -39,6 +39,15 @@ function App() {
 
   // Enable performance mode management
   usePerformanceMode();
+
+  // 初始化智能体系统
+  useAgentSystem({
+    autoStart: true,
+    enableInDev: true,
+  });
+
+  // 监听智能体事件
+  useAgentListener();
 
   // Initialize database, scheduler, and load config
   useEffect(() => {
@@ -116,6 +125,9 @@ function App() {
         // Initialize achievements
         await initializeAchievements();
         console.log('[App] Achievements initialized');
+
+        // Note: Agent system is initialized via useAgentSystem hook
+        console.log('[App] Agent system will be initialized by hook');
 
         // Initialize scheduler
         const scheduler = getSchedulerManager();

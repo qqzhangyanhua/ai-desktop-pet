@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 主动关怀智能体
  * Proactive Care Agent

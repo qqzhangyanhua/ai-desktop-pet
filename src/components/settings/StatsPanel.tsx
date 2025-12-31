@@ -5,26 +5,13 @@
 
 import { useState, useEffect } from 'react';
 import { Calendar, Sparkles, Flame, Target, Hand, Utensils, Gamepad2, MessageSquare, type LucideIcon } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
 import type { StatsSummary, Achievement } from '@/types';
 import { getStatsSummary } from '@/services/statistics';
 import {
   getAchievements,
   getAchievementStatistics,
 } from '@/services/achievements';
-
-/**
- * 动态获取 Lucide icon 组件
- * @param iconName - Lucide icon 名称
- * @returns Icon component or null
- */
-function getDynamicIcon(iconName: string): React.ComponentType<{ className?: string }> | null {
-  const Icon = (LucideIcons as Record<string, unknown>)[iconName];
-  if (Icon && typeof Icon === 'function') {
-    return Icon as React.ComponentType<{ className?: string }>;
-  }
-  return null;
-}
+import { getAchievementIcon } from '@/utils/achievement-icons';
 
 interface StatCardProps {
   icon: LucideIcon;
@@ -109,8 +96,8 @@ function AchievementCard({ achievement }: AchievementCardProps) {
 
   const colorClass = typeColors[achievement.type];
 
-  // 动态获取成就图标
-  const AchievementIcon = getDynamicIcon(achievement.icon);
+  // 获取成就图标组件
+  const AchievementIcon = getAchievementIcon(achievement.icon);
 
   return (
     <div

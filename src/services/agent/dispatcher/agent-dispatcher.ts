@@ -215,7 +215,14 @@ export class AgentDispatcher {
   /**
    * 注册智能体
    */
-  registerAgent(agent: IAgent): void {
+  registerAgent(
+    agent: IAgent,
+    options?: {
+      priority?: 'high' | 'normal' | 'low';
+      enabled?: boolean;
+      tags?: string[];
+    }
+  ): void {
     const { id } = agent.metadata;
 
     if (this.agents.has(id)) {
@@ -233,6 +240,9 @@ export class AgentDispatcher {
       status: 'idle',
       executionCount: 0,
       errorCount: 0,
+      enabled: options?.enabled ?? true,
+      priority: (options?.priority ?? agent.metadata.priority) as 'high' | 'normal' | 'low',
+      tags: options?.tags ?? [],
     };
     this.registeredAgents.set(id, registered);
 
@@ -336,6 +346,10 @@ export class AgentDispatcher {
 
     // 选择最高分匹配
     const bestMatch = matches[0];
+    if (!bestMatch) {
+      return null;
+    }
+    
     const agent = this.agents.get(bestMatch.agentId);
 
     if (!agent) {

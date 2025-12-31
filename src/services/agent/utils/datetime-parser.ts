@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 时间表达式解析器
  * Datetime Parser

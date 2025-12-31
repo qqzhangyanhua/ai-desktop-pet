@@ -9,7 +9,7 @@
  */
 
 import type { PetStatus } from './pet-status';
-import type { UserProfile, EmotionDetectionResult } from './memory';
+import type { UserProfile } from './memory';
 
 // ============================================================================
 // 枚举定义
@@ -325,6 +325,12 @@ export interface RegisteredAgent {
   executionCount: number;
   /** 错误次数 */
   errorCount: number;
+  /** 是否启用 */
+  enabled?: boolean;
+  /** 优先级 */
+  priority?: 'high' | 'normal' | 'low';
+  /** 标签 */
+  tags?: string[];
 }
 
 // ============================================================================

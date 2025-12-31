@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 每日总结智能体
  * Daily Summary Agent

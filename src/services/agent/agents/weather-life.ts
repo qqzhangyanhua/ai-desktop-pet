@@ -218,17 +218,19 @@ export class WeatherLifeAgent extends BaseAgent {
     }
 
     // 模拟天气数据
+    const conditions = ['晴', '多云', '阴', '小雨'];
+    const conditionCodes = ['sunny', 'cloudy', 'cloudy', 'rainy'];
+    const randomIndex = Math.floor(Math.random() * 4);
+    
     const mockWeather: WeatherData = {
       city,
       temperature: 18 + Math.floor(Math.random() * 15),
       feelsLike: 17 + Math.floor(Math.random() * 15),
       humidity: 40 + Math.floor(Math.random() * 40),
-      condition: ['晴', '多云', '阴', '小雨'][Math.floor(Math.random() * 4)],
-      conditionCode: ['sunny', 'cloudy', 'cloudy', 'rainy'][
-        Math.floor(Math.random() * 4)
-      ],
+      condition: conditions[randomIndex] || '晴',
+      conditionCode: conditionCodes[randomIndex] || 'sunny',
       windSpeed: 2 + Math.floor(Math.random() * 8),
-      windDirection: ['东', '南', '西', '北'][Math.floor(Math.random() * 4)],
+      windDirection: (['东', '南', '西', '北'] as const)[Math.floor(Math.random() * 4)] || '东',
       uvIndex: Math.floor(Math.random() * 11),
       airQuality: 20 + Math.floor(Math.random() * 100),
       sunrise: '06:30',

@@ -359,6 +359,9 @@ export class BedtimeStoryAgent extends BaseAgent {
     }
 
     const template = templates[Math.floor(Math.random() * templates.length)];
+    if (!template) {
+      return this.createResult(false, '故事模板加载失败');
+    }
 
     // 组装故事
     const storyContent = [
@@ -418,6 +421,9 @@ ${storyContent}
     }
 
     const lastStory = this.storyHistory[this.storyHistory.length - 1];
+    if (!lastStory) {
+      return this.createResult(true, '没有找到最近的故事');
+    }
 
     if (lastStory.isFavorite) {
       return this.createResult(true, '这个故事已经收藏过啦~');

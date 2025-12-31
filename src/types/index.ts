@@ -21,4 +21,24 @@ export * from './memory';
 export * from './proactive';
 export * from './message-ui';
 export * from './menu';
-export * from './agent-system';
+
+// Agent system types - 使用命名导出避免冲突
+export type {
+  AgentMetadata,
+  AgentConfig,
+  AgentTrigger,
+  AgentContext,
+  AgentResult,
+  AgentAction,
+  AgentToolResult,
+  AgentExecutionRecord,
+  AgentTask,
+  RegisteredAgent,
+  IAgent,
+  DispatcherConfig,
+  AgentSystemStatus,
+  MemoryPayload,
+  EmotionRecord as AgentEmotionRecord,
+  EmotionTrend,
+  SchedulePayload,
+} from './agent-system';

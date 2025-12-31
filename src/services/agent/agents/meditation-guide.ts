@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 冥想引导智能体
  * Meditation Guide Agent

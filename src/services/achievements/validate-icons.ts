@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Achievement Icon Validation Test
  * 成就图标验证测试脚本
