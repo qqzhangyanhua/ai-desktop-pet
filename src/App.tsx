@@ -18,6 +18,7 @@ import { initializeStatsService } from './services/statistics';
 import { initializeAchievements } from './services/achievements';
 import { AgentRuntime } from './services/agent';
 import { useConfigStore, usePetStore, usePetStatusStore, useSkinStore, useUserProfileStore, useCareStore, useChatStore, toast } from './stores';
+import { flushPendingUpdates } from './stores/petStatusStore';
 import { getSkinManager } from './services/skin';
 import { getWindowManager } from './services/window';
 import { petSpeak } from './services/pet/voice-link';
@@ -127,6 +128,17 @@ function App() {
         await initializeAchievements();
         console.log('[App] Achievements initialized');
 
+        // Initialize bookmark manager
+        try {
+          const { bookmarkManager } = await import('@/services/bookmark');
+          const { getDatabase } = await import('@/services/database');
+          const db = await getDatabase();
+          await bookmarkManager.initialize(db);
+          console.log('[App] BookmarkManager initialized');
+        } catch (error) {
+          console.warn('[App] Failed to initialize bookmark manager:', error);
+        }
+
         // Note: Agent system is initialized via useAgentSystem hook
         console.log('[App] Agent system will be initialized by hook');
 
@@ -194,6 +206,23 @@ function App() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency - run only once on mount
+
+  // Handle beforeunload to flush pending updates
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Synchronously flush pending updates before page unloads
+      // Note: In Tauri, this may be called when the window is closing
+      void flushPendingUpdates();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Also flush when component unmounts
+      void flushPendingUpdates();
+    };
+  }, []);
 
   // Listen for tray menu events
   useEffect(() => {

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>书签搜索测试</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #333;
+      margin-top: 0;
+    }
+    button {
+      background: #a78bfa;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #9370db;
+    }
+    pre {
+      background: #f8f8f8;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 300px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📚 书签搜索功能测试</h1>
+
+  <div class="test-section">
+    <h2>1. 检查 BookmarkManager 初始化状态</h2>
+    <button onclick="checkInitialization()">检查初始化</button>
+    <pre id="init-result"></pre>
+  </div>
+
+  <div class="test-section">
+    <h2>2. 查看书签数据库统计</h2>
+    <button onclick="getStats()">获取统计</button>
+    <pre id="stats-result"></pre>
+  </div>
+
+  <div class="test-section">
+    <h2>3. 测试书签搜索</h2>
+    <input type="text" id="search-query" placeholder="输入搜索关键词" value="github">
+    <button onclick="testSearch()">搜索</button>
+    <pre id="search-result"></pre>
+  </div>
+
+  <div class="test-section">
+    <h2>4. 测试 BookmarkSearchTool</h2>
+    <input type="text" id="tool-query" placeholder="输入搜索关键词" value="github">
+    <button onclick="testTool()">使用工具搜索</button>
+    <pre id="tool-result"></pre>
+  </div>
+
+  <script type="module">
+    import { bookmarkManager } from './src/services/bookmark/index.js';
+    import { BookmarkSearchTool } from './src/services/agent/tools/bookmark.js';
+    import { getDatabase } from './src/services/database/index.js';
+
+    window.checkInitialization = async function() {
+      const result = document.getElementById('init-result');
+      try {
+        result.textContent = '检查中...';
+
+        // 检查 bookmarkManager 是否存在
+        if (!bookmarkManager) {
+          result.innerHTML = '<span class="error">❌ bookmarkManager 未定义</span>';
+          return;
+        }
+
+        // 尝试获取统计（这会触发 ensureInitialized 检查）
+        try {
+          await bookmarkManager.getStats();
+          result.innerHTML = '<span class="success">✅ BookmarkManager 已正确初始化</span>';
+        } catch (error) {
+          if (error.message === 'BookmarkManager not initialized') {
+            result.innerHTML = `<span class="error">❌ BookmarkManager 未初始化</span>\n\n尝试手动初始化...`;
+
+            // 尝试手动初始化
+            const db = await getDatabase();
+            await bookmarkManager.initialize(db);
+            result.innerHTML += `\n<span class="success">✅ 手动初始化成功</span>`;
+          } else {
+            throw error;
+          }
+        }
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ 错误: ${error.message}</span>\n\n${error.stack}`;
+      }
+    };
+
+    window.getStats = async function() {
+      const result = document.getElementById('stats-result');
+      try {
+        result.textContent = '获取中...';
+        const stats = await bookmarkManager.getStats();
+        result.innerHTML = `<span class="success">✅ 统计信息:</span>\n${JSON.stringify(stats, null, 2)}`;
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ 错误: ${error.message}</span>`;
+      }
+    };
+
+    window.testSearch = async function() {
+      const result = document.getElementById('search-result');
+      const query = document.getElementById('search-query').value;
+
+      try {
+        result.textContent = '搜索中...';
+        const results = await bookmarkManager.search({ query, limit: 10 });
+        result.innerHTML = `<span class="success">✅ 找到 ${results.length} 个结果:</span>\n${JSON.stringify(results, null, 2)}`;
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ 错误: ${error.message}</span>\n\n${error.stack}`;
+      }
+    };
+
+    window.testTool = async function() {
+      const result = document.getElementById('tool-result');
+      const query = document.getElementById('tool-query').value;
+
+      try {
+        result.textContent = '使用工具搜索中...';
+        const tool = new BookmarkSearchTool();
+        const toolResult = await tool.execute({ query, limit: 10 });
+
+        if (toolResult.success) {
+          result.innerHTML = `<span class="success">✅ 工具执行成功:</span>\n${JSON.stringify(toolResult.data, null, 2)}`;
+        } else {
+          result.innerHTML = `<span class="error">❌ 工具执行失败:</span>\n错误: ${toolResult.error}`;
+        }
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ 异常: ${error.message}</span>\n\n${error.stack}`;
+      }
+    };
+  </script>
+</body>
+</html>

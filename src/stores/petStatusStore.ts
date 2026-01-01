@@ -34,6 +34,37 @@ const UPDATE_DEBOUNCE_MS = 5000; // 5 seconds
 let pendingUpdates: Partial<Omit<PetStatus, 'createdAt'>> = {};
 let updateTimer: ReturnType<typeof setTimeout> | null = null;
 
+/**
+ * Flush pending updates to database immediately
+ * 立即将待更新数据写入数据库（用于应用关闭前）
+ */
+export async function flushPendingUpdates(): Promise<void> {
+  if (updateTimer) {
+    clearTimeout(updateTimer);
+    updateTimer = null;
+  }
+
+  if (Object.keys(pendingUpdates).length > 0) {
+    const updatesToWrite = { ...pendingUpdates };
+    pendingUpdates = {};
+
+    try {
+      await updatePetStatus(updatesToWrite);
+      console.log('[PetStatusStore] Flushed pending updates on app close');
+    } catch (error) {
+      console.error('[PetStatusStore] Failed to flush updates:', error);
+    }
+  }
+}
+
+/**
+ * Check if there are pending updates
+ * 检查是否有待写入的更新
+ */
+export function hasPendingUpdates(): boolean {
+  return Object.keys(pendingUpdates).length > 0;
+}
+
 interface PetStatusStore {
   // State
   status: PetStatus;

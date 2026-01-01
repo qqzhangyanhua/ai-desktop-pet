@@ -16,7 +16,7 @@ function ChatApp() {
     console.log('[Chat] Starting initialization...');
 
     initDatabase()
-      .then(async () => {
+      .then(async (db) => {
         console.log('[Chat] Database initialized');
 
         // Load config
@@ -30,6 +30,11 @@ function ChatApp() {
         // Load user profile
         await loadProfile();
         console.log('[Chat] User profile loaded');
+
+        // Initialize BookmarkManager
+        const { bookmarkManager } = await import('@/services/bookmark');
+        await bookmarkManager.initialize(db);
+        console.log('[Chat] BookmarkManager initialized');
 
         setReady(true);
         console.log('[Chat] Initialization complete');

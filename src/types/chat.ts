@@ -22,6 +22,7 @@ export interface Message {
   toolCalls?: ToolCall[];
   toolCallId?: string;
   createdAt: number;
+  suggestions?: string[]; // 可点击的建议列表（例如：搜索建议、快捷操作等）
 }
 
 export interface Conversation {

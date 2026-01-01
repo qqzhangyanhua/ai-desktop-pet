@@ -14,10 +14,11 @@ import {
   AdvancedTab,
 } from './tabs';
 import { SettingsDashboard } from './SettingsDashboard';
+import { BookmarkSettings } from './BookmarkSettings';
 import { FeedbackAnimation, useFeedback } from './FeedbackAnimation';
 import './game-ui.css';
 
-type SettingsTab = 'appearance' | 'behavior' | 'chat' | 'assistant' | 'statistics' | 'performance' | 'advanced';
+type SettingsTab = 'appearance' | 'behavior' | 'chat' | 'assistant' | 'statistics' | 'performance' | 'advanced' | 'bookmark';
 
 export function GameSettingsWindow() {
   const [activeTab, setActiveTab] = useState<SettingsTab | null>(null);
@@ -48,8 +49,14 @@ export function GameSettingsWindow() {
   // Initialize database and config
   useEffect(() => {
     initDatabase()
-      .then(async () => {
+      .then(async (db) => {
         await loadConfig();
+
+        // Initialize BookmarkManager
+        const { bookmarkManager } = await import('@/services/bookmark');
+        await bookmarkManager.initialize(db);
+        console.log('[GameSettingsWindow] BookmarkManager initialized');
+
         setDbReady(true);
       })
       .catch((err) => {
@@ -116,6 +123,7 @@ export function GameSettingsWindow() {
           {activeTab === 'statistics' && '数据统计'}
           {activeTab === 'performance' && '性能设置'}
           {activeTab === 'advanced' && '高级设置'}
+          {activeTab === 'bookmark' && '书签管理'}
         </h2>
         <button
           onClick={handleSave}
@@ -153,6 +161,8 @@ export function GameSettingsWindow() {
           )}
 
           {activeTab === 'advanced' && <AdvancedTab />}
+
+          {activeTab === 'bookmark' && <BookmarkSettings />}
         </div>
       </div>
     </div>

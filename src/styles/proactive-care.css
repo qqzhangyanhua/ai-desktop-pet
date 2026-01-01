@@ -1,0 +1,363 @@
+/**
+ * Proactive Care Styles
+ * 主动关怀系统样式
+ * 
+ * 遵循项目规范：样式集中管理，避免内联样式
+ */
+
+/* 关怀通知容器 */
+.care-notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+/* 关怀通知面板 */
+.care-notification-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 12px;
+  overflow: hidden;
+  pointer-events: auto;
+  transform: translateX(100%);
+  animation: slideIn 0.3s ease-out forwards;
+  position: relative;
+}
+
+/* 入场动画 */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* 关怀类型样式 */
+.care-gentle {
+  border-left: 4px solid #4ade80;
+}
+
+.care-urgent {
+  border-left: 4px solid #f87171;
+  animation: pulse 2s infinite;
+}
+
+.care-supportive {
+  border-left: 4px solid #60a5fa;
+}
+
+.care-celebratory {
+  border-left: 4px solid #fbbf24;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(255, 255, 255, 0.95));
+}
+
+/* 紧急关怀脉冲动画 */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 32px rgba(248, 113, 113, 0.3);
+  }
+}
+
+/* 关怀头部 */
+.care-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px 12px;
+  gap: 12px;
+}
+
+.care-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.care-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.care-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.care-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #374151;
+}
+
+/* 关怀内容 */
+.care-content {
+  padding: 0 20px 16px;
+}
+
+.care-message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+/* 操作按钮 */
+.care-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 20px;
+  flex-wrap: wrap;
+}
+
+.care-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 80px;
+}
+
+.care-btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.care-btn-primary:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.care-btn-secondary {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.care-btn-secondary:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.care-btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.care-btn-danger:hover {
+  background: #dc2626;
+}
+
+/* 评分区域 */
+.care-rating {
+  padding: 0 20px 20px;
+  text-align: center;
+}
+
+.rating-prompt {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.rating-stars {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.rating-star {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0.3;
+}
+
+.rating-star:hover,
+.rating-star.active {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.rating-thanks {
+  margin: 0;
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 500;
+}
+
+/* 进度条 */
+.care-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.care-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  width: 100%;
+  transform: translateX(-100%);
+  animation: progress linear forwards;
+}
+
+@keyframes progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .care-notification-container {
+    left: 20px;
+    right: 20px;
+    max-width: none;
+  }
+  
+  .care-notification-panel {
+    margin-bottom: 8px;
+  }
+  
+  .care-header {
+    padding: 12px 16px 8px;
+  }
+  
+  .care-content {
+    padding: 0 16px 12px;
+  }
+  
+  .care-actions {
+    padding: 0 16px 16px;
+    flex-direction: column;
+  }
+  
+  .care-btn {
+    flex: none;
+  }
+}
+
+/* 暗色主题支持 */
+@media (prefers-color-scheme: dark) {
+  .care-notification-panel {
+    background: rgba(31, 41, 55, 0.95);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+  }
+  
+  .care-title {
+    color: #f9fafb;
+  }
+  
+  .care-message {
+    color: #d1d5db;
+  }
+  
+  .care-close {
+    color: #9ca3af;
+  }
+  
+  .care-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f3f4f6;
+  }
+  
+  .care-btn-secondary {
+    background: #374151;
+    color: #d1d5db;
+    border-color: #4b5563;
+  }
+  
+  .care-btn-secondary:hover {
+    background: #4b5563;
+    color: #f9fafb;
+  }
+  
+  .rating-prompt {
+    color: #d1d5db;
+  }
+  
+  .care-progress {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* 动画效果增强 */
+.care-animating {
+  animation: slideIn 0.3s ease-out forwards, 
+             glow 0.5s ease-in-out 0.3s;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* 可访问性增强 */
+.care-btn:focus,
+.care-close:focus,
+.rating-star:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* 减少动画（用户偏好） */
+@media (prefers-reduced-motion: reduce) {
+  .care-notification-panel {
+    animation: none;
+    transform: translateX(0);
+  }
+  
+  .care-urgent {
+    animation: none;
+  }
+  
+  .care-progress-bar {
+    animation: none;
+    transform: translateX(0);
+  }
+  
+  .care-btn:hover,
+  .rating-star:hover {
+    transform: none;
+  }
+}

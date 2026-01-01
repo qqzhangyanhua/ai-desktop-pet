@@ -209,6 +209,110 @@ export async function initializeAchievements(): Promise<void> {
 }
 
 /**
+ * 条件上下文 - 用于条件评估
+ */
+interface ConditionContext {
+  pet_count: number;
+  feed_count: number;
+  play_count: number;
+  chat_count: number;
+  total_interactions: number;
+  total_days: number;
+  consecutive_days: number;
+  intimacy: number;
+}
+
+/**
+ * 安全的条件评估器
+ * 使用声明式匹配替代 new Function，消除代码注入风险
+ *
+ * 支持的条件格式：
+ * - 简单比较: "pet_count >= 1"
+ * - AND 条件: "pet_count >= 1 AND feed_count >= 1"
+ *
+ * @param condition 条件字符串
+ * @param context 条件上下文（变量值）
+ * @returns 条件是否满足
+ */
+function evaluateConditionSafely(condition: string, context: ConditionContext): boolean {
+  // 解析 AND 连接的多个条件
+  const andParts = condition.split(/\s+AND\s+/i);
+
+  for (const part of andParts) {
+    // 解析 OR 连接的条件（如果存在）
+    const orParts = part.split(/\s+OR\s+/i);
+    let orResult = false;
+
+    for (const orPart of orParts) {
+      if (evaluateSingleCondition(orPart.trim(), context)) {
+        orResult = true;
+        break;
+      }
+    }
+
+    // 所有 AND 部分都必须为 true
+    if (!orResult) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * 评估单个条件表达式
+ * 支持: variable >= value, variable > value, variable == value, etc.
+ */
+function evaluateSingleCondition(expr: string, context: ConditionContext): boolean {
+  // 匹配: variable operator value
+  const match = expr.match(/^(\w+)\s*(>=|<=|>|<|==|!=)\s*(\d+(?:\.\d+)?)$/);
+
+  if (!match) {
+    console.warn(`[AchievementService] Invalid condition format: ${expr}`);
+    return false;
+  }
+
+  const variable = match[1];
+  const operator = match[2];
+  const valueStr = match[3];
+
+  if (!variable || !operator || !valueStr) {
+    console.warn(`[AchievementService] Incomplete condition: ${expr}`);
+    return false;
+  }
+
+  const value = parseFloat(valueStr);
+
+  // 获取变量值（使用类型安全的方式）
+  const contextKey = variable as keyof ConditionContext;
+  if (!(contextKey in context)) {
+    console.warn(`[AchievementService] Unknown variable: ${variable}`);
+    return false;
+  }
+
+  const actualValue = context[contextKey];
+
+  // 执行比较
+  switch (operator) {
+    case '>=':
+      return actualValue >= value;
+    case '<=':
+      return actualValue <= value;
+    case '>':
+      return actualValue > value;
+    case '<':
+      return actualValue < value;
+    case '==':
+      return actualValue === value;
+    case '!=':
+      return actualValue !== value;
+    default:
+      console.warn(`[AchievementService] Unknown operator: ${operator}`);
+      return false;
+  }
+}
+
+/**
  * 检查单个成就是否满足解锁条件
  *
  * @param achievement 成就对象
@@ -223,25 +327,20 @@ function checkAchievementCondition(
 ): boolean {
   const condition = achievement.unlockCondition;
 
-  // 解析条件字符串（简单实现，支持常见条件）
-  try {
-    // 替换变量
-    const processedCondition = condition
-      .replace(/pet_count/g, stats.today.pet.toString())
-      .replace(/feed_count/g, stats.today.feed.toString())
-      .replace(/play_count/g, stats.today.play.toString())
-      .replace(/chat_count/g, stats.today.chat.toString())
-      .replace(/total_interactions/g, stats.totalInteractions.toString())
-      .replace(/total_days/g, stats.totalDays.toString())
-      .replace(/consecutive_days/g, stats.consecutiveDays.toString())
-      .replace(/intimacy/g, intimacy.toString())
-      .replace(/AND/g, '&&')
-      .replace(/OR/g, '||');
+  // 构建条件上下文
+  const context: ConditionContext = {
+    pet_count: stats.today.pet,
+    feed_count: stats.today.feed,
+    play_count: stats.today.play,
+    chat_count: stats.today.chat,
+    total_interactions: stats.totalInteractions,
+    total_days: stats.totalDays,
+    consecutive_days: stats.consecutiveDays,
+    intimacy,
+  };
 
-    // 使用 Function 构造器评估条件（仅用于简单条件）
-    // eslint-disable-next-line no-new-func
-    const result = new Function(`return ${processedCondition}`)();
-    return Boolean(result);
+  try {
+    return evaluateConditionSafely(condition, context);
   } catch (error) {
     console.warn(`[AchievementService] Failed to evaluate condition: ${condition}`, error);
     return false;

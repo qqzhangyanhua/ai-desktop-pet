@@ -17,6 +17,7 @@ interface MessageRow {
   content: string;
   tool_calls: string | null;
   tool_call_id: string | null;
+  suggestions: string | null;
   created_at: number;
 }
 
@@ -111,7 +112,7 @@ export async function addMessage(
   const now = Date.now();
 
   await execute(
-    `INSERT INTO messages (id, conversation_id, role, content, tool_calls, tool_call_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO messages (id, conversation_id, role, content, tool_calls, tool_call_id, suggestions, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       conversationId,
@@ -119,6 +120,7 @@ export async function addMessage(
       message.content,
       message.toolCalls ? JSON.stringify(message.toolCalls) : null,
       message.toolCallId ?? null,
+      message.suggestions ? JSON.stringify(message.suggestions) : null,
       now,
     ]
   );
@@ -136,6 +138,7 @@ export async function addMessage(
     content: message.content,
     toolCalls: message.toolCalls,
     toolCallId: message.toolCallId,
+    suggestions: message.suggestions,
     createdAt: now,
   };
 }
@@ -153,6 +156,7 @@ export async function getMessages(conversationId: string): Promise<Message[]> {
     content: row.content,
     toolCalls: row.tool_calls ? JSON.parse(row.tool_calls) : undefined,
     toolCallId: row.tool_call_id ?? undefined,
+    suggestions: row.suggestions ? JSON.parse(row.suggestions) : undefined,
     createdAt: row.created_at,
   }));
 }

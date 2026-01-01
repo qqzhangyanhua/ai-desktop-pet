@@ -18,6 +18,8 @@ import {
   ChevronDown,
   Sparkles,
   History,
+  Zap,
+  Loader2,
 } from 'lucide-react';
 import { useConfigStore, useChatStore } from '@/stores';
 import type { LLMConfig, MessageRole } from '@/types';
@@ -149,8 +151,67 @@ export function ChatSettings({ toast, onClose }: ChatSettingsProps) {
   const [knowledgeBase, setKnowledgeBase] = useState<string>('');
   const [isImporting, setIsImporting] = useState(false);
 
+  // API Key 测试状态
+  const [isTesting, setIsTesting] = useState(false);
+
   // 获取当前 provider 的可用模型
   const availableModels = MODEL_PRESETS[llmConfig.provider] || [];
+
+  // 测试 LLM 连接
+  const handleTestConnection = async () => {
+    // 验证配置
+    if (llmConfig.provider !== 'ollama' && !llmConfig.apiKey) {
+      toast.error('请先填写 API Key');
+      return;
+    }
+
+    if (!llmConfig.model) {
+      toast.error('请先选择模型');
+      return;
+    }
+
+    setIsTesting(true);
+    try {
+      console.log('[ChatSettings] Testing LLM connection');
+
+      // 动态导入避免循环依赖
+      const { chatCompletion } = await import('@/services/llm/chat');
+
+      const result = await chatCompletion({
+        messages: [{ id: 'test', conversationId: 'test', role: 'user', content: 'Say "OK"', createdAt: Date.now() }],
+        systemPrompt: 'You are a test bot. Reply with exactly "OK".',
+        config: llmConfig,
+      });
+
+      if (result.content && result.content.length > 0) {
+        toast.success('连接测试成功', `模型响应正常 (${result.usage?.totalTokens || 0} tokens)`);
+      } else {
+        toast.warning('连接成功但响应为空', '请检查模型配置');
+      }
+    } catch (error) {
+      console.error('[ChatSettings] Connection test failed:', error);
+
+      let errorMessage = '连接失败';
+      if (error instanceof Error) {
+        const msg = error.message.toLowerCase();
+        if (msg.includes('401') || msg.includes('unauthorized')) {
+          errorMessage = 'API Key 无效或已过期';
+        } else if (msg.includes('404') || msg.includes('not found')) {
+          errorMessage = '模型不存在或无权访问';
+        } else if (msg.includes('429') || msg.includes('rate limit')) {
+          errorMessage = 'API 请求频率过高';
+        } else if (msg.includes('network') || msg.includes('fetch')) {
+          errorMessage = '网络连接失败';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      toast.error('测试失败', errorMessage);
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   // 保存 LLM 配置
   const handleSaveLLM = async () => {
@@ -469,11 +530,30 @@ export function ChatSettings({ toast, onClose }: ChatSettingsProps) {
                 </div>
               </div>
 
-              {/* Save Button */}
-              <button onClick={handleSaveLLM} className="game-btn game-btn-green w-full h-12">
-                <Check className="w-4 h-4" />
-                保存 LLM 配置
-              </button>
+              {/* Test Connection & Save Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleTestConnection}
+                  disabled={isTesting}
+                  className="game-btn game-btn-blue h-12 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isTesting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      测试中...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4" />
+                      测试连接
+                    </>
+                  )}
+                </button>
+                <button onClick={handleSaveLLM} className="game-btn game-btn-green h-12">
+                  <Check className="w-4 h-4" />
+                  保存配置
+                </button>
+              </div>
             </div>
           </Tabs.Content>
 

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>主动关怀系统测试</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    
+    .status-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .status-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 16px;
+    }
+    
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .status-item {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .status-label {
+      font-size: 14px;
+      color: #6c757d;
+      margin-bottom: 8px;
+    }
+    
+    .status-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: #495057;
+    }
+    
+    .buttons-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .test-button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: white;
+    }
+    
+    .test-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-primary { background: #007bff; }
+    .btn-success { background: #28a745; }
+    .btn-warning { background: #ffc107; color: #333; }
+    .btn-danger { background: #dc3545; }
+    .btn-info { background: #17a2b8; }
+    .btn-secondary { background: #6c757d; }
+    
+    .log-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 24px;
+    }
+    
+    .log-content {
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    
+    .log-entry {
+      margin-bottom: 8px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    
+    .log-info { background: #d1ecf1; color: #0c5460; }
+    .log-success { background: #d4edda; color: #155724; }
+    .log-warning { background: #fff3cd; color: #856404; }
+    .log-error { background: #f8d7da; color: #721c24; }
+    
+    .notification-demo {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid #4ade80;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .notification-demo.show {
+      transform: translateX(0);
+    }
+    
+    .notification-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+    
+    .notification-message {
+      font-size: 14px;
+      color: #4b5563;
+      margin-bottom: 16px;
+    }
+    
+    .notification-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .notification-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .notification-btn.primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .notification-btn.secondary {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 AI Desktop Pet - 主动关怀系统测试</h1>
+    
+    <!-- 系统状态 -->
+    <div class="status-section">
+      <div class="status-title">📊 系统状态</div>
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-label">系统状态</div>
+          <div class="status-value" id="systemStatus">已启用</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">监控状态</div>
+          <div class="status-value" id="monitorStatus">运行中</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">关怀次数</div>
+          <div class="status-value" id="careCount">0</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">接受率</div>
+          <div class="status-value" id="acceptanceRate">0%</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 测试按钮 -->
+    <div class="buttons-section">
+      <button class="test-button btn-primary" onclick="testBasicCare()">
+        💡 基础关怀测试
+      </button>
+      <button class="test-button btn-danger" onclick="testStressCare()">
+        ⚠️ 高压力关怀
+      </button>
+      <button class="test-button btn-warning" onclick="testWorkCare()">
+        ⏰ 工作提醒
+      </button>
+      <button class="test-button btn-success" onclick="testHealthCare()">
+        🏥 健康关怀
+      </button>
+      <button class="test-button btn-info" onclick="testEmotionalCare()">
+        💝 情绪支持
+      </button>
+      <button class="test-button btn-secondary" onclick="clearLog()">
+        🗑️ 清空日志
+      </button>
+    </div>
+    
+    <!-- 日志区域 -->
+    <div class="log-section">
+      <div class="status-title">📝 系统日志</div>
+      <div class="log-content" id="logContent">
+        <div class="log-entry log-info">
+          [系统] 主动关怀系统测试页面已加载
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 通知演示 -->
+  <div class="notification-demo" id="notificationDemo">
+    <div class="notification-title" id="notificationTitle">关怀提醒</div>
+    <div class="notification-message" id="notificationMessage">这是一个关怀消息示例</div>
+    <div class="notification-actions">
+      <button class="notification-btn primary" onclick="acceptCare()">好的</button>
+      <button class="notification-btn secondary" onclick="dismissCare()">稍后</button>
+      <button class="notification-btn secondary" onclick="ignoreCare()">忽略</button>
+    </div>
+  </div>
+
+  <script>
+    // 模拟数据
+    let careCount = 0;
+    let acceptedCount = 0;
+    let currentNotification = null;
+    
+    // 关怀消息模板
+    const careMessages = {
+      basic: {
+        title: '温馨提醒',
+        message: '我在这里陪着你哦～有什么需要帮助的吗？',
+        type: 'info'
+      },
+      stress: {
+        title: '压力有点大呢',
+        message: '我注意到你可能有些紧张，要不要暂停一下，深呼吸放松一下？',
+        type: 'warning'
+      },
+      work: {
+        title: '该休息一下了',
+        message: '你已经连续工作很久了，起来活动活动吧～',
+        type: 'info'
+      },
+      health: {
+        title: '保护眼睛很重要',
+        message: '长时间用眼容易疲劳，建议看看远方或做做眼保健操～',
+        type: 'warning'
+      },
+      emotional: {
+        title: '我在这里陪着你',
+        message: '感觉有些难过吗？想聊聊发生了什么吗？我会一直陪着你的。',
+        type: 'success'
+      }
+    };
+    
+    // 日志函数
+    function addLog(message, type = 'info') {
+      const logContent = document.getElementById('logContent');
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.className = `log-entry log-${type}`;
+      logEntry.textContent = `[${timestamp}] ${message}`;
+      logContent.appendChild(logEntry);
+      logContent.scrollTop = logContent.scrollHeight;
+    }
+    
+    // 显示通知
+    function showNotification(careType) {
+      const notification = document.getElementById('notificationDemo');
+      const title = document.getElementById('notificationTitle');
+      const message = document.getElementById('notificationMessage');
+      
+      const care = careMessages[careType];
+      title.textContent = care.title;
+      message.textContent = care.message;
+      
+      notification.classList.add('show');
+      currentNotification = careType;
+      
+      careCount++;
+      updateStats();
+      
+      addLog(`显示${care.title}关怀消息`, care.type);
+      
+      // 5秒后自动隐藏
+      setTimeout(() => {
+        if (notification.classList.contains('show')) {
+          ignoreCare();
+        }
+      }, 5000);
+    }
+    
+    // 接受关怀
+    function acceptCare() {
+      if (!currentNotification) return;
+      
+      const notification = document.getElementById('notificationDemo');
+      notification.classList.remove('show');
+      
+      acceptedCount++;
+      updateStats();
+      
+      addLog(`用户接受了${careMessages[currentNotification].title}`, 'success');
+      currentNotification = null;
+    }
+    
+    // 延迟关怀
+    function dismissCare() {
+      if (!currentNotification) return;
+      
+      const notification = document.getElementById('notificationDemo');
+      notification.classList.remove('show');
+      
+      addLog(`用户延迟了${careMessages[currentNotification].title}`, 'warning');
+      currentNotification = null;
+    }
+    
+    // 忽略关怀
+    function ignoreCare() {
+      if (!currentNotification) return;
+      
+      const notification = document.getElementById('notificationDemo');
+      notification.classList.remove('show');
+      
+      addLog(`用户忽略了${careMessages[currentNotification].title}`, 'error');
+      currentNotification = null;
+    }
+    
+    // 更新统计
+    function updateStats() {
+      document.getElementById('careCount').textContent = careCount;
+      const rate = careCount > 0 ? Math.round((acceptedCount / careCount) * 100) : 0;
+      document.getElementById('acceptanceRate').textContent = rate + '%';
+    }
+    
+    // 测试函数
+    function testBasicCare() {
+      addLog('触发基础关怀测试');
+      setTimeout(() => showNotification('basic'), 500);
+    }
+    
+    function testStressCare() {
+      addLog('触发高压力关怀测试');
+      setTimeout(() => showNotification('stress'), 500);
+    }
+    
+    function testWorkCare() {
+      addLog('触发工作提醒测试');
+      setTimeout(() => showNotification('work'), 500);
+    }
+    
+    function testHealthCare() {
+      addLog('触发健康关怀测试');
+      setTimeout(() => showNotification('health'), 500);
+    }
+    
+    function testEmotionalCare() {
+      addLog('触发情绪支持测试');
+      setTimeout(() => showNotification('emotional'), 500);
+    }
+    
+    function clearLog() {
+      const logContent = document.getElementById('logContent');
+      logContent.innerHTML = '<div class="log-entry log-info">[系统] 日志已清空</div>';
+      
+      // 重置统计
+      careCount = 0;
+      acceptedCount = 0;
+      updateStats();
+    }
+    
+    // 初始化
+    addLog('主动关怀系统测试环境已准备就绪');
+    addLog('点击上方按钮测试不同类型的关怀功能');
+  </script>
+</body>
+</html>

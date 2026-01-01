@@ -9,10 +9,11 @@ import {
   Briefcase,
   ShoppingBag,
   Home,
+  Bookmark,
 } from 'lucide-react';
 import { PetProfileCard } from './PetProfileCard';
 
-type SettingsTab = 'appearance' | 'behavior' | 'chat' | 'assistant' | 'statistics' | 'performance' | 'advanced';
+type SettingsTab = 'appearance' | 'behavior' | 'chat' | 'assistant' | 'statistics' | 'performance' | 'advanced' | 'bookmark';
 
 interface DashboardButton {
   icon: React.ComponentType<{ size: number }>;
@@ -43,6 +44,7 @@ const DASHBOARD_BUTTONS: DashboardButton[] = [
   { icon: Trophy, label: '分享成就', tab: 'statistics', color: 'pink' },
   { icon: Bell, label: '消息通知', tab: 'behavior', color: 'orange' },
   { icon: Shield, label: '隐私设置', tab: 'assistant', color: 'purple' },
+  { icon: Bookmark, label: '书签管理', tab: 'bookmark', color: 'blue' },
 ];
 
 export function SettingsDashboard({

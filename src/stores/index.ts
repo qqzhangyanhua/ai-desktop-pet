@@ -13,3 +13,4 @@ export { useUserProfileStore } from './userProfileStore';
 export { useRelaxationStore } from './relaxationStore';
 export { useAgentSystemStore } from './agentSystemStore';
 export { usePromptDialogStore } from './promptDialogStore';
+export { useProactiveCareStore } from './proactive-care-store';

@@ -42,9 +42,7 @@ export function buildAgentContext(userMessage?: string): AgentContext {
   const chatStore = useChatStore.getState();
 
   // 获取最近的对话消息
-  const recentMessages = chatStore.currentConversationId
-    ? chatStore.getMessages(chatStore.currentConversationId).slice(-5)
-    : [];
+  const recentMessages = chatStore.messages.slice(-5);
 
   return {
     userId: userProfile?.id || 'default',

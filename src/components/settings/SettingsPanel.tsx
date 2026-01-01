@@ -8,10 +8,11 @@ import { PerformanceTab } from './tabs/PerformanceTab';
 import { AdvancedTab } from './tabs/AdvancedTab';
 import { MemoryTab } from './tabs/MemoryTab';
 import { StatsPanel } from './StatsPanel';
+import { BookmarkSettings } from './BookmarkSettings';
 import { getSkinManager } from '../../services/skin';
 import { Button } from '@/components/ui/button';
 
-type SettingsTab = 'appearance' | 'behavior' | 'assistant' | 'statistics' | 'performance' | 'advanced' | 'memory';
+type SettingsTab = 'appearance' | 'behavior' | 'assistant' | 'statistics' | 'performance' | 'advanced' | 'memory' | 'bookmark';
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -143,6 +144,14 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
           >
             记忆管理
           </Button>
+          <Button
+            className={`settings-tab ${activeTab === 'bookmark' ? 'active' : ''}`}
+            variant="ghost"
+            size="sm"
+            onClick={() => setActiveTab('bookmark')}
+          >
+            书签管理
+          </Button>
         </div>
 
         <div className="settings-content">
@@ -180,6 +189,8 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
           {activeTab === 'advanced' && <AdvancedTab />}
 
           {activeTab === 'memory' && <MemoryTab />}
+
+          {activeTab === 'bookmark' && <BookmarkSettings />}
         </div>
 
         <div

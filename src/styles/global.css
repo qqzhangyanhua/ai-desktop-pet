@@ -1,4 +1,5 @@
 @import './design-tokens.css';
+@import './proactive-care.css';
 
 @tailwind base;
 @tailwind components;

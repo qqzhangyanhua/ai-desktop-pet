@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Suggestions 持久化测试</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #333;
+      margin-top: 0;
+    }
+    button {
+      background: #a78bfa;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #9370db;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    pre {
+      background: #f8f8f8;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .success { color: #10b981; font-weight: bold; }
+    .error { color: #ef4444; font-weight: bold; }
+    .warning { color: #f59e0b; font-weight: bold; }
+    input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 400px;
+      margin-right: 10px;
+    }
+    .step {
+      background: #e0e7ff;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 4px solid #6366f1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📦 Suggestions 持久化功能测试</h1>
+
+  <div class="test-section">
+    <h2>测试流程</h2>
+    <div class="step">
+      <strong>步骤 1</strong>: 初始化数据库并运行迁移
+    </div>
+    <div class="step">
+      <strong>步骤 2</strong>: 保存带有 suggestions 的消息
+    </div>
+    <div class="step">
+      <strong>步骤 3</strong>: 从数据库加载消息
+    </div>
+    <div class="step">
+      <strong>步骤 4</strong>: 验证 suggestions 正确反序列化
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>步骤 1: 初始化数据库</h2>
+    <button onclick="initDatabase()">初始化数据库</button>
+    <pre id="init-result">等待操作...</pre>
+  </div>
+
+  <div class="test-section">
+    <h2>步骤 2: 创建对话并保存消息</h2>
+    <button onclick="createConversation()">创建测试对话</button>
+    <button onclick="saveMessageWithSuggestions()" id="save-btn" disabled>保存带建议的消息</button>
+    <pre id="save-result">等待操作...</pre>
+  </div>
+
+  <div class="test-section">
+    <h2>步骤 3: 加载消息</h2>
+    <button onclick="loadMessages()" id="load-btn" disabled>加载消息</button>
+    <pre id="load-result">等待操作...</pre>
+  </div>
+
+  <div class="test-section">
+    <h2>步骤 4: 验证结果</h2>
+    <button onclick="verifyPersistence()" id="verify-btn" disabled>验证持久化</button>
+    <pre id="verify-result">等待操作...</pre>
+  </div>
+
+  <script type="module">
+    import { initDatabase, getDatabase } from './src/services/database/index.js';
+    import { createConversation as dbCreateConversation, addMessage, getMessages } from './src/services/database/conversations.js';
+
+    let conversationId = null;
+    let savedMessageId = null;
+
+    window.initDatabase = async function() {
+      const result = document.getElementById('init-result');
+      try {
+        result.textContent = '初始化中...';
+
+        const db = await initDatabase();
+        result.innerHTML = `<span class="success">✅ 数据库初始化成功</span>\n\n数据库实例: ${!!db}\n\n查看控制台查看迁移日志`;
+
+        console.log('[Test] Database initialized:', db);
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ 初始化失败</span>\n\n${error.message}\n\n${error.stack}`;
+      }
+    };
+
+    window.createConversation = async function() {
+      const result = document.getElementById('save-result');
+      try {
+        result.textContent = '创建对话中...';
+
+        const conversation = await dbCreateConversation('测试 Suggestions 持久化', '测试系统提示');
+        conversationId = conversation.id;
+
+        result.innerHTML = `<span class="success">✅ 对话创建成功</span>\n\n对话 ID: ${conversationId}\n标题: ${conversation.title}`;
+
+        document.getElementById('save-btn').disabled = false;
+
+        console.log('[Test] Conversation created:', conversation);
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ 创建失败</span>\n\n${error.message}`;
+      }
+    };
+
+    window.saveMessageWithSuggestions = async function() {
+      const result = document.getElementById('save-result');
+      try {
+        if (!conversationId) {
+          result.innerHTML = `<span class="error">❌ 请先创建对话</span>`;
+          return;
+        }
+
+        result.textContent = '保存消息中...';
+
+        const testSuggestions = [
+          '查找我的CSS书签',
+          'CSS相关书签查询',
+          '我的层叠样式表书签'
+        ];
+
+        const message = await addMessage(conversationId, {
+          role: 'assistant',
+          content: '没有找到包含"css"的书签\n\n🤔 要不试试这些：',
+          suggestions: testSuggestions,
+        });
+
+        savedMessageId = message.id;
+
+        result.innerHTML = `<span class="success">✅ 消息保存成功</span>\n\n消息 ID: ${message.id}\n内容: ${message.content}\n建议数量: ${message.suggestions?.length ?? 0}\n建议内容: ${JSON.stringify(message.suggestions, null, 2)}`;
+
+        document.getElementById('load-btn').disabled = false;
+
+        console.log('[Test] Message saved:', message);
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ 保存失败</span>\n\n${error.message}\n\n${error.stack}`;
+      }
+    };
+
+    window.loadMessages = async function() {
+      const result = document.getElementById('load-result');
+      try {
+        if (!conversationId) {
+          result.innerHTML = `<span class="error">❌ 请先创建对话</span>`;
+          return;
+        }
+
+        result.textContent = '加载消息中...';
+
+        const messages = await getMessages(conversationId);
+
+        if (messages.length === 0) {
+          result.innerHTML = `<span class="warning">⚠️ 未找到消息</span>`;
+          return;
+        }
+
+        const messageWithSuggestions = messages.find(m => m.suggestions && m.suggestions.length > 0);
+
+        if (!messageWithSuggestions) {
+          result.innerHTML = `<span class="warning">⚠️ 未找到带建议的消息</span>\n\n共加载 ${messages.length} 条消息`;
+          return;
+        }
+
+        result.innerHTML = `<span class="success">✅ 消息加载成功</span>\n\n共加载消息: ${messages.length} 条\n\n带建议的消息:\nID: ${messageWithSuggestions.id}\n内容: ${messageWithSuggestions.content}\n建议: ${JSON.stringify(messageWithSuggestions.suggestions, null, 2)}`;
+
+        document.getElementById('verify-btn').disabled = false;
+
+        console.log('[Test] Messages loaded:', messages);
+        console.log('[Test] Message with suggestions:', messageWithSuggestions);
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ 加载失败</span>\n\n${error.message}\n\n${error.stack}`;
+      }
+    };
+
+    window.verifyPersistence = async function() {
+      const result = document.getElementById('verify-result');
+      try {
+        if (!conversationId || !savedMessageId) {
+          result.innerHTML = `<span class="error">❌ 请先完成前面的步骤</span>`;
+          return;
+        }
+
+        result.textContent = '验证中...';
+
+        const messages = await getMessages(conversationId);
+        const savedMessage = messages.find(m => m.id === savedMessageId);
+
+        if (!savedMessage) {
+          result.innerHTML = `<span class="error">❌ 验证失败：未找到已保存的消息</span>`;
+          return;
+        }
+
+        // 验证 suggestions 字段
+        const checks = {
+          hasSuggestions: !!savedMessage.suggestions,
+          isArray: Array.isArray(savedMessage.suggestions),
+          correctLength: savedMessage.suggestions?.length === 3,
+          firstSuggestion: savedMessage.suggestions?.[0] === '查找我的CSS书签',
+          secondSuggestion: savedMessage.suggestions?.[1] === 'CSS相关书签查询',
+          thirdSuggestion: savedMessage.suggestions?.[2] === '我的层叠样式表书签',
+        };
+
+        const allPassed = Object.values(checks).every(v => v === true);
+
+        result.innerHTML = `
+<span class="${allPassed ? 'success' : 'error'}">${allPassed ? '✅ 验证通过' : '❌ 验证失败'}</span>
+
+<strong>验证项:</strong>
+✓ suggestions 字段存在: ${checks.hasSuggestions ? '✅' : '❌'}
+✓ suggestions 是数组: ${checks.isArray ? '✅' : '❌'}
+✓ 建议数量正确(3): ${checks.correctLength ? '✅' : '❌'}
+✓ 第1个建议正确: ${checks.firstSuggestion ? '✅' : '❌'}
+✓ 第2个建议正确: ${checks.secondSuggestion ? '✅' : '❌'}
+✓ 第3个建议正确: ${checks.thirdSuggestion ? '✅' : '❌'}
+
+<strong>实际数据:</strong>
+${JSON.stringify(savedMessage.suggestions, null, 2)}
+
+<strong>结论:</strong>
+${allPassed ?
+  '🎉 Suggestions 持久化功能完全正常！\n   - 数据成功保存到数据库\n   - 数据正确序列化为 JSON\n   - 数据正确反序列化为数组\n   - 内容完整无丢失' :
+  '⚠️ 存在问题，请检查上述失败项'}
+        `;
+
+        console.log('[Test] Verification result:', checks);
+        console.log('[Test] Saved message:', savedMessage);
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ 验证失败</span>\n\n${error.message}\n\n${error.stack}`;
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { isTauri } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { Heart, Sparkles, Settings, Send, RotateCcw, Sun, Gamepad2, Apple, MessageCircle, Trash2 } from 'lucide-react';
-import { useChatStore } from '../../stores';
+import { Heart, Sparkles, Settings, Send, RotateCcw, Sun, Gamepad2, Apple, MessageCircle, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useChatStore, useConfigStore } from '../../stores';
 import { ChatSettings } from './ChatSettings';
 import { ToastProvider } from './Toast';
 import { useToast } from './useToast';
@@ -25,11 +25,18 @@ export function ChatWindow(_props: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { messages, isLoading, isStreaming } = useChatStore();
+  const { config } = useConfigStore();
   const [showSettings, setShowSettings] = useState(false);
   const [input, setInput] = useState('');
   const [autoScroll, setAutoScroll] = useState(true);
   const dragCandidateRef = useRef<{ x: number; y: number } | null>(null);
   const isWindowDragTriggeredRef = useRef(false);
+
+  // LLM configuration status
+  const isLLMConfigured = config.llm.provider === 'ollama' || Boolean(config.llm.apiKey);
+  const llmStatusText = isLLMConfigured
+    ? `${config.llm.provider === 'openai' ? 'GPT' : config.llm.provider === 'anthropic' ? 'Claude' : 'Ollama'} ${config.llm.model}`
+    : '未配置';
 
   // Local toast for chat window
   const toast = useToast();
@@ -162,8 +169,12 @@ export function ChatWindow(_props: ChatWindowProps) {
           <div className="flex flex-col">
             <div className="game-chat-header-title">我的小可爱</div>
             <div className="game-chat-header-status">
-              <span className="game-status-dot"></span>
-              <span className="status-text">在线等你</span>
+              {isLLMConfigured ? (
+                <CheckCircle2 className="w-3 h-3 text-green-500" />
+              ) : (
+                <AlertCircle className="w-3 h-3 text-orange-500" />
+              )}
+              <span className="status-text text-xs">{llmStatusText}</span>
             </div>
           </div>
         </div>
@@ -221,6 +232,7 @@ export function ChatWindow(_props: ChatWindowProps) {
               isStreaming={isStreaming && idx === messages.length - 1}
               onRegenerate={() => handleRegenerateMessage(message.id)}
               onDelete={() => handleDeleteMessage(message.id)}
+              onSendMessage={handleSendMessage}
             />
           ))
         )}

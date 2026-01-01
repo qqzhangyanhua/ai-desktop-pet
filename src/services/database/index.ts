@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS messages (
     content TEXT NOT NULL,
     tool_calls TEXT,
     tool_call_id TEXT,
+    suggestions TEXT,
     created_at INTEGER NOT NULL,
     FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
 );
@@ -374,6 +375,15 @@ export async function initDatabase(): Promise<Database> {
   } catch (error) {
     console.error('[Database] Migration 004 failed:', error);
     // Non-fatal: migration might already be applied
+  }
+
+  // Run pending migrations
+  try {
+    const { runMigrations } = await import('./migrations');
+    await runMigrations(db);
+  } catch (error) {
+    console.error('[Database] Migrations failed:', error);
+    // Non-fatal: log and continue
   }
 
   console.log('Database initialized');
