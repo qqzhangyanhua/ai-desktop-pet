@@ -142,23 +142,33 @@ export function initGlobalLive2D(): Promise<Oml2dInstance | null> {
 
     isInitializing = true;
     console.log('[GlobalLive2D] Starting initialization...');
+    console.log('[GlobalLive2D] Environment:', {
+      hostname: window.location.hostname,
+      protocol: window.location.protocol,
+      origin: window.location.origin,
+      href: window.location.href,
+    });
 
     try {
       await ensureDomReady();
 
       // 先检查模型文件是否可访问（本地静态资源）
+      const modelUrl = MODEL_CONFIG.path;
+      console.log('[GlobalLive2D] Checking model accessibility:', modelUrl);
       try {
-        const response = await fetch(MODEL_CONFIG.path);
+        const response = await fetch(modelUrl);
         if (!response.ok) {
           console.warn(
-            '[GlobalLive2D] ⚠️ 模型入口文件不可访问：',
-            MODEL_CONFIG.path,
+            '[GlobalLive2D] Model file not accessible:',
+            modelUrl,
             response.status,
             response.statusText
           );
+        } else {
+          console.log('[GlobalLive2D] Model file accessible:', modelUrl);
         }
       } catch (err) {
-        console.warn('[GlobalLive2D] ⚠️ 模型入口文件请求失败：', err);
+        console.warn('[GlobalLive2D] Model file fetch failed:', err);
       }
 
       console.log('[GlobalLive2D] Loading oh-my-live2d...');

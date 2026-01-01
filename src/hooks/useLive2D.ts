@@ -190,25 +190,10 @@ export function useLive2D(options: UseLive2DOptions): UseLive2DReturn {
 
   const triggerEmotion = useCallback((emotion: EmotionType) => {
     console.log('[useLive2D] Triggering emotion:', emotion);
-    // 情绪触发可以通过全局实例完成
-    const instance = getGlobalInstance();
-    if (instance?.tipsMessage) {
-      // 简单实现：显示情绪消息
-      const emotionMessages: Record<string, string> = {
-        happy: '😊',
-        sad: '😢',
-        angry: '😠',
-        surprised: '😲',
-        thinking: '🤔',
-        neutral: '',
-        excited: '🎉',
-        confused: '😕',
-      };
-      const msg = emotionMessages[emotion];
-      if (msg) {
-        instance.tipsMessage(msg, 2000, 5);
-      }
-    }
+    // 情绪变化仅记录日志，不再显示emoji
+    // 原因：emoji会通过tipsMessage显示，与bubbleText冲突
+    // 未来可以在这里触发Live2D模型的表情动作
+    // 例如：切换模型的motion/expression等
   }, []);
 
   return {

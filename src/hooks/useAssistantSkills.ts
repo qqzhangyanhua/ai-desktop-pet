@@ -1,14 +1,41 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useAssistantStore, usePetStore } from '../stores';
+import { useAssistantStore, usePetStore, usePromptDialogStore } from '../stores';
 import { useCareStore } from '../stores/careStore';
-import type { AssistantSkill } from '../types';
+import type { AssistantSkill, SkillPayload } from '../types';
 import { ensurePetVoiceLinkInitialized, petSpeak } from '@/services/pet/voice-link';
 import { useConfigStore } from '@/stores';
+import { fetchWeather } from '@/services/weather';
+import { open } from '@tauri-apps/plugin-shell';
+import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { getWindowManager } from '@/services/window';
 
-// 智能助手技能：时间播报、简易闹钟、灯光/电脑操作模拟、习惯记忆提示
-interface SkillPayload {
-  city?: string;
-  light?: 'on' | 'off';
+/**
+ * 执行天气查询的辅助函数
+ */
+async function executeWeatherQuery(
+  city: string,
+  pet: ReturnType<typeof usePetStore.getState>,
+  assistant: ReturnType<typeof useAssistantStore.getState>,
+  ttsEnabled: boolean
+): Promise<void> {
+  // 显示加载状态
+  pet.setEmotion('thinking');
+  pet.showBubble(`正在查询 ${city} 的天气...`, 2000);
+
+  try {
+    const weather = await fetchWeather(city);
+    // 记住用户输入的城市名（保持中文），而不是 API 返回的英文名
+    assistant.rememberPreference('lastWeatherCity', city);
+
+    const msg = `${city}：${weather.condition}，${weather.temperature}，体感 ${weather.feelsLike}，湿度 ${weather.humidity}`;
+    pet.setEmotion('happy');
+    pet.showBubble(msg, 6000);
+    if (ttsEnabled) void petSpeak(msg, { priority: 'normal', interrupt: true });
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : '查询失败';
+    pet.setEmotion('sad');
+    pet.showBubble(`天气查询失败：${errorMsg}`, 4000);
+  }
 }
 
 export function useAssistantSkills() {
@@ -37,15 +64,34 @@ export function useAssistantSkills() {
         break;
       }
       case 'weather': {
-        const city = payload?.city?.trim();
-        pet.setEmotion('confused');
-        if (city) {
-          pet.showBubble(`正在查询 ${city} 的天气，稍后告诉你`, 5200);
-          assistant.rememberPreference('lastWeatherCity', city);
-        } else {
-          pet.showBubble('说“天气+城市名”或在聊天输入城市，我会查询最新天气', 5200);
+        // 获取城市：优先使用传入的，其次使用记忆的
+        const city = payload?.city?.trim() || assistant.getPreference('lastWeatherCity')?.value || '';
+
+        // 如果没有城市，弹出输入框让用户输入
+        if (!city) {
+          const promptDialog = usePromptDialogStore.getState();
+          void (async () => {
+            const inputCity = await promptDialog.prompt({
+              title: '查询天气',
+              description: '请输入要查询的城市名称',
+              placeholder: '例如：北京、上海、广州...',
+              confirmText: '查询',
+              cancelText: '取消',
+            });
+
+            if (!inputCity) {
+              // 用户取消
+              return;
+            }
+
+            // 执行天气查询
+            await executeWeatherQuery(inputCity, pet, assistant, ttsEnabled);
+          })();
+          break;
         }
-        assistant.rememberPreference('lastWeatherHint', 'weather');
+
+        // 有城市，直接查询
+        void executeWeatherQuery(city, pet, assistant, ttsEnabled);
         break;
       }
       case 'alarm': {
@@ -71,11 +117,75 @@ export function useAssistantSkills() {
         break;
       }
       case 'pc_action': {
-        pet.setEmotion('thinking');
-        const msg = '我可以执行简单操作（打开链接、应用、复制/粘贴），请在聊天描述需求';
-        pet.showBubble(msg, 5800);
-        if (ttsEnabled) void petSpeak(msg, { priority: 'normal', interrupt: true });
-        assistant.setLastAdvice('可在聊天窗口下达操作指令');
+        const { pcAction, target } = payload ?? {};
+
+        // 如果没有指定操作，打开聊天窗口引导用户
+        if (!pcAction) {
+          pet.setEmotion('thinking');
+          const msg = '打开聊天窗口，告诉我你想做什么吧~';
+          pet.showBubble(msg, 3000);
+          if (ttsEnabled) void petSpeak(msg, { priority: 'normal', interrupt: true });
+
+          // 延迟打开聊天窗口
+          setTimeout(() => {
+            void getWindowManager().openChatWindow();
+          }, 500);
+          break;
+        }
+
+        // 执行具体操作
+        void (async () => {
+          try {
+            switch (pcAction) {
+              case 'open_url': {
+                if (!target) {
+                  pet.showBubble('请提供要打开的网址', 3000);
+                  break;
+                }
+                const url = target.startsWith('http') ? target : `https://${target}`;
+                await open(url);
+                pet.setEmotion('happy');
+                pet.showBubble(`已打开：${target}`, 3000);
+                break;
+              }
+              case 'open_app': {
+                if (!target) {
+                  pet.showBubble('请提供要打开的应用路径', 3000);
+                  break;
+                }
+                await open(target);
+                pet.setEmotion('happy');
+                pet.showBubble(`已打开应用`, 3000);
+                break;
+              }
+              case 'copy': {
+                if (!target) {
+                  pet.showBubble('请提供要复制的内容', 3000);
+                  break;
+                }
+                await writeText(target);
+                pet.setEmotion('happy');
+                pet.showBubble('已复制到剪贴板', 2500);
+                break;
+              }
+              case 'search': {
+                if (!target) {
+                  pet.showBubble('请提供要搜索的关键词', 3000);
+                  break;
+                }
+                const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(target)}`;
+                await open(searchUrl);
+                pet.setEmotion('happy');
+                pet.showBubble(`正在搜索：${target}`, 3000);
+                break;
+              }
+            }
+          } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : '操作失败';
+            pet.setEmotion('sad');
+            pet.showBubble(`操作失败：${errorMsg}`, 4000);
+          }
+        })();
         break;
       }
       case 'habit': {

@@ -45,11 +45,27 @@ class WindowManager {
   }
 
   /**
+   * 判断是否为开发模式
+   * Tauri 2.0 生产环境下 hostname 为 'tauri.localhost'，开发环境为 'localhost'
+   */
+  private isDevelopment(): boolean {
+    const hostname = window.location.hostname;
+    // 开发模式: localhost (Vite dev server)
+    // 生产模式: tauri.localhost 或其他 Tauri 协议
+    return hostname === 'localhost' && window.location.port === '1420';
+  }
+
+  /**
    * 获取窗口 URL（开发模式 vs 生产模式）
+   * 开发模式：使用完整 URL (http://localhost:1420/xxx.html)
+   * 生产模式：使用相对路径 (xxx.html)，Tauri 会自动追加到 tauri://localhost/
    */
   private getWindowUrl(htmlFile: string): string {
-    const isDev = window.location.hostname === 'localhost';
-    return isDev ? `http://localhost:1420/${htmlFile}` : htmlFile;
+    if (this.isDevelopment()) {
+      return `http://localhost:1420/${htmlFile}`;
+    }
+    // 生产模式使用相对路径，Tauri 会正确解析
+    return htmlFile;
   }
 
   /**
@@ -69,7 +85,8 @@ class WindowManager {
       }
 
       // 窗口不存在，创建新窗口
-      new WebviewWindow(config.label, {
+      console.log(`[WindowManager] Creating window: ${config.label}, url: ${config.url}`);
+      const webview = new WebviewWindow(config.label, {
         url: config.url,
         title: config.title,
         width: config.width,
@@ -81,7 +98,14 @@ class WindowManager {
         skipTaskbar: config.skipTaskbar ?? false,
       });
 
-      console.log(`[WindowManager] Created new window: ${config.label}`);
+      // 监听创建结果
+      webview.once('tauri://created', () => {
+        console.log(`[WindowManager] Window created successfully: ${config.label}`);
+      });
+
+      webview.once('tauri://error', (e) => {
+        console.error(`[WindowManager] Window creation error for ${config.label}:`, e);
+      });
     } catch (error) {
       console.error(`[WindowManager] Failed to open window ${config.label}:`, error);
       throw error;

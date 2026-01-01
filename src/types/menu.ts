@@ -47,9 +47,10 @@ export interface SystemHandlers {
  * Relaxation handlers - 放松功能处理器（可选）
  */
 export interface RelaxationHandlers {
-  breathing?: MenuSelectHandler;
-  story?: MenuSelectHandler;
-  meditation?: MenuSelectHandler;
+  openPanel?: MenuSelectHandler; // New unified entry
+  breathing?: MenuSelectHandler; // Legacy
+  story?: MenuSelectHandler; // Legacy
+  meditation?: MenuSelectHandler; // Legacy
 }
 
 /**

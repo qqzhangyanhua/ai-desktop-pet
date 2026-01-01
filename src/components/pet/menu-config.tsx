@@ -70,7 +70,7 @@ interface SystemMenuItemConfig extends BaseMenuItemConfig {
  */
 interface RelaxationMenuItemConfig extends BaseMenuItemConfig {
   type: 'relaxation';
-  relaxationAction: 'breathing' | 'story' | 'meditation';
+  relaxationAction: 'openPanel' | 'breathing' | 'story' | 'meditation';
 }
 
 /**
@@ -189,12 +189,24 @@ export const MENU_REGISTRY: MenuItemConfig[] = [
     type: 'pet',
     section: 'pet_care',
     action: 'rest',
-    label: '放松',
-    keywords: ['放松', '冥想', 'rest'],
+    label: '休息',
+    keywords: ['休息', 'rest'],
     icon: <Armchair className="w-4 h-4" />,
   },
 
-  // ========== Relaxation (Optional) ==========
+  // ========== Relaxation (New Unified Entry) ==========
+  {
+    id: 'relaxation:panel',
+    type: 'relaxation',
+    section: 'pet_care',
+    relaxationAction: 'openPanel',
+    label: '放松时光',
+    keywords: ['放松', '冥想', '呼吸', '故事', '减压', 'relax', 'meditation', 'breathing'],
+    icon: <Cloud className="w-4 h-4" />,
+  },
+
+  // ========== Relaxation (Legacy Individual Items) ==========
+  // These are kept for backward compatibility but hidden by default
   {
     id: 'relaxation:breathing',
     type: 'relaxation',
@@ -229,8 +241,8 @@ export const MENU_REGISTRY: MenuItemConfig[] = [
     type: 'assistant',
     section: 'assistant',
     skill: 'weather',
-    label: '查询天气提示',
-    keywords: ['天气', 'weather'],
+    label: '查询天气',
+    keywords: ['天气', 'weather', '温度', '气温'],
     icon: <Cloud className="w-4 h-4" />,
   },
   {
@@ -265,8 +277,8 @@ export const MENU_REGISTRY: MenuItemConfig[] = [
     type: 'assistant',
     section: 'assistant',
     skill: 'pc_action',
-    label: '简单电脑操作',
-    keywords: ['电脑', '打开', 'pc', 'action'],
+    label: '电脑操作帮助',
+    keywords: ['电脑', '打开', 'pc', 'action', '帮助'],
     icon: <Monitor className="w-4 h-4" />,
   },
   {

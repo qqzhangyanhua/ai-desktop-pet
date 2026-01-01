@@ -23,7 +23,6 @@ import {
 import { useWindowPlacement } from '@/hooks/useWindowPlacement';
 import { usePetStatus } from '../../hooks/usePetStatus';
 import { BreathingOverlay, StoryPlayerModal, MeditationModal } from '../relaxation';
-import { getCooldownFeedback } from '@/services/pet';
 import { toast } from '@/stores/toastStore';
 import type { InteractionType } from '@/types';
 import type { StatChange } from '@/types/toast';
@@ -87,6 +86,7 @@ export function PetContainer(_props: PetContainerProps) {
     dismissBubble,
     handleMouseEnter,
     handleMouseLeave,
+    showCooldownBubble,
   } = useStatusDisplay({
     enableBubble: true,
     enableMiniBar: true,
@@ -168,8 +168,7 @@ export function PetContainer(_props: PetContainerProps) {
       // 检查冷却
       const cooldownRemaining = getCooldownRemaining(actionType);
       if (cooldownRemaining > 0) {
-        const feedback = getCooldownFeedback(actionType, cooldownRemaining);
-        toast.warning(feedback.message, feedback.duration);
+        showCooldownBubble(actionType, cooldownRemaining);
         return;
       }
 
@@ -192,7 +191,7 @@ export function PetContainer(_props: PetContainerProps) {
         ]);
       }
     },
-    [handleBubbleAction, getCooldownRemaining, performInteraction, status]
+    [handleBubbleAction, getCooldownRemaining, showCooldownBubble, performInteraction, status]
   );
 
   /**
@@ -203,8 +202,7 @@ export function PetContainer(_props: PetContainerProps) {
       // 检查冷却
       const cooldownRemaining = getCooldownRemaining(type);
       if (cooldownRemaining > 0) {
-        const feedback = getCooldownFeedback(type, cooldownRemaining);
-        toast.warning(feedback.message, feedback.duration);
+        showCooldownBubble(type, cooldownRemaining);
         return;
       }
 
@@ -225,7 +223,7 @@ export function PetContainer(_props: PetContainerProps) {
         ]);
       }
     },
-    [getCooldownRemaining, performInteraction, status]
+    [getCooldownRemaining, showCooldownBubble, performInteraction, status]
   );
 
   /**

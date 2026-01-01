@@ -12,3 +12,4 @@ export { useContextMenuStore } from './contextMenuStore';
 export { useUserProfileStore } from './userProfileStore';
 export { useRelaxationStore } from './relaxationStore';
 export { useAgentSystemStore } from './agentSystemStore';
+export { usePromptDialogStore } from './promptDialogStore';

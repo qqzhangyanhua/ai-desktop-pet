@@ -5,9 +5,13 @@ import type {
   PetActionType,
   PetCareStats,
   EmotionType,
+  FoodItem,
 } from '../types';
 import { useConfigStore } from './configStore';
 import { getCareStatus, updateCareStatus } from '@/services/database/pet-status';
+import { getFoodById, FOOD_ITEMS } from '@/config/foods';
+import { usePetStore } from './petStore';
+import { useToastStore } from './toastStore';
 
 /**
  * P2-1-B: 数据库持久化防抖计时器（2秒）
@@ -29,6 +33,20 @@ const getDecayMultiplier = (): number => {
       return 1.0;
   }
 };
+
+/**
+ * P2-X: Energy recovery rate based on activity state
+ * 精力恢复速率（基于活动状态）
+ */
+const getEnergyRecoveryRate = (isResting: boolean): number => {
+  return isResting ? 3.5 : 0.8; // Resting: +3.5/h, Idle: +0.8/h
+};
+
+/**
+ * P2-X: Last decay timestamp for time-based calculation
+ * 上次衰减时间戳（用于基于时间的计算）
+ */
+let lastDecayTime: number | null = null;
 
 const initialCareStats: PetCareStats = {
   satiety: 78,
@@ -125,27 +143,47 @@ const applyDelta = (stats: PetCareStats, delta: Partial<PetCareStats>): PetCareS
 };
 
 export interface CareStore extends PetCareStats {
-  applyDecay: () => PetCareStats;
+  applyDecay: (isResting?: boolean) => PetCareStats;
+  /** @deprecated Use feedPet() instead. Will be removed in v2.0 */
   applyAction: (action: PetActionType) => CareEffect & { stats: PetCareStats };
   getStatusReport: () => CareStatusReport;
   resetCare: () => void;
   loadFromDatabase: () => Promise<void>;
   saveToDatabase: () => Promise<void>;
+
+  // === Food System (New) ===
+  foodCooldowns: Record<string, number>;
+  feedPet: (foodId: string) => FoodItem | null;
+  getAvailableFoods: () => FoodItem[];
+  getCooldownRemaining: (foodId: string) => number;
 }
 
 export const useCareStore = create<CareStore>((set, get) => ({
   ...initialCareStats,
+  foodCooldowns: {},
 
-  applyDecay: () => {
+  applyDecay: (isResting = false) => {
     let updated: PetCareStats = initialCareStats;
     set((state) => {
+      const now = Date.now();
+      const timeDelta = lastDecayTime ? (now - lastDecayTime) / (1000 * 60 * 60) : 0; // Hours passed
+      lastDecayTime = now;
+
+      // Skip decay if called too frequently (< 5 seconds)
+      if (timeDelta < 0.0014) { // ~5 seconds
+        return state;
+      }
+
       const multiplier = getDecayMultiplier();
+      const energyRecovery = getEnergyRecoveryRate(isResting);
+
+      // Time-based decay/recovery (per hour rates)
       const decayed = applyDelta(state, {
-        satiety: -1.6 * multiplier,
-        energy: -1.2 * multiplier,
-        hygiene: -0.9 * multiplier,
-        mood: -0.6 * multiplier,
-        boredom: 1.2 * multiplier,
+        satiety: -1.6 * multiplier * timeDelta,    // ~-1.6/h
+        energy: (energyRecovery - 1.5 * multiplier) * timeDelta, // Net: +0.8/h (idle) or +3.5/h (resting) - 1.5/h decay
+        hygiene: -0.9 * multiplier * timeDelta,    // ~-0.9/h
+        mood: -0.6 * multiplier * timeDelta,       // ~-0.6/h
+        boredom: 1.2 * multiplier * timeDelta,     // ~+1.2/h
       });
 
       updated = {
@@ -161,6 +199,7 @@ export const useCareStore = create<CareStore>((set, get) => ({
   },
 
   applyAction: (action) => {
+    console.warn('[DEPRECATED] applyAction() will be removed in v2.0. Use feedPet() for feeding.');
     const effect = ACTION_EFFECTS[action];
     let updated: PetCareStats = initialCareStats;
 
@@ -184,6 +223,105 @@ export const useCareStore = create<CareStore>((set, get) => ({
       ...effect,
       stats: updated,
     };
+  },
+
+  // ========== Food System Methods ==========
+
+  /**
+   * Feed pet with specific food item
+   * 给宠物喂食指定食物
+   *
+   * @param foodId - Food item ID from foods.ts
+   * @returns FoodItem if successful, null if failed (cooldown/not found)
+   */
+  feedPet: (foodId) => {
+    const food = getFoodById(foodId);
+
+    if (!food) {
+      console.error(`[CareStore] Unknown food: ${foodId}`);
+      useToastStore.getState().addToast('未知的食物', { type: 'error' });
+      return null;
+    }
+
+    // Check cooldown
+    const cooldownRemaining = get().getCooldownRemaining(foodId);
+    if (cooldownRemaining > 0) {
+      const minutes = Math.ceil(cooldownRemaining / 60);
+      useToastStore.getState().addToast(
+        `${food.name}还在冷却中，剩余${minutes}分钟`,
+        { type: 'warning' }
+      );
+      return null;
+    }
+
+    // Apply food effects
+    set((state) => {
+      const merged = applyDelta(state, {
+        satiety: food.effects.satiety,
+        mood: food.effects.mood,
+        boredom: food.effects.boredom,
+        energy: food.effects.energy || 0,
+        hygiene: food.effects.hygiene || 0,
+        lastAction: 'feed', // Keep for compatibility
+      });
+
+      return {
+        ...merged,
+        isSick: computeSick(merged),
+      };
+    });
+
+    // Set cooldown if applicable
+    if (food.cooldown && food.cooldown > 0) {
+      const cooldownMs = food.cooldown * 1000;
+      set((state) => ({
+        foodCooldowns: {
+          ...state.foodCooldowns,
+          [foodId]: Date.now() + cooldownMs,
+        },
+      }));
+    }
+
+    // Update pet emotion and show message
+    usePetStore.getState().setEmotion(food.emotion);
+    usePetStore.getState().showBubble(food.message, 3000);
+
+    // Show success toast
+    useToastStore.getState().addToast(
+      `${food.icon} ${food.name}真好吃！`,
+      { type: 'success' }
+    );
+
+    // Save to database
+    get().saveToDatabase();
+
+    console.log(`[CareStore] Fed pet with ${food.name}`);
+    return food;
+  },
+
+  /**
+   * Get all available foods (not on cooldown)
+   * 获取所有可用食物（未冷却）
+   */
+  getAvailableFoods: () => {
+    return FOOD_ITEMS.filter((food: FoodItem) => {
+      return get().getCooldownRemaining(food.id) === 0;
+    });
+  },
+
+  /**
+   * Get cooldown remaining time in seconds
+   * 获取冷却剩余时间（秒）
+   *
+   * @param foodId - Food item ID
+   * @returns Remaining seconds (0 if not on cooldown)
+   */
+  getCooldownRemaining: (foodId) => {
+    const cooldownEnd = get().foodCooldowns[foodId];
+    if (!cooldownEnd) return 0;
+
+    const remaining = Math.max(0, Math.ceil((cooldownEnd - Date.now()) / 1000));
+    return remaining;
   },
 
   getStatusReport: () => {

@@ -41,6 +41,19 @@
     "opener:default",
     "clipboard-manager:allow-read-text",
     "clipboard-manager:allow-write-text",
-    "clipboard-manager:default"
+    "clipboard-manager:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://wttr.in/*" },
+        { "url": "https://*.wttr.in/*" },
+        { "url": "https://api.openai.com/*" },
+        { "url": "https://*.openai.com/*" },
+        { "url": "https://api.anthropic.com/*" },
+        { "url": "https://*.anthropic.com/*" },
+        { "url": "http://localhost:*/*" },
+        { "url": "http://127.0.0.1:*/*" }
+      ]
+    }
   ]
 }

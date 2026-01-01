@@ -48,7 +48,10 @@ export function usePetCareLoop() {
       const currentBehavior = useConfigStore.getState().config.behavior;
       const currentVoice = useConfigStore.getState().config.voice;
 
-      const stats = care.applyDecay();
+      // P2-X: Detect resting state (low energy or explicit rest action)
+      const isResting = care.energy < 35 || care.lastAction === 'sleep' || care.lastAction === 'rest';
+
+      const stats = care.applyDecay(isResting);
       const report = care.getStatusReport();
 
       // 统一警告逻辑：病弱优先，否则显示常规警告

@@ -23,6 +23,8 @@ export * from './message-ui';
 export * from './menu';
 export * from './bubble';
 export * from './feedback';
+export * from './food';
+export * from './relaxation';
 
 // Agent system types - 使用命名导出避免冲突
 export type {

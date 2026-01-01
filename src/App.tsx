@@ -8,6 +8,7 @@ import { PetContainer } from './components/pet';
 import { ToastContainer } from './components/toast';
 import { RecordingIndicator } from './components/RecordingIndicator';
 import { AchievementToastContainer } from './components/toast/AchievementToastContainer';
+import { PromptDialog } from './components/common/PromptDialog';
 import { initDatabase } from './services/database';
 import { getSchedulerManager } from './services/scheduler';
 import { getShortcutManager } from './services/keyboard';
@@ -433,6 +434,8 @@ function App() {
       <ToastContainer />
 
       <AchievementToastContainer />
+
+      <PromptDialog />
     </>
   );
 }

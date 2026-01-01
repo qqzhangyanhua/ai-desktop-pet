@@ -8,7 +8,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useCareStore } from '@/stores';
 import type { StatusBubble, InteractionType, PetCareStats } from '@/types';
-import { checkStatusThresholds, isUrgentStatus } from '@/services/pet';
+import { createStatusBubble, BUBBLE_PRIORITY } from '@/types/bubble';
+import { checkStatusThresholds, isUrgentStatus, getCooldownFeedback } from '@/services/pet';
 
 interface UseStatusDisplayOptions {
   /** 检查间隔 (毫秒) */
@@ -38,6 +39,8 @@ interface UseStatusDisplayReturn {
   handleMouseEnter: () => void;
   /** 鼠标离开 (隐藏迷你状态条) */
   handleMouseLeave: () => void;
+  /** 显示冷却提示气泡 */
+  showCooldownBubble: (type: InteractionType, remainingSeconds: number) => void;
 }
 
 export function useStatusDisplay(
@@ -141,6 +144,24 @@ export function useStatusDisplay(
     setCurrentBubble(null);
   }, []);
 
+  // 显示冷却提示气泡
+  const showCooldownBubble = useCallback(
+    (type: InteractionType, remainingSeconds: number) => {
+      const feedback = getCooldownFeedback(type, remainingSeconds);
+      const bubble = createStatusBubble({
+        type: 'cooldown',
+        priority: BUBBLE_PRIORITY.MEDIUM,
+        message: `${feedback.message}\n${feedback.remainingText}`,
+        emotion: feedback.emotion,
+        duration: feedback.duration,
+        dismissible: true,
+      });
+      setCurrentBubble(bubble);
+      setIsUrgent(false);
+    },
+    []
+  );
+
   // 鼠标进入
   const handleMouseEnter = useCallback(() => {
     if (!enableMiniBar) return;
@@ -184,6 +205,7 @@ export function useStatusDisplay(
     dismissBubble,
     handleMouseEnter,
     handleMouseLeave,
+    showCooldownBubble,
   };
 }
 

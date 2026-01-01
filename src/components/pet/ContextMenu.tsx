@@ -17,6 +17,8 @@ import { useContextMenuPosition } from './useContextMenuPosition';
 import { useMenuKeyboard } from './useMenuKeyboard';
 import { processMenuItems, getVisibleMenuItems } from './menu-logic';
 import { renderMenuItems, renderMenuTitle } from './menu-renderers';
+import { FoodMenu } from './FoodMenu';
+import { RelaxationPanel } from './RelaxationPanel';
 import '../settings/game-ui.css';
 
 interface ContextMenuProps {
@@ -39,6 +41,8 @@ export function ContextMenu({
   const statusPanelVisible = useConfigStore((s) => s.config.appearance.statusPanelVisible);
   const care = useCareStore();
   const [query, setQuery] = useState('');
+  const [showFoodMenu, setShowFoodMenu] = useState(false);
+  const [showRelaxationPanel, setShowRelaxationPanel] = useState(false);
 
   const favorites = useContextMenuStore((s) => s.favorites);
   const recent = useContextMenuStore((s) => s.recent);
@@ -81,8 +85,28 @@ export function ContextMenu({
   };
 
   const handlePetAction = (action: PetActionType) => {
+    // Intercept feed action to show food menu
+    if (action === 'feed') {
+      setShowFoodMenu(true);
+      return;
+    }
+
     onPetAction(action);
     onClose();
+  };
+
+  const handleFoodSelect = (foodId: string) => {
+    const feedResult = useCareStore.getState().feedPet(foodId);
+    if (feedResult) {
+      // Successfully fed - Don't close context menu immediately
+      // Let FoodMenu handle its own animation and closure
+      // Context menu will be closed when FoodMenu calls onClose
+    }
+    // If failed (cooldown/error), FoodMenu stays open with toast message
+  };
+
+  const handleCloseFoodMenu = () => {
+    setShowFoodMenu(false);
   };
 
   const handleAssistantAction = (skill: AssistantSkill) => {
@@ -102,6 +126,15 @@ export function ContextMenu({
     await windowManager.openSettingsWindow();
   };
 
+  const handleOpenRelaxation = () => {
+    setShowRelaxationPanel(true);
+  };
+
+  const handleCloseRelaxationPanel = () => {
+    setShowRelaxationPanel(false);
+  };
+
+  // Legacy handlers for old menu items (deprecated)
   const handleOpenBreathing = () => {
     onClose();
     useRelaxationStore.getState().openBreathing();
@@ -130,9 +163,10 @@ export function ContextMenu({
         quit: handleQuit,
       },
       relaxation: {
-        breathing: handleOpenBreathing,
-        story: handleOpenStoryPlayer,
-        meditation: handleOpenMeditation,
+        openPanel: handleOpenRelaxation, // New unified entry
+        breathing: handleOpenBreathing, // Legacy
+        story: handleOpenStoryPlayer, // Legacy
+        meditation: handleOpenMeditation, // Legacy
       },
     },
     state: {
@@ -220,15 +254,16 @@ export function ContextMenu({
   } = processed;
 
   return (
-    <div
-      ref={menuRef}
-      className="game-context-menu no-drag"
-      style={{
-        left: position?.left ?? 0,
-        top: position?.top ?? 0,
-        visibility: position ? 'visible' : 'hidden',
-      }}
-    >
+    <>
+      <div
+        ref={menuRef}
+        className="game-context-menu no-drag"
+        style={{
+          left: position?.left ?? 0,
+          top: position?.top ?? 0,
+          visibility: position ? 'visible' : 'hidden',
+        }}
+      >
       <div className="game-context-menu-search" onClick={(e) => e.stopPropagation()}>
         <Search className="game-context-menu-search-icon" />
         <input
@@ -381,5 +416,16 @@ export function ContextMenu({
         </>
       )}
     </div>
+
+    {/* Food Menu Modal */}
+    {showFoodMenu && (
+      <FoodMenu onSelectFood={handleFoodSelect} onClose={handleCloseFoodMenu} />
+    )}
+
+    {/* Relaxation Panel Modal */}
+    {showRelaxationPanel && (
+      <RelaxationPanel onClose={handleCloseRelaxationPanel} />
+    )}
+  </>
   );
 }
