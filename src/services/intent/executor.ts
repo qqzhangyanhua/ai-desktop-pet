@@ -266,7 +266,7 @@ async function executeClipboardWrite(params: Record<string, unknown>): Promise<E
 
   try {
     const clipboardTool = new ClipboardWriteTool();
-    const result = await clipboardTool.execute({ content });
+    const result = await clipboardTool.execute({ content }) as { success: boolean; error?: string; data?: { written: boolean; content: string } };
 
     if (!result.success) {
       return {
@@ -296,7 +296,7 @@ async function executeClipboardWrite(params: Record<string, unknown>): Promise<E
 async function executeClipboardRead(): Promise<ExecutionResult> {
   try {
     const clipboardTool = new ClipboardReadTool();
-    const result = await clipboardTool.execute({});
+    const result = await clipboardTool.execute({}) as { success: boolean; error?: string; data?: { content: string } };
 
     if (!result.success || !result.data) {
       return {

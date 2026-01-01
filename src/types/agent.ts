@@ -8,7 +8,7 @@ export interface ToolSchema {
     properties: Record<string, {
       type: string;
       description: string;
-      enum?: string[];
+      enum?: string[] | number[]; // Support both string and number enums
     }>;
     required?: string[];
   };

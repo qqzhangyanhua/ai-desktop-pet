@@ -63,7 +63,7 @@ function createToolResultEvent(
 }
 
 // Build zod schema from our tool schema
-function buildZodSchema(properties: Record<string, { type: string; description: string; enum?: string[] }>, required: string[]): z.ZodObject<Record<string, z.ZodTypeAny>> {
+function buildZodSchema(properties: Record<string, { type: string; description: string; enum?: string[] | number[] }>, required: string[]): z.ZodObject<Record<string, z.ZodTypeAny>> {
   const zodSchema: Record<string, z.ZodTypeAny> = {};
 
   for (const [key, prop] of Object.entries(properties)) {
@@ -74,7 +74,14 @@ function buildZodSchema(properties: Record<string, { type: string; description: 
         zodType = prop.enum ? z.enum(prop.enum as [string, ...string[]]) : z.string();
         break;
       case 'number':
-        zodType = z.number();
+        // Handle number enums
+        if (prop.enum && prop.enum.length > 0) {
+          zodType = z.number().refine((val) => (prop.enum as number[]).includes(val), {
+            message: `Must be one of: ${prop.enum.join(', ')}`
+          });
+        } else {
+          zodType = z.number();
+        }
         break;
       case 'boolean':
         zodType = z.boolean();

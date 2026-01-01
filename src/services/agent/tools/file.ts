@@ -1,10 +1,12 @@
 // File Tool - Read and write files using Tauri fs plugin
+// Refactored using defineTool to eliminate boilerplate
 
 import { readTextFile, writeTextFile, exists, mkdir } from '@tauri-apps/plugin-fs';
 import { appDataDir, join } from '@tauri-apps/api/path';
-import { BaseTool, createSuccessResult, createErrorResult, type ToolExecutionContext, type ToolResult } from '../base-tool';
-import type { ToolSchema } from '../../../types';
+import { defineTool } from '../define-tool';
+import type { ToolExecutionContext } from '../base-tool';
 
+// Type definitions for tool results
 interface FileReadResult {
   content: string;
   path: string;
@@ -21,191 +23,228 @@ interface FileExistsResult {
   path: string;
 }
 
-export class FileReadTool extends BaseTool {
-  name = 'file_read';
-  description = 'Read the contents of a text file. Only works within the app data directory for security.';
-
-  schema: ToolSchema = {
-    name: 'file_read',
-    description: this.description,
-    parameters: {
-      type: 'object',
-      properties: {
-        filename: {
-          type: 'string',
-          description: 'The filename to read (relative to app data directory)',
-        },
-      },
-      required: ['filename'],
-    },
-  };
-
-  async execute(
-    args: Record<string, unknown>,
-    context?: ToolExecutionContext
-  ): Promise<ToolResult<FileReadResult>> {
-    this.validateArgs(args);
-
-    const filename = args.filename as string;
-
-    // Prevent directory traversal
-    if (filename.includes('..') || filename.startsWith('/')) {
-      return createErrorResult('Invalid filename: path traversal not allowed');
-    }
-
-    context?.onProgress?.(`Reading file: ${filename}`);
-
-    try {
-      const baseDir = await appDataDir();
-      const filePath = await join(baseDir, 'user_files', filename);
-
-      const fileExists = await exists(filePath);
-      if (!fileExists) {
-        return createErrorResult(`File not found: ${filename}`);
-      }
-
-      const content = await readTextFile(filePath);
-      return createSuccessResult({
-        content,
-        path: filePath,
-      });
-    } catch (error) {
-      return createErrorResult(
-        error instanceof Error ? error.message : 'Failed to read file'
-      );
-    }
+/**
+ * Helper function to validate filename and prevent path traversal
+ */
+function validateFilename(filename: string): void {
+  if (filename.includes('..') || filename.startsWith('/')) {
+    throw new Error('Invalid filename: path traversal not allowed');
   }
 }
 
-export class FileWriteTool extends BaseTool {
-  name = 'file_write';
-  description = 'Write content to a text file. Only works within the app data directory for security.';
-  requiresConfirmation = true;
+/**
+ * Helper function to construct file path in app data directory
+ */
+async function getUserFilePath(filename: string): Promise<string> {
+  const baseDir = await appDataDir();
+  return await join(baseDir, 'user_files', filename);
+}
 
-  schema: ToolSchema = {
-    name: 'file_write',
-    description: this.description,
-    parameters: {
-      type: 'object',
-      properties: {
-        filename: {
-          type: 'string',
-          description: 'The filename to write to (relative to app data directory)',
-        },
-        content: {
-          type: 'string',
-          description: 'The text content to write to the file',
-        },
-        append: {
-          type: 'boolean',
-          description: 'Whether to append to the file instead of overwriting (default: false)',
-        },
-      },
-      required: ['filename', 'content'],
+/**
+ * Read the contents of a text file
+ * Only works within the app data directory for security
+ */
+export const fileReadTool = defineTool<
+  { filename: string },
+  FileReadResult
+>({
+  name: 'file_read',
+  description: 'Read the contents of a text file. Only works within the app data directory for security.',
+  parameters: {
+    filename: {
+      type: 'string',
+      description: 'The filename to read (relative to app data directory)',
+      required: true,
     },
-  };
+  },
 
-  async execute(
-    args: Record<string, unknown>,
-    context?: ToolExecutionContext
-  ): Promise<ToolResult<FileWriteResult>> {
-    this.validateArgs(args);
+  async execute({ filename }, context) {
+    validateFilename(filename);
+    context.onProgress?.(`Reading file: ${filename}`);
 
-    const filename = args.filename as string;
-    const content = args.content as string;
-    const append = (args.append as boolean) ?? false;
+    const filePath = await getUserFilePath(filename);
 
-    // Prevent directory traversal
-    if (filename.includes('..') || filename.startsWith('/')) {
-      return createErrorResult('Invalid filename: path traversal not allowed');
+    const fileExists = await exists(filePath);
+    if (!fileExists) {
+      throw new Error(`File not found: ${filename}`);
     }
 
-    context?.onProgress?.(`Writing file: ${filename}`);
+    const content = await readTextFile(filePath);
+    return {
+      content,
+      path: filePath,
+    };
+  },
+});
 
-    try {
-      const baseDir = await appDataDir();
-      const userFilesDir = await join(baseDir, 'user_files');
+/**
+ * Write content to a text file
+ * Only works within the app data directory for security
+ * Requires user confirmation (security measure)
+ */
+export const fileWriteTool = defineTool<
+  { filename: string; content: string; append?: boolean },
+  FileWriteResult
+>({
+  name: 'file_write',
+  description: 'Write content to a text file. Only works within the app data directory for security.',
+  requiresConfirmation: true,
+  parameters: {
+    filename: {
+      type: 'string',
+      description: 'The filename to write to (relative to app data directory)',
+      required: true,
+    },
+    content: {
+      type: 'string',
+      description: 'The text content to write to the file',
+      required: true,
+    },
+    append: {
+      type: 'boolean',
+      description: 'Whether to append to the file instead of overwriting (default: false)',
+      required: false,
+    },
+  },
 
-      // Ensure user_files directory exists
-      const dirExists = await exists(userFilesDir);
-      if (!dirExists) {
-        await mkdir(userFilesDir, { recursive: true });
-      }
+  async execute({ filename, content, append = false }, context) {
+    validateFilename(filename);
+    context.onProgress?.(`Writing file: ${filename}`);
 
-      const filePath = await join(userFilesDir, filename);
+    const baseDir = await appDataDir();
+    const userFilesDir = await join(baseDir, 'user_files');
 
-      let finalContent = content;
-      if (append) {
-        try {
-          const existing = await readTextFile(filePath);
-          finalContent = existing + content;
-        } catch {
-          // File doesn't exist, just use content
-        }
-      }
-
-      await writeTextFile(filePath, finalContent);
-
-      return createSuccessResult({
-        written: true,
-        path: filePath,
-        bytes: new TextEncoder().encode(finalContent).length,
-      });
-    } catch (error) {
-      return createErrorResult(
-        error instanceof Error ? error.message : 'Failed to write file'
-      );
+    // Ensure user_files directory exists
+    const dirExists = await exists(userFilesDir);
+    if (!dirExists) {
+      await mkdir(userFilesDir, { recursive: true });
     }
+
+    const filePath = await join(userFilesDir, filename);
+
+    let finalContent = content;
+    if (append) {
+      try {
+        const existing = await readTextFile(filePath);
+        finalContent = existing + content;
+      } catch {
+        // File doesn't exist, just use content
+      }
+    }
+
+    await writeTextFile(filePath, finalContent);
+
+    return {
+      written: true,
+      path: filePath,
+      bytes: new TextEncoder().encode(finalContent).length,
+    };
+  },
+});
+
+/**
+ * Check if a file exists in the app data directory
+ */
+export const fileExistsTool = defineTool<
+  { filename: string },
+  FileExistsResult
+>({
+  name: 'file_exists',
+  description: 'Check if a file exists in the app data directory.',
+  parameters: {
+    filename: {
+      type: 'string',
+      description: 'The filename to check (relative to app data directory)',
+      required: true,
+    },
+  },
+
+  async execute({ filename }, context) {
+    validateFilename(filename);
+    context.onProgress?.(`Checking file: ${filename}`);
+
+    const filePath = await getUserFilePath(filename);
+    const fileExists = await exists(filePath);
+
+    return {
+      exists: fileExists,
+      path: filePath,
+    };
+  },
+});
+
+// Legacy class exports for backward compatibility (deprecated)
+export class FileReadTool {
+  private static _instance = fileReadTool;
+
+  get name() {
+    return FileReadTool._instance.name;
+  }
+  get description() {
+    return FileReadTool._instance.description;
+  }
+  get schema() {
+    return FileReadTool._instance.schema;
+  }
+  get requiresConfirmation() {
+    return FileReadTool._instance.requiresConfirmation;
+  }
+
+  async execute(args: Record<string, unknown>, context?: ToolExecutionContext) {
+    return FileReadTool._instance.execute(args, context);
+  }
+
+  toJSON() {
+    return FileReadTool._instance.toJSON();
   }
 }
 
-export class FileExistsTool extends BaseTool {
-  name = 'file_exists';
-  description = 'Check if a file exists in the app data directory.';
+export class FileWriteTool {
+  private static _instance = fileWriteTool;
 
-  schema: ToolSchema = {
-    name: 'file_exists',
-    description: this.description,
-    parameters: {
-      type: 'object',
-      properties: {
-        filename: {
-          type: 'string',
-          description: 'The filename to check (relative to app data directory)',
-        },
-      },
-      required: ['filename'],
-    },
-  };
+  get name() {
+    return FileWriteTool._instance.name;
+  }
+  get description() {
+    return FileWriteTool._instance.description;
+  }
+  get schema() {
+    return FileWriteTool._instance.schema;
+  }
+  get requiresConfirmation() {
+    return FileWriteTool._instance.requiresConfirmation;
+  }
 
-  async execute(
-    args: Record<string, unknown>,
-    context?: ToolExecutionContext
-  ): Promise<ToolResult<FileExistsResult>> {
-    this.validateArgs(args);
+  async execute(args: Record<string, unknown>, context?: ToolExecutionContext) {
+    return FileWriteTool._instance.execute(args, context);
+  }
 
-    const filename = args.filename as string;
+  toJSON() {
+    return FileWriteTool._instance.toJSON();
+  }
+}
 
-    // Prevent directory traversal
-    if (filename.includes('..') || filename.startsWith('/')) {
-      return createErrorResult('Invalid filename: path traversal not allowed');
-    }
+export class FileExistsTool {
+  private static _instance = fileExistsTool;
 
-    context?.onProgress?.(`Checking file: ${filename}`);
+  get name() {
+    return FileExistsTool._instance.name;
+  }
+  get description() {
+    return FileExistsTool._instance.description;
+  }
+  get schema() {
+    return FileExistsTool._instance.schema;
+  }
+  get requiresConfirmation() {
+    return FileExistsTool._instance.requiresConfirmation;
+  }
 
-    try {
-      const baseDir = await appDataDir();
-      const filePath = await join(baseDir, 'user_files', filename);
+  async execute(args: Record<string, unknown>, context?: ToolExecutionContext) {
+    return FileExistsTool._instance.execute(args, context);
+  }
 
-      const fileExists = await exists(filePath);
-      return createSuccessResult({
-        exists: fileExists,
-        path: filePath,
-      });
-    } catch (error) {
-      return createErrorResult(
-        error instanceof Error ? error.message : 'Failed to check file'
-      );
-    }
+  toJSON() {
+    return FileExistsTool._instance.toJSON();
   }
 }
