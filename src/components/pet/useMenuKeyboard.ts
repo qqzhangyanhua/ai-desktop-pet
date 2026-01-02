@@ -66,7 +66,12 @@ export function useMenuKeyboard(
         e.preventDefault();
         setActiveId((prev) => {
           const list = visibleItemsRef.current;
+
+          // 边界检查：空列表
           if (list.length === 0) return null;
+
+          // 边界检查：单项列表
+          if (list.length === 1) return list[0]!.id;
 
           const currentIndex = prev ? list.findIndex((i) => i.id === prev) : -1;
           const dir = e.key === 'ArrowDown' ? 1 : -1;
@@ -74,6 +79,7 @@ export function useMenuKeyboard(
             currentIndex === -1
               ? 0
               : (currentIndex + dir + list.length) % list.length;
+
           return list[nextIndex]?.id ?? null;
         });
         return;

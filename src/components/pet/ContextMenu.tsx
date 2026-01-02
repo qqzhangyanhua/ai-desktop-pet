@@ -16,7 +16,7 @@ import { getWindowManager } from '@/services/window';
 import { useContextMenuPosition } from './useContextMenuPosition';
 import { useMenuKeyboard } from './useMenuKeyboard';
 import { processMenuItems, getVisibleMenuItems } from './menu-logic';
-import { renderMenuItems, renderMenuTitle } from './menu-renderers';
+import { MenuSection } from './MenuSection';
 import { FoodMenu } from './FoodMenu';
 import { RelaxationPanel } from './RelaxationPanel';
 import '../settings/game-ui.css';
@@ -150,34 +150,54 @@ export function ContextMenu({
     useRelaxationStore.getState().openMeditation();
   };
 
-  // 创建所有菜单项
-  const allItems: MenuItem[] = createMenuItems({
-    handlers: {
-      pet: handlePetAction,
-      assistant: handleAssistantAction,
-      system: {
-        openChat: handleOpenChat,
-        openSettings: handleOpenSettings,
-        toggleStatusPanel: handleToggleStatusPanel,
-        hide: handleHide,
-        quit: handleQuit,
-      },
-      relaxation: {
-        openPanel: handleOpenRelaxation, // New unified entry
-        breathing: handleOpenBreathing, // Legacy
-        story: handleOpenStoryPlayer, // Legacy
-        meditation: handleOpenMeditation, // Legacy
-      },
-    },
-    state: {
+  // 创建所有菜单项（useMemo 优化）
+  const allItems: MenuItem[] = useMemo(
+    () =>
+      createMenuItems({
+        handlers: {
+          pet: handlePetAction,
+          assistant: handleAssistantAction,
+          system: {
+            openChat: handleOpenChat,
+            openSettings: handleOpenSettings,
+            toggleStatusPanel: handleToggleStatusPanel,
+            hide: handleHide,
+            quit: handleQuit,
+          },
+          relaxation: {
+            openPanel: handleOpenRelaxation,
+            breathing: handleOpenBreathing,
+            story: handleOpenStoryPlayer,
+            meditation: handleOpenMeditation,
+          },
+        },
+        state: {
+          statusPanelVisible,
+        },
+      }),
+    [
       statusPanelVisible,
-    },
-  });
+      handlePetAction,
+      handleAssistantAction,
+      handleOpenChat,
+      handleOpenSettings,
+      handleToggleStatusPanel,
+      handleHide,
+      handleQuit,
+      handleOpenRelaxation,
+      handleOpenBreathing,
+      handleOpenStoryPlayer,
+      handleOpenMeditation,
+    ]
+  );
+
+  // 创建 itemById Map（useMemo 优化 - 避免重复构建）
+  const itemById = useMemo(() => new Map(allItems.map((i) => [i.id, i])), [allItems]);
 
   // 处理菜单逻辑（过滤、推荐、分组）
   const processed = useMemo(
-    () => processMenuItems(allItems, favorites, recent, care, query),
-    [allItems, favorites, recent, care, query]
+    () => processMenuItems(itemById, favorites, recent, care, query),
+    [itemById, favorites, recent, care, query]
   );
 
   // 获取折叠状态集合
@@ -284,20 +304,27 @@ export function ContextMenu({
       </div>
 
       {!normalizedQuery && favoriteItems.length > 0 && (
-        <>
-          {renderMenuTitle('收藏')}
-          {renderMenuItems(favoriteItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)}
-          <div className="game-context-menu-divider" />
-        </>
+        <MenuSection
+          title="收藏"
+          items={favoriteItems}
+          activeId={activeId}
+          isFavorite={isFavorite}
+          setActiveId={setActiveId}
+          onSelectItem={selectItem}
+          onToggleFavorite={toggleFavorite}
+        />
       )}
 
       {!normalizedQuery && recentItems.length > 0 && (
-        <>
-          {renderMenuTitle(
-            '最近使用',
-            undefined,
-            undefined,
-            undefined,
+        <MenuSection
+          title="最近使用"
+          items={recentItems}
+          activeId={activeId}
+          isFavorite={isFavorite}
+          setActiveId={setActiveId}
+          onSelectItem={selectItem}
+          onToggleFavorite={toggleFavorite}
+          titleAction={
             <button
               type="button"
               className="game-context-menu-title-action-btn"
@@ -306,113 +333,82 @@ export function ContextMenu({
             >
               <Trash2 className="w-4 h-4" />
             </button>
-          )}
-          {renderMenuItems(recentItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)}
-          <div className="game-context-menu-divider" />
-        </>
+          }
+        />
       )}
 
       {!normalizedQuery && recommendedItems.length > 0 && (
-        <>
-          {renderMenuTitle('推荐/快捷')}
-          {renderMenuItems(recommendedItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)}
-          <div className="game-context-menu-divider" />
-        </>
+        <MenuSection
+          title="推荐/快捷"
+          items={recommendedItems}
+          activeId={activeId}
+          isFavorite={isFavorite}
+          setActiveId={setActiveId}
+          onSelectItem={selectItem}
+          onToggleFavorite={toggleFavorite}
+        />
       )}
 
       {normalizedQuery && filteredItems.length === 0 ? (
         <div className="game-context-menu-empty">没有匹配项</div>
       ) : (
         <>
-          {petFunItems.length > 0 && !normalizedQuery && (
-            <>
-              {renderMenuTitle('娱乐与表演', 'pet_fun', isCollapsed('pet_fun'), () =>
-                toggleCollapsed('pet_fun')
-              )}
-              {!isCollapsed('pet_fun') ? (
-                <>
-                  {renderMenuItems(petFunItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)}
-                  <div className="game-context-menu-divider" />
-                </>
-              ) : (
-                <div className="game-context-menu-divider" />
-              )}
-            </>
-          )}
+          <MenuSection
+            id="pet_fun"
+            title="娱乐与表演"
+            items={petFunItems}
+            collapsed={isCollapsed('pet_fun')}
+            searchMode={!!normalizedQuery}
+            activeId={activeId}
+            isFavorite={isFavorite}
+            setActiveId={setActiveId}
+            onSelectItem={selectItem}
+            onToggleFavorite={toggleFavorite}
+            onToggleCollapsed={() => toggleCollapsed('pet_fun')}
+          />
 
-          {petFunItems.length > 0 && normalizedQuery && (
-            <>
-              {renderMenuTitle('娱乐与表演')}
-              {renderMenuItems(petFunItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)}
-              <div className="game-context-menu-divider" />
-            </>
-          )}
+          <MenuSection
+            id="pet_care"
+            title="休息与护理"
+            items={petCareItems}
+            collapsed={isCollapsed('pet_care')}
+            searchMode={!!normalizedQuery}
+            activeId={activeId}
+            isFavorite={isFavorite}
+            setActiveId={setActiveId}
+            onSelectItem={selectItem}
+            onToggleFavorite={toggleFavorite}
+            onToggleCollapsed={() => toggleCollapsed('pet_care')}
+          />
 
-          {petCareItems.length > 0 && !normalizedQuery && (
-            <>
-              {renderMenuTitle('休息与护理', 'pet_care', isCollapsed('pet_care'), () =>
-                toggleCollapsed('pet_care')
-              )}
-              {!isCollapsed('pet_care') ? (
-                <>
-                  {renderMenuItems(petCareItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)}
-                  <div className="game-context-menu-divider" />
-                </>
-              ) : (
-                <div className="game-context-menu-divider" />
-              )}
-            </>
-          )}
+          <MenuSection
+            id="assistant"
+            title="智能助手"
+            items={assistantItems}
+            collapsed={isCollapsed('assistant')}
+            searchMode={!!normalizedQuery}
+            activeId={activeId}
+            isFavorite={isFavorite}
+            setActiveId={setActiveId}
+            onSelectItem={selectItem}
+            onToggleFavorite={toggleFavorite}
+            onToggleCollapsed={() => toggleCollapsed('assistant')}
+          />
 
-          {petCareItems.length > 0 && normalizedQuery && (
-            <>
-              {renderMenuTitle('休息与护理')}
-              {renderMenuItems(petCareItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)}
-              <div className="game-context-menu-divider" />
-            </>
-          )}
-
-          {assistantItems.length > 0 && !normalizedQuery && (
-            <>
-              {renderMenuTitle('智能助手', 'assistant', isCollapsed('assistant'), () =>
-                toggleCollapsed('assistant')
-              )}
-              {!isCollapsed('assistant') ? (
-                <>
-                  {renderMenuItems(assistantItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)}
-                  <div className="game-context-menu-divider" />
-                </>
-              ) : (
-                <div className="game-context-menu-divider" />
-              )}
-            </>
-          )}
-
-          {assistantItems.length > 0 && normalizedQuery && (
-            <>
-              {renderMenuTitle('智能助手')}
-              {renderMenuItems(assistantItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)}
-              <div className="game-context-menu-divider" />
-            </>
-          )}
-
-          {systemItems.length > 0 && !normalizedQuery && (
-            <>
-              {renderMenuTitle('系统', 'system', isCollapsed('system'), () =>
-                toggleCollapsed('system')
-              )}
-              {!isCollapsed('system')
-                ? renderMenuItems(systemItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)
-                : null}
-            </>
-          )}
-
-          {systemItems.length > 0 && normalizedQuery && (
-            <>
-              {renderMenuTitle('系统')}
-              {renderMenuItems(systemItems, activeId, isFavorite, setActiveId, selectItem, toggleFavorite)}
-            </>
-          )}
+          <MenuSection
+            id="system"
+            title="系统"
+            items={systemItems}
+            collapsed={isCollapsed('system')}
+            searchMode={!!normalizedQuery}
+            activeId={activeId}
+            isFavorite={isFavorite}
+            setActiveId={setActiveId}
+            onSelectItem={selectItem}
+            onToggleFavorite={toggleFavorite}
+            onToggleCollapsed={() => toggleCollapsed('system')}
+            showDivider={false}
+          />
         </>
       )}
     </div>

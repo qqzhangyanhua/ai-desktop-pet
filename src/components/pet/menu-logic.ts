@@ -127,7 +127,9 @@ export function deduplicateItems(
  * 3. 分类分组
  * 4. 去重处理
  *
- * @param allItems - 所有菜单项
+ * Linus优化：接受预计算的 itemById Map，避免每次调用重建
+ *
+ * @param itemById - 菜单项ID到对象的映射（预计算）
  * @param favorites - 收藏ID列表
  * @param recent - 最近使用ID列表
  * @param care - 宠物护理状态
@@ -135,13 +137,14 @@ export function deduplicateItems(
  * @returns 过滤和分组后的菜单项
  */
 export function processMenuItems(
-  allItems: MenuItem[],
+  itemById: Map<string, MenuItem>,
   favorites: string[],
   recent: string[],
   care: PetCareStats,
   query: string
 ): MenuItemsFiltered {
-  const itemById = new Map(allItems.map((i) => [i.id, i]));
+  // 获取所有菜单项（用于搜索）
+  const allItems = Array.from(itemById.values());
 
   // 1. 获取所有收藏项
   const favoriteItems = favorites
