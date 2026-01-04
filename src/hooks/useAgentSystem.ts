@@ -42,41 +42,30 @@ export function useAgentSystem(options: UseAgentSystemOptions = {}) {
 
     // 开发模式检查
     if (import.meta.env.DEV && !enableInDev) {
-      console.log('[AgentSystem] Skipped in development mode');
       return;
     }
 
     // 全局开关检查
     if (!globalEnabled) {
-      console.log('[AgentSystem] Disabled by global switch');
       return;
     }
 
     const initializeSystem = async () => {
       try {
-        console.log('[AgentSystem] Starting initialization...');
-
         // 获取 Dispatcher 和 TriggerManager
         const dispatcher = getAgentDispatcher();
         const triggerManager = getTriggerManager();
 
         // 注册所有智能体
-        console.log('[AgentSystem] Registering agents...');
         const registeredCount = await registerAllAgents(dispatcher);
-        console.log(`[AgentSystem] Registered ${registeredCount} agents`);
 
         // 启动系统
         if (autoStart) {
-          console.log('[AgentSystem] Starting dispatcher...');
           await dispatcher.start();
 
-          console.log('[AgentSystem] Starting trigger manager...');
           triggerManager.start((agentId, triggerId) => {
             // 触发回调 - 调度器会处理
-            console.log('[AgentSystem] Trigger fired:', { agentId, triggerId });
           });
-
-          console.log('[AgentSystem] ✅ Agent system started successfully');
 
           // 更新状态
           useAgentSystemStore.getState().setSystemStatus('running');
@@ -95,7 +84,6 @@ export function useAgentSystem(options: UseAgentSystemOptions = {}) {
     // 清理函数
     return () => {
       if (initialized.current) {
-        console.log('[AgentSystem] Cleaning up...');
         const dispatcher = getAgentDispatcher();
         const triggerManager = getTriggerManager();
 

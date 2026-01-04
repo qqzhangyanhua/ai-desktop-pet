@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Live2D 路径测试</title>
+</head>
+<body>
+  <h1>测试结果</h1>
+  <div id="results"></div>
+  
+  <script>
+    async function testPaths() {
+      const results = document.getElementById('results');
+      
+      // 测试头像图片（已知能工作）
+      const imgPath = './whitecatfree_vts/white-cat.2048/avatar.png';
+      results.innerHTML += `<h2>测试头像图片: ${imgPath}</h2>`;
+      
+      try {
+        const imgResponse = await fetch(imgPath);
+        results.innerHTML += `<p style="color: green">✅ 头像图片: ${imgResponse.status} ${imgResponse.statusText}</p>`;
+        results.innerHTML += `<img src="${imgPath}" width="100"><br>`;
+      } catch (e) {
+        results.innerHTML += `<p style="color: red">❌ 头像图片: ${e.message}</p>`;
+      }
+      
+      // 测试 model3.json（已知不工作）
+      const modelPath = './whitecatfree_vts/white-cat.model3.json';
+      results.innerHTML += `<h2>测试模型配置: ${modelPath}</h2>`;
+      
+      try {
+        const modelResponse = await fetch(modelPath);
+        results.innerHTML += `<p style="color: green">✅ 模型文件: ${modelResponse.status} ${modelResponse.statusText}</p>`;
+        
+        const modelJson = await modelResponse.json();
+        results.innerHTML += `<pre>${JSON.stringify(modelJson, null, 2)}</pre>`;
+        
+        // 测试 model3.json 中引用的资源
+        results.innerHTML += `<h3>测试模型内部引用的资源</h3>`;
+        
+        // 测试相对于 model3.json 的路径
+        const baseUrl = new URL(modelPath, document.baseURI).href;
+        const baseDir = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+        
+        results.innerHTML += `<p>模型基准路径: ${baseDir}</p>`;
+        
+        // 测试 moc3 文件
+        const mocPath = new URL(modelJson.FileReferences.Moc, baseDir).href;
+        results.innerHTML += `<p>尝试加载 Moc: ${mocPath}</p>`;
+        
+        try {
+          const mocResponse = await fetch(mocPath);
+          results.innerHTML += `<p style="color: green">✅ Moc 文件: ${mocResponse.status}</p>`;
+        } catch (e) {
+          results.innerHTML += `<p style="color: red">❌ Moc 文件: ${e.message}</p>`;
+        }
+        
+        // 测试纹理文件
+        const texturePath = new URL(modelJson.FileReferences.Textures[0], baseDir).href;
+        results.innerHTML += `<p>尝试加载纹理: ${texturePath}</p>`;
+        
+        try {
+          const textureResponse = await fetch(texturePath);
+          results.innerHTML += `<p style="color: green">✅ 纹理文件: ${textureResponse.status}</p>`;
+          results.innerHTML += `<img src="${texturePath}" width="200"><br>`;
+        } catch (e) {
+          results.innerHTML += `<p style="color: red">❌ 纹理文件: ${e.message}</p>`;
+        }
+        
+      } catch (e) {
+        results.innerHTML += `<p style="color: red">❌ 模型文件: ${e.message}</p>`;
+      }
+      
+      // 显示环境信息
+      results.innerHTML += `<h2>环境信息</h2>`;
+      results.innerHTML += `<p>location.href: ${location.href}</p>`;
+      results.innerHTML += `<p>document.baseURI: ${document.baseURI}</p>`;
+    }
+    
+    testPaths();
+  </script>
+</body>
+</html>

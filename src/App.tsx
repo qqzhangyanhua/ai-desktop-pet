@@ -7,6 +7,7 @@ import { LogicalSize, PhysicalPosition } from '@tauri-apps/api/dpi';
 import { PetContainer } from './components/pet';
 import { ToastContainer } from './components/toast';
 import { RecordingIndicator } from './components/RecordingIndicator';
+import { DebugPanel } from './components/DebugPanel';
 import { AchievementToastContainer } from './components/toast/AchievementToastContainer';
 import { PromptDialog } from './components/common/PromptDialog';
 import { initDatabase } from './services/database';
@@ -26,6 +27,19 @@ import { useAchievementListener, useAgentSystem, useAgentListener } from './hook
 import { useProactiveBehavior } from './hooks/useProactiveBehavior';
 import { usePerformanceMode } from './hooks/usePerformanceMode';
 import './styles/global.css';
+
+// 🔥 在模块加载时立即初始化 Live2D（在任何组件渲染之前）
+// 动态导入并立即调用初始化
+import('./services/live2d/global-init')
+  .then(({ initGlobalLive2D }) => {
+    return initGlobalLive2D();
+  })
+  .then((instance) => {
+    // Live2D 初始化完成
+  })
+  .catch((error) => {
+    console.error('[INIT] ❌ Live2D 初始化失败:', error);
+  });
 
 function App() {
   const [dbReady, setDbReady] = useState(false);
@@ -51,18 +65,15 @@ function App() {
   // 监听智能体事件
   useAgentListener();
 
+  // Live2D 已在模块级别初始化，这里不需要再次调用
+
   // Initialize database, scheduler, and load config
   useEffect(() => {
-    console.log('[App] Starting initialization...');
-
     initDatabase()
       .then(async () => {
-        console.log('[App] Database initialized');
-
         // Load config directly from store
         const { loadConfig } = useConfigStore.getState();
         await loadConfig();
-        console.log('[App] Config loaded');
 
         const { config } = useConfigStore.getState();
 
@@ -109,24 +120,19 @@ function App() {
         // Load pet status
         const { loadStatus } = usePetStatusStore.getState();
         await loadStatus();
-        console.log('[App] Pet status loaded');
 
         // P2-1-D: Load care status from database
         const { loadFromDatabase: loadCareStatus } = useCareStore.getState();
         await loadCareStatus();
-        console.log('[App] Care status loaded');
 
         // Load user profile
         await loadUserProfile();
-        console.log('[App] User profile loaded');
 
         // Initialize statistics service
         await initializeStatsService();
-        console.log('[App] Statistics service initialized');
 
         // Initialize achievements
         await initializeAchievements();
-        console.log('[App] Achievements initialized');
 
         // Initialize bookmark manager
         try {
@@ -134,24 +140,20 @@ function App() {
           const { getDatabase } = await import('@/services/database');
           const db = await getDatabase();
           await bookmarkManager.initialize(db);
-          console.log('[App] BookmarkManager initialized');
         } catch (error) {
           console.warn('[App] Failed to initialize bookmark manager:', error);
         }
 
         // Note: Agent system is initialized via useAgentSystem hook
-        console.log('[App] Agent system will be initialized by hook');
 
         // Initialize scheduler
         const scheduler = getSchedulerManager();
         await scheduler.initialize();
-        console.log('[App] Scheduler initialized');
 
         // Initialize shortcuts (best-effort)
         try {
           const shortcutManager = getShortcutManager();
           await shortcutManager.registerShortcuts(config.assistant.shortcuts);
-          console.log('[App] Shortcuts registered');
         } catch (error) {
           console.warn('[App] Failed to register shortcuts:', error);
         }
@@ -160,7 +162,6 @@ function App() {
         try {
           const autostartManager = getAutostartManager();
           await autostartManager.setAutostart(config.performance.launchOnStartup);
-          console.log('[App] Autostart synced');
         } catch (error) {
           console.warn('[App] Failed to sync autostart:', error);
         }
@@ -169,13 +170,11 @@ function App() {
         try {
           const { startResourceMonitoring } = await import('./services/performance');
           startResourceMonitoring();
-          console.log('[App] Resource monitoring started');
         } catch (error) {
           console.warn('[App] Failed to start resource monitoring:', error);
         }
 
         setDbReady(true);
-        console.log('[App] Database and scheduler ready');
 
         // Show welcome bubble after initialization
         setTimeout(() => {
@@ -408,14 +407,11 @@ function App() {
 
           // Also show in pet bubble for immediate feedback
           usePetStore.getState().showBubble(`语音: ${text}`, 2000);
-          console.log('[App] Push-to-talk recognized and sent to chat:', text);
         });
 
         manager.enable().catch((err) => {
           console.warn('[App] Failed to enable push-to-talk:', err);
         });
-
-        console.log('[App] Push-to-talk enabled with key:', config.voice.pushToTalkKey);
       } catch (error) {
         console.warn('[App] Failed to setup push-to-talk:', error);
       }
@@ -423,7 +419,6 @@ function App() {
       manager.disable().catch((err) => {
         console.warn('[App] Failed to disable push-to-talk:', err);
       });
-      console.log('[App] Push-to-talk disabled');
     }
   }, [
     config.voice.pushToTalkEnabled,
@@ -463,6 +458,8 @@ function App() {
       <ToastContainer />
 
       <AchievementToastContainer />
+      
+      <DebugPanel />
 
       <PromptDialog />
     </>

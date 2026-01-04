@@ -105,7 +105,6 @@ class AutoWorkManager {
 
     // 检查心情和精力是否足够
     if (status.mood < 30 || status.energy < 30) {
-      console.log('[AutoWorkManager] Mood or energy too low to work');
       return false;
     }
 
@@ -113,7 +112,6 @@ class AutoWorkManager {
     const today = new Date().toISOString().split('T')[0] ?? '';
     const todayWorkHours = Number((await getTodayWorkHours(today)) || 0) || 0;
     if (todayWorkHours >= config.behavior.autoWork.dailyMaxWorkHours) {
-      console.log('[AutoWorkManager] Daily work limit reached');
       return false;
     }
 
@@ -125,7 +123,6 @@ class AutoWorkManager {
    */
   async startWork(): Promise<boolean> {
     if (this.taskStatus === 'working' || this.currentTask) {
-      console.log('[AutoWorkManager] Already working');
       return false;
     }
 
@@ -140,8 +137,6 @@ class AutoWorkManager {
     const task = this.createWorkTask(workType);
     this.currentTask = task;
     this.taskStatus = 'working';
-
-    console.log(`[AutoWorkManager] Started ${workType} work, will complete in ${task.endTime - task.startTime}ms`);
 
     // 设置定时器完成任务
     setTimeout(() => {
@@ -161,7 +156,6 @@ class AutoWorkManager {
    */
   async completeWork(taskId: string): Promise<void> {
     if (!this.currentTask || this.currentTask.id !== taskId) {
-      console.warn('[AutoWorkManager] Task not found or already completed');
       return;
     }
 
@@ -216,14 +210,9 @@ class AutoWorkManager {
         6000
       );
 
-      console.log(
-        `[AutoWorkManager] Work completed: +${actualCoins} coins, +${actualExperience} exp, -${task.cost.mood} mood, -${task.cost.energy} energy`
-      );
-
       // 触发成就检查（异步，不阻塞）
       // Note: 成就检查需要统计数据，为避免复杂性，这里先记录log
       // 成就系统会在定期检查中自动触发
-      console.log('[AutoWorkManager] Work task completed - achievements may be unlocked');
     } catch (error) {
       console.error('[AutoWorkManager] Failed to complete work:', error);
       const petStore = usePetStore.getState();
@@ -296,7 +285,6 @@ class AutoWorkManager {
    */
   async cancelCurrentTask(): Promise<void> {
     if (this.currentTask) {
-      console.log('[AutoWorkManager] Cancelling current task');
       this.currentTask = null;
       this.taskStatus = 'idle';
       const petStore = usePetStore.getState();

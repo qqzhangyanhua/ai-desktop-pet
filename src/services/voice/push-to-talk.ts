@@ -118,8 +118,6 @@ class PushToTalkManager {
 
     document.addEventListener('keydown', this.keyDownHandler);
     document.addEventListener('keyup', this.keyUpHandler);
-
-    console.log('[PushToTalk] Enabled with trigger key:', this.config.triggerKey);
   }
 
   /**
@@ -149,7 +147,6 @@ class PushToTalkManager {
     }
 
     this.setState('idle');
-    console.log('[PushToTalk] Disabled');
   }
 
   /**
@@ -170,12 +167,9 @@ class PushToTalkManager {
     // 设置最大录音时长定时器
     this.recordingTimer = setTimeout(() => {
       if (this.state === 'recording') {
-        console.log('[PushToTalk] Max duration reached, stopping recording');
         stt.stop();
       }
     }, this.config.maxDuration);
-
-    console.log('[PushToTalk] Recording started');
   }
 
   /**
@@ -190,7 +184,6 @@ class PushToTalkManager {
 
     // 防抖：时长 < 200ms 视为误触
     if (duration < this.config.minDuration) {
-      console.log(`[PushToTalk] Ignored (too short: ${duration}ms)`);
       const stt = getWebSpeechSTT();
       stt.abort();
       this.setState('idle');
@@ -200,8 +193,6 @@ class PushToTalkManager {
     // 停止录音（会触发 onEnd 回调）
     const stt = getWebSpeechSTT();
     stt.stop();
-
-    console.log(`[PushToTalk] Recording stopped (${duration}ms)`);
   }
 
   /**
@@ -214,13 +205,11 @@ class PushToTalkManager {
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     if (!this.recognizedText || this.recognizedText.trim().length === 0) {
-      console.log('[PushToTalk] No recognized text');
       this.setState('idle');
       return;
     }
 
     const text = this.recognizedText.trim();
-    console.log('[PushToTalk] Recognized:', text);
 
     // 发送消息
     if (this.onMessageCallback) {

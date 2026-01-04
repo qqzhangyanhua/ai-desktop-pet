@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>路径诊断工具</title>
+  <style>
+    body {
+      font-family: 'Monaco', 'Courier New', monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #2d2d2d;
+      border-radius: 8px;
+      border-left: 4px solid #007acc;
+    }
+    h2 {
+      color: #4ec9b0;
+      margin-top: 0;
+    }
+    pre {
+      background: #1e1e1e;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .success { color: #4ec9b0; }
+    .error { color: #f48771; }
+    .warn { color: #dcdcaa; }
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #005a9e;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Tauri 路径诊断工具</h1>
+  
+  <div class="section">
+    <h2>1. 当前环境信息</h2>
+    <pre id="env-info"></pre>
+  </div>
+
+  <div class="section">
+    <h2>2. 测试绝对路径访问</h2>
+    <button onclick="testPath('/whitecatfree_vts/white-cat.model3.json')">测试 /whitecatfree_vts/...</button>
+    <pre id="absolute-result"></pre>
+  </div>
+
+  <div class="section">
+    <h2>3. 测试相对路径访问</h2>
+    <button onclick="testPath('./whitecatfree_vts/white-cat.model3.json')">测试 ./whitecatfree_vts/...</button>
+    <pre id="relative-result"></pre>
+  </div>
+
+  <div class="section">
+    <h2>4. 测试不同基准路径</h2>
+    <button onclick="testPath('whitecatfree_vts/white-cat.model3.json')">测试 whitecatfree_vts/...</button>
+    <pre id="base-result"></pre>
+  </div>
+
+  <div class="section">
+    <h2>5. 测试完整 URL</h2>
+    <button onclick="testFullUrl()">测试完整 URL 构造</button>
+    <pre id="full-url-result"></pre>
+  </div>
+
+  <script>
+    // 显示环境信息
+    function showEnvInfo() {
+      const info = {
+        'location.href': location.href,
+        'location.origin': location.origin,
+        'location.protocol': location.protocol,
+        'location.hostname': location.hostname,
+        'location.pathname': location.pathname,
+        'document.baseURI': document.baseURI,
+        'window.__TAURI__': typeof window.__TAURI__ !== 'undefined' ? 'Available' : 'Not available',
+        'User Agent': navigator.userAgent,
+      };
+      
+      document.getElementById('env-info').textContent = JSON.stringify(info, null, 2);
+    }
+
+    // 测试路径访问
+    async function testPath(path) {
+      const resultId = path.startsWith('/') ? 'absolute-result' : 
+                       path.startsWith('./') ? 'relative-result' : 'base-result';
+      const resultEl = document.getElementById(resultId);
+      
+      resultEl.innerHTML = `<span class="warn">正在测试: ${path}</span>\n`;
+      
+      const fullUrl = new URL(path, document.baseURI).href;
+      resultEl.innerHTML += `完整 URL: ${fullUrl}\n\n`;
+      
+      try {
+        const startTime = performance.now();
+        const response = await fetch(path);
+        const endTime = performance.now();
+        const duration = (endTime - startTime).toFixed(2);
+        
+        if (response.ok) {
+          const text = await response.text();
+          const preview = text.substring(0, 200);
+          resultEl.innerHTML += `<span class="success">✅ 成功!</span>\n`;
+          resultEl.innerHTML += `状态: ${response.status} ${response.statusText}\n`;
+          resultEl.innerHTML += `耗时: ${duration}ms\n`;
+          resultEl.innerHTML += `内容类型: ${response.headers.get('content-type')}\n`;
+          resultEl.innerHTML += `内容大小: ${text.length} bytes\n`;
+          resultEl.innerHTML += `内容预览:\n${preview}...\n`;
+        } else {
+          resultEl.innerHTML += `<span class="error">❌ 失败!</span>\n`;
+          resultEl.innerHTML += `状态: ${response.status} ${response.statusText}\n`;
+        }
+      } catch (error) {
+        resultEl.innerHTML += `<span class="error">❌ 错误!</span>\n`;
+        resultEl.innerHTML += `错误信息: ${error.message}\n`;
+        resultEl.innerHTML += `错误堆栈:\n${error.stack}\n`;
+      }
+    }
+
+    // 测试完整 URL 构造
+    async function testFullUrl() {
+      const resultEl = document.getElementById('full-url-result');
+      
+      const paths = [
+        '/whitecatfree_vts/white-cat.model3.json',
+        './whitecatfree_vts/white-cat.model3.json',
+        'whitecatfree_vts/white-cat.model3.json',
+      ];
+      
+      let output = '';
+      for (const path of paths) {
+        const fullUrl = new URL(path, document.baseURI).href;
+        output += `路径: ${path}\n`;
+        output += `解析为: ${fullUrl}\n`;
+        output += `---\n`;
+      }
+      
+      // 测试 window.location 各种组合
+      output += '\n基于 location.origin:\n';
+      for (const path of paths) {
+        const cleaned = path.replace(/^\.\//, '').replace(/^\//, '');
+        const fullUrl = `${location.origin}/${cleaned}`;
+        output += `${path} -> ${fullUrl}\n`;
+      }
+      
+      resultEl.textContent = output;
+    }
+
+    // 页面加载时显示环境信息
+    window.addEventListener('DOMContentLoaded', () => {
+      showEnvInfo();
+    });
+  </script>
+</body>
+</html>

@@ -15,13 +15,11 @@ export async function getConfigValue(key: string): Promise<string | null> {
 
 export async function setConfigValue(key: string, value: string): Promise<void> {
   try {
-    console.log(`[DB] Setting config key: ${key}, value length: ${value.length}`);
     await execute(
       `INSERT INTO config (key, value, updated_at) VALUES (?, ?, ?)
        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
       [key, value, Date.now()]
     );
-    console.log(`[DB] Config key ${key} set successfully`);
   } catch (error) {
     console.error(`[DB] Failed to set config key ${key}:`, error);
     throw error;
@@ -112,7 +110,6 @@ export async function loadAppConfig(): Promise<AppConfig> {
 
 export async function saveAppConfig(config: AppConfig): Promise<void> {
   try {
-    console.log('[DB] Saving app config, keys:', Object.keys(config));
     // Don't save API keys to database for security
     const configToSave = {
       ...config,
@@ -122,9 +119,7 @@ export async function saveAppConfig(config: AppConfig): Promise<void> {
       },
     };
     const configJson = JSON.stringify(configToSave);
-    console.log('[DB] Config JSON length:', configJson.length);
     await setConfigValue('app_config', configJson);
-    console.log('[DB] Config saved to database successfully');
   } catch (error) {
     console.error('[DB] Failed to save app config:', error);
     throw error;

@@ -80,12 +80,10 @@ class WindowManager {
       if (existingWindow) {
         // 窗口已存在，聚焦
         await existingWindow.setFocus();
-        console.log(`[WindowManager] Focused existing window: ${config.label}`);
         return;
       }
 
       // 窗口不存在，创建新窗口
-      console.log(`[WindowManager] Creating window: ${config.label}, url: ${config.url}`);
       const webview = new WebviewWindow(config.label, {
         url: config.url,
         title: config.title,
@@ -100,7 +98,7 @@ class WindowManager {
 
       // 监听创建结果
       webview.once('tauri://created', () => {
-        console.log(`[WindowManager] Window created successfully: ${config.label}`);
+        // Window created successfully
       });
 
       webview.once('tauri://error', (e) => {
@@ -156,7 +154,6 @@ class WindowManager {
       const window = await WebviewWindow.getByLabel(label);
       if (window) {
         await window.close();
-        console.log(`[WindowManager] Closed window: ${label}`);
       }
     } catch (error) {
       console.error(`[WindowManager] Failed to close window ${label}:`, error);

@@ -78,8 +78,6 @@ class ResourceMonitor {
       return; // 已经在监控中
     }
 
-    console.log('[ResourceMonitor] Starting monitoring...');
-
     // 每分钟检查一次
     this.monitoringInterval = setInterval(() => {
       void this.checkResources();
@@ -96,7 +94,6 @@ class ResourceMonitor {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
-      console.log('[ResourceMonitor] Stopped monitoring');
     }
   }
 
@@ -187,10 +184,6 @@ class ResourceMonitor {
       usage.memoryMB > threshold.memory || usage.cpuPercent > threshold.cpu;
 
     if (exceeds) {
-      console.log(
-        `[ResourceMonitor] Threshold exceeded: memory=${usage.memoryMB}MB (limit=${threshold.memory}MB), cpu=${usage.cpuPercent}% (limit=${threshold.cpu}%)`
-      );
-
       // 通知阈值超过
       if (this.callbacks.onThresholdExceeded) {
         this.callbacks.onThresholdExceeded(usage, threshold);
@@ -203,7 +196,6 @@ class ResourceMonitor {
     } else if (this.isDegraded) {
       // 资源恢复正常，可以考虑恢复性能
       // 但为了避免频繁切换，这里不自动恢复
-      console.log('[ResourceMonitor] Resource usage back to normal');
     }
   }
 
@@ -212,8 +204,6 @@ class ResourceMonitor {
    */
   private async triggerDegradation(): Promise<void> {
     this.isDegraded = true;
-
-    console.log('[ResourceMonitor] Triggering degradation...');
 
     // 切换到省电模式
     const perfManager = getPerformanceManager();

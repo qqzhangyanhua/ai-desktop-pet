@@ -148,6 +148,10 @@ body {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  /* 🔥 确保舞台在窗口内可见 - Tauri 窗口只有 400x600 */
+  left: 50px !important;
+  bottom: 0 !important;
+  right: auto !important;
 }
 
 /* oh-my-live2d wrapper */

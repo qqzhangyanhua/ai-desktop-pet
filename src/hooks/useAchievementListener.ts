@@ -102,11 +102,6 @@ export function useAchievementListener() {
 
         // 如果有新解锁的成就，显示 Toast
         if (newlyUnlocked.length > 0) {
-          console.log(
-            `[useAchievementListener] Unlocked ${newlyUnlocked.length} achievement(s):`,
-            newlyUnlocked.map((a) => a.name).join(', ')
-          );
-
           // 依次显示每个成就 Toast
           newlyUnlocked.forEach((achievement) => {
             showAchievementToast(achievement);

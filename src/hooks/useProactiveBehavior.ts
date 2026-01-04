@@ -130,8 +130,6 @@ export function useProactiveBehavior(enabled: boolean = true) {
         };
 
         scheduler.on('notification', notificationHandler);
-
-        console.log('[useProactiveBehavior] Proactive tasks registered');
       } catch (error) {
         console.error('[useProactiveBehavior] Failed to setup proactive tasks:', error);
       }

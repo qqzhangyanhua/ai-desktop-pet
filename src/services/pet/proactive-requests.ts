@@ -301,16 +301,10 @@ export function shouldTriggerProactiveRequest(
   const check = canTriggerRequest(stats, lastRequestTime, config, declineCount);
 
   if (!check.allowed) {
-    // console.log('[ProactiveRequest] Cannot trigger:', check.reason);
     return null;
   }
 
   const request = createProactiveRequest(stats);
-  console.log('[ProactiveRequest] Generated:', {
-    type: request.type,
-    urgency: request.urgency,
-    message: request.message,
-  });
 
   return request;
 }

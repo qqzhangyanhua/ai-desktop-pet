@@ -173,11 +173,9 @@ export function useChat(options: UseChatOptions = {}) {
 
       // Intent detection: check if user wants to execute a tool
       const intentResult = await detectIntent(content.trim());
-      console.log('[useChat] Intent detected:', intentResult);
 
       if (intentResult && intentResult.intent !== 'chat') {
         // Execute tool intent
-        console.log('[useChat] Executing intent:', intentResult.intent);
         setPetEmotion('thinking');
         petShowBubble('让我帮你处理...', 2000);
 
@@ -186,7 +184,6 @@ export function useChat(options: UseChatOptions = {}) {
             userMessage: content.trim(),
             intent: intentResult,
             onProgress: (message) => {
-              console.log('[useChat] Intent progress:', message);
               petShowBubble(message, 2000);
             },
           });
@@ -283,16 +280,13 @@ export function useChat(options: UseChatOptions = {}) {
 
         // Collect context and enrich system prompt
         let enrichedSystemPrompt = appConfig.systemPrompt;
-        console.log('[useChat] Base systemPrompt:', appConfig.systemPrompt?.slice(0, 100) + '...');
         try {
           const context = await collectPetContext();
           enrichedSystemPrompt = enrichSystemPrompt(appConfig.systemPrompt, context);
-          console.log('[useChat] Enriched systemPrompt:', enrichedSystemPrompt?.slice(0, 200) + '...');
         } catch (error) {
           console.warn('[useChat] Failed to collect context, using base prompt:', error);
           // Fall back to base prompt
         }
-        console.log('[useChat] Final systemPrompt length:', enrichedSystemPrompt?.length ?? 0);
 
         const result = await sessionRef.current.sendMessage({
           messages: historyMessages,

@@ -74,8 +74,6 @@ class PerformanceManager {
     // 从配置中读取初始模式
     const { config } = useConfigStore.getState();
     this.currentMode = config.performance.backgroundMode;
-
-    console.log('[PerformanceManager] Initialized with mode:', this.currentMode);
   }
 
   /**
@@ -123,7 +121,6 @@ class PerformanceManager {
       return;
     }
 
-    const previousMode = this.currentMode;
     this.currentMode = mode;
 
     const config = MODE_CONFIGS[mode];
@@ -137,10 +134,6 @@ class PerformanceManager {
     if (this.callbacks.onModeChange) {
       this.callbacks.onModeChange(mode);
     }
-
-    console.log(
-      `[PerformanceManager] Mode changed: ${previousMode} -> ${mode} (fps: ${config.fps})`
-    );
   }
 
   /**

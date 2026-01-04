@@ -30,7 +30,7 @@ export function PetProfileCard({
     return getCurrentSkin();
   }, [currentSkinId, getCurrentSkin]);
 
-  const avatarUrl = currentSkin?.avatarImage || currentSkin?.previewImage || '/models/default/texture_00.png';
+  const avatarUrl = currentSkin?.avatarImage || currentSkin?.previewImage || './models/default/texture_00.png';
 
   return (
     <div className="w-1/3 flex flex-col gap-4 max-w-sm">

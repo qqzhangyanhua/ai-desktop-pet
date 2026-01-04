@@ -30,8 +30,6 @@ export function useAgentListener() {
 
     // 监听智能体执行完成事件
     const handleAgentComplete = (result: AgentResult) => {
-      console.log('[AgentListener] Agent completed:', result);
-
       // 显示消息气泡
       if (result.message) {
         const duration = Math.min(result.message.length * 100, 10000);
@@ -89,7 +87,6 @@ export function useAgentListener() {
         case 'trigger_agent':
           if (action.payload) {
             const { agentId, reason } = action.payload as { agentId: string; reason?: string };
-            console.log(`[AgentListener] Triggering agent ${agentId}`, reason);
             // 触发其他智能体
             triggerManager.emitEvent('agent_trigger', { agentId, reason });
           }
@@ -122,13 +119,10 @@ export function useAgentListener() {
     window.addEventListener('agent-complete', handleAgentCompleteEvent);
     window.addEventListener('agent-error', handleAgentErrorEvent);
 
-    console.log('[AgentListener] Event listeners registered');
-
     // 清理
     return () => {
       window.removeEventListener('agent-complete', handleAgentCompleteEvent);
       window.removeEventListener('agent-error', handleAgentErrorEvent);
-      console.log('[AgentListener] Event listeners removed');
     };
   }, [globalEnabled, showBubble, setEmotion, setSpeakingTemporary, config.voice.ttsEnabled]);
 }

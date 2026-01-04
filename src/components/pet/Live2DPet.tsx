@@ -6,6 +6,7 @@ import { usePetStore } from '../../stores';
 import type { Live2DModelConfig } from '../../types';
 
 // Default model configuration - local models for better performance
+// 注意：Live2D 模型需要使用绝对路径（不带 ./）
 const DEFAULT_MODELS: Live2DModelConfig[] = [
   {
     name: 'white-cat',

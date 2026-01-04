@@ -85,10 +85,6 @@ export function usePetStatus() {
     // Update emotion if it should change
     if (shouldUpdateEmotion(currentEmotion, newEmotion)) {
       setEmotion(newEmotion);
-      console.log(
-        `[usePetStatus] Emotion updated: ${currentEmotion} → ${newEmotion} ` +
-          `(mood: ${status.mood.toFixed(1)}, energy: ${status.energy.toFixed(1)})`
-      );
     }
 
     // Track intimacy for future comparisons

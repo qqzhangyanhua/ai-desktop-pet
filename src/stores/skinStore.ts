@@ -4,13 +4,14 @@ import { create } from 'zustand';
 import type { SkinMeta } from '../types';
 
 // Default built-in skins
+// 注意：图片使用相对路径 ./ 可以工作，但 Live2D 模型需要绝对路径 /
 const DEFAULT_SKINS: SkinMeta[] = [
   {
     id: 'white-cat',
     name: 'White Cat',
     path: '/whitecatfree_vts/white-cat.model3.json',
-    previewImage: '/whitecatfree_vts/white-cat.2048/preview.png',
-    avatarImage: '/whitecatfree_vts/white-cat.2048/avatar.png',
+    previewImage: './whitecatfree_vts/white-cat.2048/preview.png',
+    avatarImage: './whitecatfree_vts/white-cat.2048/avatar.png',
     isBuiltin: true,
     createdAt: Date.now(),
   },
@@ -18,7 +19,7 @@ const DEFAULT_SKINS: SkinMeta[] = [
     id: 'shizuku',
     name: 'Shizuku',
     path: '/models/shizuku/shizuku.model.json',
-    previewImage: '/models/shizuku/preview.png',
+    previewImage: './models/shizuku/preview.png',
     isBuiltin: true,
     createdAt: Date.now(),
   },
@@ -26,7 +27,7 @@ const DEFAULT_SKINS: SkinMeta[] = [
     id: 'haru',
     name: 'Haru',
     path: '/models/haru/haru.model.json',
-    previewImage: '/models/haru/preview.png',
+    previewImage: './models/haru/preview.png',
     isBuiltin: true,
     createdAt: Date.now(),
   },

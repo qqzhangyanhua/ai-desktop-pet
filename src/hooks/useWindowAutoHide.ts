@@ -229,7 +229,6 @@ export function useWindowAutoHide(options: UseWindowAutoHideOptions = {}) {
     // Delayed initialization to avoid conflicts with app startup
     const initTimer = setTimeout(() => {
       isInitialized = true;
-      console.log('[useWindowAutoHide] Initialized, auto-hide enabled');
     }, 2000); // 延迟 2 秒初始化，避免与应用启动冲突
 
     return () => {

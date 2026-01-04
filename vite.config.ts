@@ -57,6 +57,7 @@ export default defineConfig(async () => ({
         main: path.resolve(__dirname, 'index.html'),
         settings: path.resolve(__dirname, 'settings.html'),
         chat: path.resolve(__dirname, 'chat.html'),
+        'debug-paths': path.resolve(__dirname, 'debug-paths.html'),
       },
       output: {
         // Manual chunk splitting for better caching

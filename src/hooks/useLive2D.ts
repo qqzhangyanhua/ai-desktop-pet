@@ -64,7 +64,6 @@ export function useLive2D(options: UseLive2DOptions): UseLive2DReturn {
 
   // 订阅全局状态变化
   useEffect(() => {
-    console.log('[useLive2D] Setting up global state subscription');
     mountedRef.current = true;
 
     // 检查当前状态
@@ -82,10 +81,8 @@ export function useLive2D(options: UseLive2DOptions): UseLive2DReturn {
 
     // 订阅加载完成事件
     const unsubscribe = subscribeToLoadState(() => {
-      console.log('[useLive2D] Received load state change notification');
       if (mountedRef.current) {
         const newState = getLive2DState();
-        console.log('[useLive2D] New state:', newState);
         setIsReady(!!newState.instance);
         setState(prev => ({
           ...prev,
@@ -96,7 +93,6 @@ export function useLive2D(options: UseLive2DOptions): UseLive2DReturn {
     });
 
     return () => {
-      console.log('[useLive2D] Component unmounting, cleaning up subscription');
       mountedRef.current = false;
       unsubscribe();
     };
@@ -108,7 +104,6 @@ export function useLive2D(options: UseLive2DOptions): UseLive2DReturn {
 
     const checkInterval = setInterval(() => {
       if (isLive2DLoaded() && mountedRef.current) {
-        console.log('[useLive2D] Polling detected loaded state');
         setState(prev => ({
           ...prev,
           isLoaded: true,
@@ -123,7 +118,6 @@ export function useLive2D(options: UseLive2DOptions): UseLive2DReturn {
 
   // init 现在是空操作，因为初始化在 main.tsx 中完成
   const init = useCallback(async () => {
-    console.log('[useLive2D] init() called - using global initializer');
     // 全局初始化已经在 main.tsx 中启动
     // 这里只需要等待它完成
     const currentState = getLive2DState();
@@ -189,7 +183,6 @@ export function useLive2D(options: UseLive2DOptions): UseLive2DReturn {
   }, []);
 
   const triggerEmotion = useCallback((emotion: EmotionType) => {
-    console.log('[useLive2D] Triggering emotion:', emotion);
     // 情绪变化仅记录日志，不再显示emoji
     // 原因：emoji会通过tipsMessage显示，与bubbleText冲突
     // 未来可以在这里触发Live2D模型的表情动作

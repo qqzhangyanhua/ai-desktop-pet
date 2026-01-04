@@ -177,7 +177,7 @@ async function executeWeather(params: Record<string, unknown>): Promise<Executio
 
   try {
     const weatherTool = new WeatherTool();
-    const result = await weatherTool.execute({ location });
+    const result = await weatherTool.execute({ location }) as { success: boolean; data?: Record<string, unknown>; error?: string };
 
     if (!result.success || !result.data) {
       return {
@@ -187,7 +187,7 @@ async function executeWeather(params: Record<string, unknown>): Promise<Executio
       };
     }
 
-    const weather = result.data;
+    const weather = result.data as Record<string, unknown>;
     const message = `${weather.location}天气：${weather.condition}，温度 ${weather.temperature}°C`;
 
     return {
@@ -220,7 +220,7 @@ async function executeSearch(params: Record<string, unknown>): Promise<Execution
 
   try {
     const searchTool = new WebSearchTool();
-    const result = await searchTool.execute({ query });
+    const result = await searchTool.execute({ query }) as { success: boolean; data?: Record<string, unknown>; error?: string };
 
     if (!result.success || !result.data) {
       return {
@@ -230,10 +230,10 @@ async function executeSearch(params: Record<string, unknown>): Promise<Execution
       };
     }
 
-    const searchResult = result.data;
+    const searchResult = result.data as { results: Array<{ title: string; snippet: string }> };
     const topResults = searchResult.results.slice(0, 3);
     const message = `搜索"${query}"的结果：\n\n${topResults
-      .map((r, i) => `${i + 1}. ${r.title}\n${r.snippet}`)
+      .map((r: { title: string; snippet: string }, i: number) => `${i + 1}. ${r.title}\n${r.snippet}`)
       .join('\n\n')}`;
 
     return {
@@ -380,7 +380,7 @@ async function executeBookmarkSearch(params: Record<string, unknown>): Promise<E
 
     // 如果是"列出全部"意图（query为空且showAll为true）
     if (showAll && !query) {
-      const result = await bookmarkTool.execute({ query: '', limit: 50 });
+      const result = await bookmarkTool.execute({ query: '', limit: 50 }) as { success: boolean; data?: Record<string, unknown>; error?: string };
 
       if (!result.success || !result.data) {
         // 提供更清晰的错误消息
@@ -392,7 +392,7 @@ async function executeBookmarkSearch(params: Record<string, unknown>): Promise<E
         };
       }
 
-      const { results, count } = result.data;
+      const { results, count } = result.data as { results: Array<{ url: string; title: string }>; count: number };
 
       if (count === 0) {
         return {
@@ -404,7 +404,7 @@ async function executeBookmarkSearch(params: Record<string, unknown>): Promise<E
 
       // 分析书签，提供智能建议
       const domains = new Map<string, number>();
-      results.forEach(r => {
+      results.forEach((r: { url: string; title: string }) => {
         try {
           const url = new URL(r.url);
           const domain = url.hostname.replace(/^www\./, '');
@@ -450,7 +450,7 @@ async function executeBookmarkSearch(params: Record<string, unknown>): Promise<E
       };
     }
 
-    const result = await bookmarkTool.execute({ query });
+    const result = await bookmarkTool.execute({ query }) as { success: boolean; data?: Record<string, unknown>; error?: string };
 
     if (!result.success || !result.data) {
       // 提供更清晰的错误消息
@@ -462,7 +462,7 @@ async function executeBookmarkSearch(params: Record<string, unknown>): Promise<E
       };
     }
 
-    const { results, count } = result.data;
+    const { results, count } = result.data as { results: Array<{ url: string; title: string }>; count: number };
 
     if (count === 0) {
       // 使用LLM优化查询
@@ -505,7 +505,7 @@ async function executeBookmarkSearch(params: Record<string, unknown>): Promise<E
     const hasMore = count > displayLimit;
 
     const message = `找到 ${count} 个相关书签：\n\n${displayResults
-      .map((r, i) => `${i + 1}. ${r.title}\n${r.url}`)
+      .map((r: { title: string; url: string }, i: number) => `${i + 1}. ${r.title}\n${r.url}`)
       .join('\n\n')}${hasMore ? `\n\n还有 ${count - displayLimit} 个结果未显示` : ''}`;
 
     return {

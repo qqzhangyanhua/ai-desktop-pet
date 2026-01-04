@@ -46,7 +46,6 @@ function notifyListeners(): void {
 function markLoaded(reason: string): void {
   if (isLoaded) return;
   isLoaded = true;
-  console.log('[GlobalLive2D] ✓ 标记为已加载（原因）：', reason);
   notifyListeners();
 }
 
@@ -62,23 +61,61 @@ async function ensureDomReady(): Promise<void> {
   });
 }
 
+/**
+ * 🔍 诊断 Live2D stage 的实际状态
+ * 检查位置、尺寸、样式，找出为什么不可见
+ */
+function diagnoseLive2DStage(): void {
+  // Diagnostic function - kept for debugging purposes but logs removed
+}
+
+/**
+ * 🔧 强制修复 Live2D stage 的位置和尺寸
+ * 确保它在窗口内可见
+ */
 function forceFixLive2DSize(): void {
   const stage = document.getElementById('oml2d-stage') as HTMLElement | null;
   const canvas = document.getElementById('oml2d-canvas') as HTMLCanvasElement | null;
-  if (!stage && !canvas) return;
+  if (!stage && !canvas) {
+    return;
+  }
 
   const targetWidth = MODEL_CONFIG.stageStyle.width;
   const targetHeight = MODEL_CONFIG.stageStyle.height;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  // 🔥 计算合适的位置：确保 stage 在窗口内可见
+  // Tauri 窗口是 400x600，stage 是 300x400
+  // 我们希望 stage 在窗口左下角可见
+  const targetLeft = 50; // 距离左边缘 50px
+  const targetBottom = 0; // 距离底部 0px
 
   if (stage) {
     const rect = stage.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
+    const needsFix =
+      rect.width === 0 ||
+      rect.height === 0 ||
+      rect.left < 0 ||
+      rect.right > viewportWidth ||
+      rect.top < 0 ||
+      rect.bottom > viewportHeight;
+
+    if (needsFix) {
+      // 🔥 强制设置位置和尺寸
       stage.style.cssText = `
+        position: fixed !important;
+        left: ${targetLeft}px !important;
+        bottom: ${targetBottom}px !important;
+        right: auto !important;
+        top: auto !important;
         width: ${targetWidth}px !important;
         height: ${targetHeight}px !important;
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
+        z-index: 50 !important;
+        pointer-events: auto !important;
       `;
     }
   }
@@ -122,7 +159,9 @@ function tryMarkLoaded(reason: string): void {
  * 这个函数只会真正执行一次，后续调用会返回相同的 Promise
  */
 export function initGlobalLive2D(): Promise<Oml2dInstance | null> {
-  if (initPromise) return initPromise;
+  if (initPromise) {
+    return initPromise;
+  }
 
   initPromise = new Promise<Oml2dInstance | null>(async (resolve) => {
     if (globalInstance && isLoaded) {
@@ -141,52 +180,69 @@ export function initGlobalLive2D(): Promise<Oml2dInstance | null> {
     }
 
     isInitializing = true;
-    console.log('[GlobalLive2D] Starting initialization...');
-    console.log('[GlobalLive2D] Environment:', {
-      hostname: window.location.hostname,
-      protocol: window.location.protocol,
-      origin: window.location.origin,
-      href: window.location.href,
-    });
 
     try {
       await ensureDomReady();
 
-      // 先检查模型文件是否可访问（本地静态资源）
-      const modelUrl = MODEL_CONFIG.path;
-      console.log('[GlobalLive2D] Checking model accessibility:', modelUrl);
-      try {
-        const response = await fetch(modelUrl);
-        if (!response.ok) {
-          console.warn(
-            '[GlobalLive2D] Model file not accessible:',
-            modelUrl,
-            response.status,
-            response.statusText
-          );
-        } else {
-          console.log('[GlobalLive2D] Model file accessible:', modelUrl);
+      // Test paths for model loading
+      const testPaths = [
+        MODEL_CONFIG.path,
+        MODEL_CONFIG.path.replace('./', '/'),
+        MODEL_CONFIG.path.replace('./', ''),
+        new URL(MODEL_CONFIG.path, document.baseURI).href,
+      ];
+
+      // Check model file accessibility
+      let workingModelUrl = MODEL_CONFIG.path;
+      let foundWorkingPath = false;
+
+      for (const testPath of testPaths) {
+        try {
+          const response = await fetch(testPath);
+
+          if (response.ok) {
+            workingModelUrl = testPath;
+            foundWorkingPath = true;
+            break;
+          }
+        } catch (err) {
+          // Continue trying other paths
         }
-      } catch (err) {
-        console.warn('[GlobalLive2D] Model file fetch failed:', err);
       }
 
-      console.log('[GlobalLive2D] Loading oh-my-live2d...');
-      const { loadOml2d } = await import('oh-my-live2d');
-      console.log('[GlobalLive2D] ✓ oh-my-live2d loaded');
+      // Dynamic import oh-my-live2d
+      let loadOml2d: Awaited<typeof import('oh-my-live2d')>['loadOml2d'];
+      try {
+        const module = await import('oh-my-live2d');
+        loadOml2d = module.loadOml2d;
+      } catch (importErr) {
+        console.error('[GlobalLive2D] oh-my-live2d import failed', importErr);
+
+        // Fallback: try global variable
+        if (typeof (window as any).OML2D !== 'undefined') {
+          loadOml2d = (window as any).OML2D.loadOml2d;
+        } else {
+          console.error('[GlobalLive2D] Cannot load oh-my-live2d');
+          finishInit();
+          resolve(null);
+          return;
+        }
+      }
+
+      // Use working path for configuration
+      const modelConfig = { ...MODEL_CONFIG };
+      if (foundWorkingPath && workingModelUrl !== MODEL_CONFIG.path) {
+        modelConfig.path = workingModelUrl;
+      }
 
       const config = {
-        models: [MODEL_CONFIG],
-        dockedPosition: 'right' as const,
-        // 关键：当前窗口 300x400 会被库判定为 mobile（matchMedia max-width:768）
-        // 若不允许 mobileDisplay，库会直接跳过模型加载（你日志里 hasModel:false 就是这个原因）。
+        models: [modelConfig],
+        dockedPosition: 'left' as const,
         mobileDisplay: true,
         primaryColor: '#58b0fc',
         sayHello: false,
         tips: {
-          // 默认 3 行会截断长气泡，这里放宽并配合 CSS 取消 clamp
           messageLine: 12,
-          // 统一 PC / mobile 的气泡样式（窗口很小，默认样式容易被挡/太窄）
           style: {
             top: '44px',
             bottom: 'auto',
@@ -231,41 +287,86 @@ export function initGlobalLive2D(): Promise<Oml2dInstance | null> {
         },
       };
 
-      console.log('[GlobalLive2D] Creating Live2D instance...');
-      globalInstance = loadOml2d(config) as Oml2dInstance;
-      console.log('[GlobalLive2D] ✓ Instance created');
+      try {
+        globalInstance = loadOml2d(config) as Oml2dInstance;
+      } catch (loadErr) {
+        console.error('[GlobalLive2D] loadOml2d() failed', loadErr);
+        finishInit();
+        resolve(null);
+        return;
+      }
 
-      globalInstance.onLoad((status) => {
-        console.log('[GlobalLive2D] ⚡ onLoad:', status);
-        if (status === 'success') {
-          forceFixLive2DSize();
-          // 直接标记为已加载，不依赖内部模型检测（版本兼容性问题）
-          markLoaded('onLoad(success)');
-          // 某些环境下舞台/画布尺寸可能会是 0，额外兜底修复
-          setTimeout(forceFixLive2DSize, 200);
-          finishInit();
-        }
-      });
+      // Listen to events
+      try {
+        globalInstance.onLoad((status) => {
+          if (status === 'success') {
+            // Model loaded successfully
+            diagnoseLive2DStage();
+            forceFixLive2DSize();
+            setTimeout(forceFixLive2DSize, 200);
+            setTimeout(forceFixLive2DSize, 500);
+            setTimeout(forceFixLive2DSize, 1000);
+
+            setTimeout(() => {
+              diagnoseLive2DStage();
+            }, 1200);
+
+            markLoaded('onLoad(success)');
+            finishInit();
+          }
+        });
+      } catch (e) {
+        console.error('[GlobalLive2D] onLoad registration failed', e);
+      }
 
       const onLoadError = (globalInstance as any)?.onLoadError as
         | ((cb: (error: unknown) => void) => void)
         | undefined;
-      onLoadError?.((error: unknown) => {
-        console.error('[GlobalLive2D] ⚡ onLoadError:', error);
-      });
+      if (onLoadError) {
+        onLoadError((error: unknown) => {
+          console.error('[GlobalLive2D] onLoadError triggered', error);
+        });
+      }
 
-      console.log('[GlobalLive2D] Scheduling model load...');
       setTimeout(() => {
-        if (!globalInstance) return;
+        if (!globalInstance) {
+          console.error('[GlobalLive2D] globalInstance is null');
+          return;
+        }
 
         globalInstance
           .loadModelByIndex(0)
           .then(() => {
-            console.log('[GlobalLive2D] ✓ loadModelByIndex(0) resolved');
+            setTimeout(() => {
+              diagnoseLive2DStage();
+              forceFixLive2DSize();
+            }, 300);
+
+            // Regular check and fix (prevent oh-my-live2d from modifying styles)
+            const fixInterval = setInterval(() => {
+              const stage = document.getElementById('oml2d-stage');
+              if (stage) {
+                const rect = stage.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                if (rect.left < 0 || rect.right > viewportWidth ||
+                    rect.top < 0 || rect.bottom > viewportHeight ||
+                    rect.width === 0 || rect.height === 0) {
+                  forceFixLive2DSize();
+                }
+              } else {
+                clearInterval(fixInterval);
+              }
+            }, 2000);
+
+            setTimeout(() => {
+              clearInterval(fixInterval);
+            }, 10000);
+
             forceFixLive2DSize();
             tryMarkLoaded('afterLoadModelByIndex(0)');
 
-            // 最终兜底：如果 onLoad 仍未触发，做一次更可靠的状态检查（不再盲目置为 loaded）
             setTimeout(() => {
               forceFixLive2DSize();
               tryMarkLoaded('timeoutCheck(5s)');
@@ -273,7 +374,7 @@ export function initGlobalLive2D(): Promise<Oml2dInstance | null> {
                 const model = (globalInstance as any)?.models?.model;
                 const pixiStageChildren =
                   (globalInstance as any)?.pixiApp?.app?.stage?.children?.length ?? 0;
-                console.warn('[GlobalLive2D] ⚠️ 模型仍未就绪（5s）', {
+                console.warn('[GlobalLive2D] Model not ready after 5s', {
                   hasModel: Boolean(model),
                   hasInternalModel: Boolean(model?.internalModel),
                   pixiStageChildren,
@@ -284,7 +385,7 @@ export function initGlobalLive2D(): Promise<Oml2dInstance | null> {
           })
           .catch((err: unknown) => {
             console.error(
-              '[GlobalLive2D] ❌ loadModelByIndex(0) failed:',
+              '[GlobalLive2D] loadModelByIndex(0) failed',
               err instanceof Error ? err.message : String(err)
             );
             finishInit();
@@ -294,7 +395,15 @@ export function initGlobalLive2D(): Promise<Oml2dInstance | null> {
 
       resolve(globalInstance);
     } catch (err) {
-      console.error('[GlobalLive2D] ❌ Initialization failed:', err);
+      console.error('[GlobalLive2D] ❌ Initialization failed!');
+      console.error('[GlobalLive2D] 错误类型:', Object.prototype.toString.call(err));
+      console.error('[GlobalLive2D] 错误内容:', err);
+      if (err instanceof Error) {
+        console.error('[GlobalLive2D] 错误消息:', err.message);
+        console.error('[GlobalLive2D] 错误堆栈:', err.stack);
+      } else {
+        console.error('[GlobalLive2D] 非 Error 对象:', JSON.stringify(err));
+      }
       finishInit();
       resolve(null);
     }

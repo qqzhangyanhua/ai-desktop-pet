@@ -118,8 +118,6 @@ class ShortcutManager {
    * @param shortcuts 快捷键配置 { openChat: "Cmd+Shift+C", openSettings: "Cmd+Shift+S" }
    */
   async registerShortcuts(shortcuts: Record<ShortcutAction, string>): Promise<void> {
-    console.log('[ShortcutManager] Registering shortcuts:', shortcuts);
-
     for (const [action, shortcut] of Object.entries(shortcuts)) {
       await this.registerShortcut(action as ShortcutAction, shortcut);
     }
@@ -151,7 +149,6 @@ class ShortcutManager {
       });
 
       this.registeredShortcuts.set(action, normalized);
-      console.log(`[ShortcutManager] Registered: ${action} -> ${normalized}`);
     } catch (error) {
       console.error(`[ShortcutManager] Failed to register ${action}:`, error);
     }
@@ -167,7 +164,6 @@ class ShortcutManager {
     try {
       await unregister(shortcut);
       this.registeredShortcuts.delete(action);
-      console.log(`[ShortcutManager] Unregistered: ${action}`);
     } catch (error) {
       console.error(`[ShortcutManager] Failed to unregister ${action}:`, error);
     }
@@ -201,8 +197,6 @@ class ShortcutManager {
    * 快捷键触发处理
    */
   async handleShortcutTrigger(action: ShortcutAction): Promise<void> {
-    console.log(`[ShortcutManager] Triggered: ${action}`);
-
     try {
       switch (action) {
         case 'openChat':

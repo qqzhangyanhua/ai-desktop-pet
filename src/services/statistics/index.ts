@@ -39,7 +39,6 @@ export async function recordInteraction(type: InteractionType | 'chat'): Promise
 
   try {
     await incrementDailyInteraction(today, type);
-    console.log(`[StatsService] Interaction recorded: ${type} on ${today}`);
   } catch (error) {
     console.error('[StatsService] Failed to record interaction:', error);
   }
@@ -195,8 +194,6 @@ export async function initializeStatsService(): Promise<void> {
         moodAvg: null,
         energyAvg: null,
       });
-
-      console.log(`[StatsService] Initialized stats for ${today}`);
     }
   } catch (error) {
     console.error('[StatsService] Failed to initialize:', error);
